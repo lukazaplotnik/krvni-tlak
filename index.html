@@ -1,0 +1,610 @@
+<!DOCTYPE html>
+<html lang="sl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="theme-color" content="#4A90D9">
+    <title>Krvni Tlak</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chartjs-adapter-date-fns@3.0.0/dist/chartjs-adapter-date-fns.bundle.min.js"></script>
+    <style>
+* { margin: 0; padding: 0; box-sizing: border-box; }
+
+:root {
+    --primary: #4A90D9;
+    --primary-dark: #357ABD;
+    --green: #27AE60;
+    --yellow: #F39C12;
+    --orange: #E67E22;
+    --red: #E74C3C;
+    --bg: #F5F6FA;
+    --card: #FFFFFF;
+    --text: #1A1A2E;
+    --text2: #6B7280;
+    --border: #E5E7EB;
+    --radius: 14px;
+    --shadow: 0 2px 8px rgba(0,0,0,0.06);
+}
+
+body {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    height: 100dvh;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+}
+
+.tabs {
+    display: flex;
+    background: var(--card);
+    border-bottom: 1px solid var(--border);
+    padding-top: env(safe-area-inset-top);
+}
+
+.tab {
+    flex: 1;
+    text-align: center;
+    padding: 16px;
+    text-decoration: none;
+    font-size: 15px;
+    font-weight: 600;
+    color: var(--text2);
+    border-bottom: 3px solid transparent;
+    transition: all 0.2s;
+    cursor: pointer;
+    background: none;
+    border-top: none; border-left: none; border-right: none;
+}
+
+.tab.active {
+    color: var(--primary);
+    border-bottom-color: var(--primary);
+}
+
+.page { flex: 1; overflow-y: auto; padding: 20px 16px; -webkit-overflow-scrolling: touch; display: none; }
+.page.active { display: block; }
+
+/* ENTRY */
+.entry-section {
+    background: var(--card);
+    border-radius: var(--radius);
+    padding: 24px 20px;
+    box-shadow: var(--shadow);
+    margin-bottom: 24px;
+}
+
+.input-row { display: flex; gap: 12px; margin-bottom: 20px; }
+
+.input-group {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 6px;
+}
+
+.input-group label {
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--text2);
+    text-transform: uppercase;
+    letter-spacing: 0.3px;
+}
+
+.input-group input {
+    width: 100%;
+    padding: 14px 8px;
+    border: 2px solid var(--border);
+    border-radius: 12px;
+    font-size: 28px;
+    font-weight: 700;
+    text-align: center;
+    color: var(--text);
+    outline: none;
+    transition: border-color 0.2s;
+    -moz-appearance: textfield;
+}
+
+.input-group input::-webkit-inner-spin-button,
+.input-group input::-webkit-outer-spin-button { -webkit-appearance: none; }
+.input-group input::placeholder { color: #D0D5DD; font-weight: 500; }
+.input-group input:focus { border-color: var(--primary); }
+.input-group .unit { font-size: 11px; color: var(--text2); }
+
+.save-btn {
+    width: 100%;
+    padding: 16px;
+    background: var(--primary);
+    color: white;
+    border: none;
+    border-radius: 12px;
+    font-size: 17px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.save-btn:hover { background: var(--primary-dark); }
+.save-btn:active { transform: scale(0.98); }
+.save-btn.saved { background: var(--green); pointer-events: none; }
+
+.feedback { text-align: center; margin-top: 12px; font-size: 14px; font-weight: 500; min-height: 20px; }
+.feedback.good { color: var(--green); }
+.feedback.caution { color: var(--yellow); }
+.feedback.warning { color: var(--orange); }
+.feedback.danger { color: var(--red); }
+
+/* HISTORY */
+.history-section h2 { font-size: 15px; color: var(--text2); margin-bottom: 12px; padding-left: 4px; }
+
+.history-item {
+    background: var(--card);
+    border-radius: 12px;
+    margin-bottom: 8px;
+    box-shadow: var(--shadow);
+    overflow: hidden;
+    position: relative;
+}
+
+.history-item .item-content {
+    padding: 14px 16px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    position: relative;
+    z-index: 1;
+    background: var(--card);
+}
+
+.history-item .left { display: flex; flex-direction: column; gap: 3px; }
+.history-item .values { font-size: 20px; font-weight: 700; }
+.history-item .pulse-val { font-size: 13px; color: var(--text2); font-weight: 400; }
+.history-item .meta { text-align: right; display: flex; align-items: center; gap: 10px; }
+.history-item .time { font-size: 12px; color: var(--text2); }
+
+.history-item .badge {
+    display: inline-block;
+    padding: 2px 10px;
+    border-radius: 20px;
+    font-size: 11px;
+    font-weight: 600;
+}
+
+.badge.good { background: #D4EDDA; color: #155724; }
+.badge.caution { background: #FFF3CD; color: #856404; }
+.badge.warning { background: #FFE0CC; color: #CC4400; }
+.badge.danger { background: #F8D7DA; color: #721C24; }
+
+.delete-btn {
+    background: none;
+    border: none;
+    color: #E8918A;
+    font-size: 16px;
+    cursor: pointer;
+    width: 34px;
+    height: 34px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.2s;
+    flex-shrink: 0;
+}
+
+.delete-btn:hover, .delete-btn:active { background: #FEE2E2; color: var(--red); }
+.history-item.confirm-delete .item-content { opacity: 0.3; }
+
+.history-item .confirm-bar {
+    display: none;
+    position: absolute;
+    inset: 0;
+    z-index: 2;
+    align-items: center;
+    justify-content: center;
+    gap: 12px;
+    background: rgba(255,255,255,0.95);
+}
+
+.history-item.confirm-delete .confirm-bar { display: flex; }
+.confirm-bar span { font-size: 14px; color: var(--text2); }
+
+.confirm-bar button {
+    padding: 8px 20px;
+    border: none;
+    border-radius: 8px;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.15s;
+}
+
+.confirm-bar .confirm-yes { background: var(--red); color: white; }
+.confirm-bar .confirm-yes:active { transform: scale(0.95); }
+.confirm-bar .confirm-no { background: var(--border); color: var(--text); }
+.confirm-bar .confirm-no:active { transform: scale(0.95); }
+
+.empty-msg { text-align: center; color: var(--text2); padding: 40px 20px; font-size: 14px; }
+
+/* DASHBOARD */
+.avg-bar {
+    background: var(--card);
+    border-radius: var(--radius);
+    padding: 18px 20px;
+    box-shadow: var(--shadow);
+    margin-bottom: 20px;
+    display: flex;
+    gap: 16px;
+    align-items: center;
+}
+
+.avg-bar .avg-icon {
+    width: 42px;
+    height: 42px;
+    border-radius: 12px;
+    background: linear-gradient(135deg, #EBF2FC, #D6E6F9);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 20px;
+    flex-shrink: 0;
+}
+
+.avg-bar .avg-details { flex: 1; display: flex; flex-direction: column; gap: 2px; }
+.avg-label { font-size: 12px; color: var(--text2); font-weight: 500; }
+.avg-value { font-size: 20px; font-weight: 700; color: var(--text); letter-spacing: -0.3px; }
+.avg-value .avg-pulse { font-size: 14px; font-weight: 500; color: var(--text2); margin-left: 4px; }
+
+.avg-bar .avg-count { font-size: 12px; color: var(--text2); text-align: right; flex-shrink: 0; line-height: 1.4; }
+.avg-bar .avg-count strong { font-size: 20px; font-weight: 700; color: var(--text); display: block; }
+
+.chart-card {
+    background: var(--card);
+    border-radius: var(--radius);
+    padding: 16px;
+    box-shadow: var(--shadow);
+    margin-bottom: 16px;
+}
+
+.chart-card h3 { font-size: 14px; margin-bottom: 12px; color: var(--text); }
+.chart-card canvas { width: 100% !important; height: 200px !important; }
+
+.filter-bar { display: flex; gap: 8px; margin-bottom: 16px; }
+
+.filter-btn {
+    flex: 1;
+    padding: 10px;
+    border: 2px solid var(--border);
+    border-radius: 10px;
+    background: white;
+    color: var(--text);
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s;
+    text-align: center;
+}
+
+.filter-btn.active { background: var(--primary); color: white; border-color: var(--primary); }
+    </style>
+</head>
+<body>
+    <div class="tabs">
+        <button class="tab active" onclick="showTab('entry')">Vnos</button>
+        <button class="tab" onclick="showTab('dashboard')">Pregled</button>
+    </div>
+
+    <!-- ENTRY PAGE -->
+    <div class="page active" id="pageEntry">
+        <div class="entry-section">
+            <div class="input-row">
+                <div class="input-group">
+                    <label>Sistolicni</label>
+                    <input type="number" id="systolic" placeholder="120" inputmode="numeric">
+                    <span class="unit">mmHg</span>
+                </div>
+                <div class="input-group">
+                    <label>Diastolicni</label>
+                    <input type="number" id="diastolic" placeholder="80" inputmode="numeric">
+                    <span class="unit">mmHg</span>
+                </div>
+                <div class="input-group">
+                    <label>Pulz</label>
+                    <input type="number" id="pulse" placeholder="72" inputmode="numeric">
+                    <span class="unit">u/min</span>
+                </div>
+            </div>
+            <button class="save-btn" id="saveBtn" onclick="saveEntry()">Shrani</button>
+            <div class="feedback" id="feedback"></div>
+        </div>
+        <div class="history-section">
+            <h2>Zadnje meritve</h2>
+            <div id="historyList"></div>
+        </div>
+    </div>
+
+    <!-- DASHBOARD PAGE -->
+    <div class="page" id="pageDashboard">
+        <div class="filter-bar">
+            <button class="filter-btn" data-days="7" onclick="setFilter(7)">7 dni</button>
+            <button class="filter-btn active" data-days="30" onclick="setFilter(30)">30 dni</button>
+            <button class="filter-btn" data-days="90" onclick="setFilter(90)">90 dni</button>
+            <button class="filter-btn" data-days="0" onclick="setFilter(0)">Vse</button>
+        </div>
+        <div id="content"></div>
+    </div>
+
+<script>
+// ===== STORE =====
+const Store = {
+    _get(key) { try { return JSON.parse(localStorage.getItem(key)) || []; } catch { return []; } },
+    _set(key, data) { localStorage.setItem(key, JSON.stringify(data)); },
+
+    saveReading(systolic, diastolic, pulse) {
+        const readings = this._get('readings');
+        readings.push({ systolic, diastolic, pulse: pulse || null, measured_at: new Date().toISOString() });
+        this._set('readings', readings);
+    },
+    getReadings(days) {
+        const readings = this._get('readings');
+        if (!days) return readings;
+        const since = new Date(); since.setDate(since.getDate() - days);
+        return readings.filter(r => new Date(r.measured_at) >= since);
+    },
+    getLastReadings(count) { return this._get('readings').slice(-count); },
+    deleteReading(index) {
+        const readings = this._get('readings');
+        readings.splice(index, 1);
+        this._set('readings', readings);
+    },
+    getStats(days) {
+        const readings = this.getReadings(days);
+        if (!readings.length) return { count: 0 };
+        const sum = (arr, fn) => arr.reduce((a, r) => a + fn(r), 0);
+        const pr = readings.filter(r => r.pulse);
+        return {
+            count: readings.length,
+            avg_systolic: sum(readings, r => r.systolic) / readings.length,
+            avg_diastolic: sum(readings, r => r.diastolic) / readings.length,
+            avg_pulse: pr.length ? sum(pr, r => r.pulse) / pr.length : null,
+            min_systolic: Math.min(...readings.map(r => r.systolic)),
+            max_systolic: Math.max(...readings.map(r => r.systolic)),
+            min_diastolic: Math.min(...readings.map(r => r.diastolic)),
+            max_diastolic: Math.max(...readings.map(r => r.diastolic)),
+        };
+    }
+};
+
+// ===== TABS =====
+function showTab(tab) {
+    document.querySelectorAll('.tab').forEach((t, i) => {
+        t.classList.toggle('active', (tab === 'entry' && i === 0) || (tab === 'dashboard' && i === 1));
+    });
+    document.getElementById('pageEntry').classList.toggle('active', tab === 'entry');
+    document.getElementById('pageDashboard').classList.toggle('active', tab === 'dashboard');
+    if (tab === 'dashboard') loadDashboard();
+    if (tab === 'entry') renderHistory();
+}
+
+// ===== ENTRY =====
+function classifyBP(s, d) {
+    if (s > 180 || d > 120) return { label: 'Kriza', cls: 'danger' };
+    if (s >= 140 || d >= 90) return { label: 'Visok', cls: 'warning' };
+    if (s >= 130 || (d >= 80 && d <= 89)) return { label: 'Povisan', cls: 'caution' };
+    if (s >= 120 && d < 80) return { label: 'Povisan', cls: 'caution' };
+    return { label: 'Normalen', cls: 'good' };
+}
+
+function saveEntry() {
+    const s = parseInt(document.getElementById('systolic').value);
+    const d = parseInt(document.getElementById('diastolic').value);
+    const p = parseInt(document.getElementById('pulse').value) || null;
+    const fb = document.getElementById('feedback');
+    const btn = document.getElementById('saveBtn');
+
+    if (!s || !d) { fb.textContent = 'Vnesite vsaj sistolicni in diastolicni tlak'; fb.className = 'feedback warning'; return; }
+    if (s < 60 || s > 250) { fb.textContent = 'Sistolicni: 60\u2013250'; fb.className = 'feedback warning'; return; }
+    if (d < 30 || d > 150) { fb.textContent = 'Diastolicni: 30\u2013150'; fb.className = 'feedback warning'; return; }
+
+    Store.saveReading(s, d, p);
+    const bp = classifyBP(s, d);
+    fb.textContent = bp.label;
+    fb.className = 'feedback ' + bp.cls;
+    btn.textContent = 'Shranjeno!';
+    btn.classList.add('saved');
+
+    setTimeout(() => {
+        btn.textContent = 'Shrani';
+        btn.classList.remove('saved');
+        document.getElementById('systolic').value = '';
+        document.getElementById('diastolic').value = '';
+        document.getElementById('pulse').value = '';
+        fb.textContent = '';
+        fb.className = 'feedback';
+    }, 1500);
+    renderHistory();
+}
+
+function askDelete(index, el) {
+    document.querySelectorAll('.history-item.confirm-delete').forEach(item => item.classList.remove('confirm-delete'));
+    el.closest('.history-item').classList.add('confirm-delete');
+}
+
+function cancelDelete(el) { el.closest('.history-item').classList.remove('confirm-delete'); }
+
+function confirmDelete(index) { Store.deleteReading(index); renderHistory(); }
+
+function renderHistory() {
+    const list = document.getElementById('historyList');
+    const readings = Store.getLastReadings(10);
+    if (!readings.length) { list.innerHTML = '<div class="empty-msg">Se ni meritev</div>'; return; }
+
+    const allReadings = Store.getReadings();
+    const startIdx = allReadings.length - readings.length;
+
+    list.innerHTML = readings.reverse().map((r, i) => {
+        const actualIdx = startIdx + (readings.length - 1 - i);
+        const bp = classifyBP(r.systolic, r.diastolic);
+        const date = new Date(r.measured_at);
+        const time = date.toLocaleDateString('sl-SI', { day: 'numeric', month: 'short' })
+            + ' ' + date.toLocaleTimeString('sl-SI', { hour: '2-digit', minute: '2-digit' });
+        const pulse = r.pulse ? `<div class="pulse-val">Pulz: ${r.pulse} u/min</div>` : '';
+        return `
+            <div class="history-item">
+                <div class="item-content">
+                    <div class="left">
+                        <div class="values">${r.systolic}/${r.diastolic}</div>
+                        ${pulse}
+                    </div>
+                    <div class="meta">
+                        <div class="time">${time}</div>
+                        <span class="badge ${bp.cls}">${bp.label}</span>
+                        <button class="delete-btn" onclick="askDelete(${actualIdx}, this)" title="Izbrisi">&#128465;</button>
+                    </div>
+                </div>
+                <div class="confirm-bar">
+                    <span>Izbrisati?</span>
+                    <button class="confirm-yes" onclick="confirmDelete(${actualIdx})">Da</button>
+                    <button class="confirm-no" onclick="cancelDelete(this)">Ne</button>
+                </div>
+            </div>`;
+    }).join('');
+}
+
+// Auto-tab
+document.getElementById('systolic').addEventListener('input', function() {
+    if (this.value.length >= 3) document.getElementById('diastolic').focus();
+});
+document.getElementById('diastolic').addEventListener('input', function() {
+    if (this.value.length >= 3) document.getElementById('pulse').focus();
+});
+document.querySelectorAll('input').forEach(inp => {
+    inp.addEventListener('keydown', e => { if (e.key === 'Enter') saveEntry(); });
+});
+
+// ===== DASHBOARD =====
+let currentDays = 30;
+let bpChart = null;
+let pulseChart = null;
+
+function loadDashboard() {
+    const content = document.getElementById('content');
+    const readings = Store.getReadings(currentDays || null);
+    const stats = Store.getStats(currentDays || 99999);
+
+    if (!readings.length) {
+        content.innerHTML = '<div class="empty-msg">Se ni meritev za prikaz.<br>Pojdite na Vnos in vnesite meritev.</div>';
+        return;
+    }
+
+    const periodLabel = currentDays > 0 ? `zadnjih ${currentDays} dni` : 'celotno obdobje';
+    const pulseAvg = stats.avg_pulse ? `<span class="avg-pulse">\u00b7 ${Math.round(stats.avg_pulse)} u/min</span>` : '';
+
+    content.innerHTML = `
+        <div class="avg-bar">
+            <div class="avg-icon">\u2665</div>
+            <div class="avg-details">
+                <span class="avg-label">Povprecje (${periodLabel})</span>
+                <span class="avg-value">${Math.round(stats.avg_systolic)}/${Math.round(stats.avg_diastolic)} <span class="avg-pulse">mmHg</span> ${pulseAvg}</span>
+            </div>
+            <div class="avg-count">
+                <strong>${stats.count}</strong>
+                meritev
+            </div>
+        </div>
+        <div class="chart-card">
+            <h3>Krvni tlak skozi cas</h3>
+            <canvas id="bpChart"></canvas>
+        </div>
+        ${readings.some(r => r.pulse) ? `
+        <div class="chart-card">
+            <h3>Pulz skozi cas</h3>
+            <canvas id="pulseChart"></canvas>
+        </div>` : ''}
+    `;
+    renderBPChart(readings);
+    if (readings.some(r => r.pulse)) renderPulseChart(readings);
+}
+
+function renderBPChart(readings) {
+    const ctx = document.getElementById('bpChart');
+    if (!ctx) return;
+    if (bpChart) bpChart.destroy();
+    bpChart = new Chart(ctx, {
+        type: 'line',
+        data: {
+            datasets: [
+                {
+                    label: 'Sistolicni',
+                    data: readings.map(r => ({ x: new Date(r.measured_at), y: r.systolic })),
+                    borderColor: '#E74C3C', backgroundColor: 'rgba(231,76,60,0.1)',
+                    fill: true, tension: 0.3, pointRadius: 4, pointBackgroundColor: '#E74C3C',
+                },
+                {
+                    label: 'Diastolicni',
+                    data: readings.map(r => ({ x: new Date(r.measured_at), y: r.diastolic })),
+                    borderColor: '#4A90D9', backgroundColor: 'rgba(74,144,217,0.1)',
+                    fill: true, tension: 0.3, pointRadius: 4, pointBackgroundColor: '#4A90D9',
+                }
+            ]
+        },
+        options: {
+            responsive: true, maintainAspectRatio: false,
+            plugins: { legend: { position: 'bottom' } },
+            scales: {
+                y: { beginAtZero: false, min: 40, max: 200, grid: { color: 'rgba(0,0,0,0.05)' } },
+                x: {
+                    type: 'time',
+                    time: { tooltipFormat: 'd. MMM, HH:mm', displayFormats: { hour: 'HH:mm', day: 'd. MMM', week: 'd. MMM', month: 'MMM yyyy' } },
+                    grid: { display: false }, ticks: { maxTicksLimit: 8, font: { size: 11 } }
+                }
+            }
+        }
+    });
+}
+
+function renderPulseChart(readings) {
+    const ctx = document.getElementById('pulseChart');
+    if (!ctx) return;
+    const pr = readings.filter(r => r.pulse);
+    if (pulseChart) pulseChart.destroy();
+    pulseChart = new Chart(ctx, {
+        type: 'line',
+        data: {
+            datasets: [{
+                label: 'Pulz',
+                data: pr.map(r => ({ x: new Date(r.measured_at), y: r.pulse })),
+                borderColor: '#27AE60', backgroundColor: 'rgba(39,174,96,0.1)',
+                fill: true, tension: 0.3, pointRadius: 4, pointBackgroundColor: '#27AE60',
+            }]
+        },
+        options: {
+            responsive: true, maintainAspectRatio: false,
+            plugins: { legend: { position: 'bottom' } },
+            scales: {
+                y: { beginAtZero: false, min: 40, max: 160, grid: { color: 'rgba(0,0,0,0.05)' } },
+                x: {
+                    type: 'time',
+                    time: { tooltipFormat: 'd. MMM, HH:mm', displayFormats: { hour: 'HH:mm', day: 'd. MMM', week: 'd. MMM', month: 'MMM yyyy' } },
+                    grid: { display: false }, ticks: { maxTicksLimit: 8, font: { size: 11 } }
+                }
+            }
+        }
+    });
+}
+
+function setFilter(days) {
+    currentDays = days;
+    document.querySelectorAll('.filter-btn').forEach(btn => {
+        btn.classList.toggle('active', parseInt(btn.dataset.days) === days);
+    });
+    loadDashboard();
+}
+
+renderHistory();
+</script>
+</body>
+</html>
