@@ -750,14 +750,14 @@ function loadDashboard() {
         return;
     }
 
-    const periodLabel = currentDays > 0 ? `zadnjih ${currentDays} dni` : 'celotno obdobje';
+    const periodLabel = currentDays > 0 ? `${currentDays} dni` : 'vse';
     const pulseAvg = stats.avg_pulse ? `<span class="avg-pulse">\u00b7 ${Math.round(stats.avg_pulse)} u/min</span>` : '';
 
     content.innerHTML = `
         <div class="avg-bar">
             <div class="avg-icon">\u2665</div>
             <div class="avg-details">
-                <span class="avg-label">Povprecje (${periodLabel})</span>
+                <span class="avg-label">Povprecje</span>
                 <span class="avg-value">${Math.round(stats.avg_systolic)}/${Math.round(stats.avg_diastolic)} <span class="avg-pulse">mmHg</span> ${pulseAvg}</span>
             </div>
             <div class="avg-count">
