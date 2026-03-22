@@ -975,7 +975,7 @@ function renderZonesChart(readings) {
         options: {
             responsive: true, maintainAspectRatio: true,
             plugins: {
-                legend: { position: 'bottom' },
+                legend: { position: 'bottom', labels: { padding: 14, boxWidth: 14 } },
                 tooltip: {
                     callbacks: {
                         title: () => '',
