@@ -735,7 +735,7 @@ function destroyCharts() {
 const timeScale = {
     type: 'time',
     time: { tooltipFormat: 'd. MMM, HH:mm', unit: 'day', displayFormats: { day: 'd. MMM', week: 'd. MMM', month: 'MMM yyyy' } },
-    grid: { display: false }, ticks: { maxTicksLimit: 8, autoSkip: false }
+    grid: { color: 'rgba(0,0,0,0.03)' }, ticks: { maxTicksLimit: 8, autoSkip: false, font: { size: 10 } }
 };
 
 function loadDashboard() {
