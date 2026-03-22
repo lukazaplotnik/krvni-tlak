@@ -886,7 +886,7 @@ function renderMorningEveningChart(readings) {
             plugins: { legend: { position: 'bottom' }, datalabels: barDatalabels },
             layout: { padding: { top: 20 } },
             scales: {
-                y: { beginAtZero: false, min: 40, grid: { color: 'rgba(0,0,0,0.05)' } },
+                y: { beginAtZero: false, min: 40, max: 160, grid: { color: 'rgba(0,0,0,0.05)' } },
                 x: { grid: { display: false } }
             }
         }
@@ -1030,7 +1030,7 @@ function renderWeekdayChart(readings) {
                 plugins: { legend: { position: 'bottom' }, datalabels: barDatalabels },
                 layout: { padding: { top: 20 } },
                 scales: {
-                    y: { beginAtZero: false, min: 40, grid: { color: 'rgba(0,0,0,0.05)' } },
+                    y: { beginAtZero: false, min: 40, max: 160, grid: { color: 'rgba(0,0,0,0.05)' } },
                     x: { grid: { display: false } }
                 }
             }
