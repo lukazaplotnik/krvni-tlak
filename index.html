@@ -538,7 +538,7 @@ ChartDataLabels.defaults.display = false;
 Chart.register(ChartDataLabels);
 
 const barDatalabels = {
-    display: true,
+    display: (ctx) => ctx.dataset.data[ctx.dataIndex] > 0,
     anchor: 'end',
     align: 'end',
     font: { size: 10, weight: '600' },
