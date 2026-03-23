@@ -615,10 +615,11 @@ tbody tr:nth-child(3) td {
     <!-- LOGIN OVERLAY -->
     <div class="login-overlay" id="loginOverlay">
         <div class="login-box">
-            <img src="icon-192.png" class="login-logo" alt="BostAI">
+            <img src="icon-192.png" class="login-logo" alt="BostAI" onclick="devTaps()">
             <h2>BostAI</h2>
             <p>Vnesite email za prijavo</p>
             <input type="email" id="loginEmail" placeholder="email@primer.com" autocomplete="email">
+            <input type="password" id="loginPassword" placeholder="Geslo" autocomplete="current-password" class="hidden" style="width:100%;padding:14px;border:2px solid var(--border);border-radius:10px;font-size:15px;outline:none;margin-bottom:12px">
             <button class="login-btn" id="loginBtn" onclick="handleLogin()">Poslji povezavo</button>
             <div class="login-msg" id="loginMsg"></div>
         </div>
@@ -818,27 +819,55 @@ const Store = {
 };
 
 // ===== AUTH =====
+// Hidden dev login: tap logo 5 times
+let _devTaps = 0, _devTimer;
+function devTaps() {
+    _devTaps++;
+    clearTimeout(_devTimer);
+    _devTimer = setTimeout(() => _devTaps = 0, 2000);
+    if (_devTaps >= 5) {
+        _devTaps = 0;
+        document.getElementById('loginPassword').classList.remove('hidden');
+        document.getElementById('loginBtn').textContent = 'Prijava';
+    }
+}
+
 async function handleLogin() {
     const email = document.getElementById('loginEmail').value.trim();
+    const password = document.getElementById('loginPassword').value;
     const msg = document.getElementById('loginMsg');
     const btn = document.getElementById('loginBtn');
     if (!email) { msg.textContent = 'Vnesite email'; msg.className = 'login-msg error'; return; }
     btn.disabled = true;
-    btn.textContent = 'Posiljam...';
-    const { error } = await sb.auth.signInWithOtp({
-        email,
-        options: { emailRedirectTo: window.location.origin + window.location.pathname }
-    });
-    if (error) {
-        msg.textContent = 'Napaka: ' + error.message;
-        msg.className = 'login-msg error';
-        btn.disabled = false;
-        btn.textContent = 'Poslji povezavo';
+
+    if (password) {
+        // Password login (dev mode)
+        btn.textContent = 'Prijavljam...';
+        const { error } = await sb.auth.signInWithPassword({ email, password });
+        if (error) {
+            msg.textContent = 'Napaka: ' + error.message;
+            msg.className = 'login-msg error';
+            btn.disabled = false;
+            btn.textContent = 'Prijava';
+        }
     } else {
-        msg.textContent = 'Povezava poslana! Preverite email.';
-        msg.className = 'login-msg';
-        btn.textContent = 'Poslano!';
-        btn.classList.add('sent');
+        // Magic link login (normal)
+        btn.textContent = 'Posiljam...';
+        const { error } = await sb.auth.signInWithOtp({
+            email,
+            options: { emailRedirectTo: window.location.origin + window.location.pathname }
+        });
+        if (error) {
+            msg.textContent = 'Napaka: ' + error.message;
+            msg.className = 'login-msg error';
+            btn.disabled = false;
+            btn.textContent = 'Poslji povezavo';
+        } else {
+            msg.textContent = 'Povezava poslana! Preverite email.';
+            msg.className = 'login-msg';
+            btn.textContent = 'Poslano!';
+            btn.classList.add('sent');
+        }
     }
 }
 
