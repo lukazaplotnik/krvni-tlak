@@ -1,3 +1,3 @@
 // Fill in your Supabase credentials
-const SUPABASE_URL = 'YOUR_PROJECT_URL';
-const SUPABASE_KEY = 'YOUR_PUBLISHABLE_KEY';
+const SUPABASE_URL = 'https://wsszgmgczxbkslgkeouj.supabase.co';
+const SUPABASE_KEY = 'sb_publishable_nkMR7IQb5_oIlnZXkTM3Sw_2PJ0r8aB';
