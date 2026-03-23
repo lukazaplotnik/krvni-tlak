@@ -619,10 +619,8 @@ tbody tr:nth-child(3) td {
             <h2>BostAI</h2>
             <p>Vnesite email za prijavo</p>
             <input type="email" id="loginEmail" placeholder="email@primer.com" autocomplete="email">
-            <input type="password" id="loginPassword" placeholder="Geslo (samo za test)" autocomplete="current-password" style="width:100%;padding:14px;border:2px solid var(--border);border-radius:10px;font-size:15px;outline:none;margin-bottom:12px">
-            <button class="login-btn" id="loginBtn" onclick="handleLogin()">Prijava</button>
+            <button class="login-btn" id="loginBtn" onclick="handleLogin()">Poslji povezavo</button>
             <div class="login-msg" id="loginMsg"></div>
-            <div style="margin-top:12px"><button onclick="handleMagicLink()" style="background:none;border:none;color:var(--text2);font-size:12px;cursor:pointer;text-decoration:underline">Poslji magic link namesto</button></div>
         </div>
     </div>
 
@@ -822,25 +820,11 @@ const Store = {
 // ===== AUTH =====
 async function handleLogin() {
     const email = document.getElementById('loginEmail').value.trim();
-    const password = document.getElementById('loginPassword').value;
     const msg = document.getElementById('loginMsg');
     const btn = document.getElementById('loginBtn');
     if (!email) { msg.textContent = 'Vnesite email'; msg.className = 'login-msg error'; return; }
     btn.disabled = true;
-    btn.textContent = 'Prijavljam...';
-    const { error } = await sb.auth.signInWithPassword({ email, password });
-    if (error) {
-        msg.textContent = 'Napaka: ' + error.message;
-        msg.className = 'login-msg error';
-        btn.disabled = false;
-        btn.textContent = 'Prijava';
-    }
-}
-
-async function handleMagicLink() {
-    const email = document.getElementById('loginEmail').value.trim();
-    const msg = document.getElementById('loginMsg');
-    if (!email) { msg.textContent = 'Vnesite email'; msg.className = 'login-msg error'; return; }
+    btn.textContent = 'Posiljam...';
     const { error } = await sb.auth.signInWithOtp({
         email,
         options: { emailRedirectTo: window.location.origin + window.location.pathname }
@@ -848,9 +832,13 @@ async function handleMagicLink() {
     if (error) {
         msg.textContent = 'Napaka: ' + error.message;
         msg.className = 'login-msg error';
+        btn.disabled = false;
+        btn.textContent = 'Poslji povezavo';
     } else {
         msg.textContent = 'Povezava poslana! Preverite email.';
         msg.className = 'login-msg';
+        btn.textContent = 'Poslano!';
+        btn.classList.add('sent');
     }
 }
 
