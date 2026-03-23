@@ -9,6 +9,8 @@
     <title>BostAI</title>
     <link rel="manifest" href="manifest.json">
     <link rel="icon" href="icon-192.png">
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
+    <script src="config.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/chartjs-adapter-date-fns@3.0.0/dist/chartjs-adapter-date-fns.bundle.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2.2.0/dist/chartjs-plugin-datalabels.min.js"></script>
@@ -418,9 +420,124 @@ tbody tr:nth-child(3) td {
 }
 
 .filter-btn.active { background: var(--primary); color: white; border-color: var(--primary); }
+/* LOGIN */
+.login-overlay {
+    position: fixed;
+    inset: 0;
+    z-index: 100;
+    background: var(--bg);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.hidden { display: none !important; }
+
+.login-box {
+    background: var(--card);
+    border-radius: var(--radius);
+    padding: 32px 24px;
+    box-shadow: var(--shadow);
+    width: 90%;
+    max-width: 340px;
+    text-align: center;
+}
+
+.login-box h2 {
+    font-size: 20px;
+    margin-bottom: 4px;
+}
+
+.login-box p {
+    font-size: 13px;
+    color: var(--text2);
+    margin-bottom: 20px;
+}
+
+.login-box input {
+    width: 100%;
+    padding: 14px;
+    border: 2px solid var(--border);
+    border-radius: 10px;
+    font-size: 15px;
+    outline: none;
+    margin-bottom: 12px;
+}
+
+.login-box input:focus { border-color: var(--primary); }
+
+.login-box .login-btn {
+    width: 100%;
+    padding: 14px;
+    background: var(--primary);
+    color: white;
+    border: none;
+    border-radius: 10px;
+    font-size: 15px;
+    font-weight: 600;
+    cursor: pointer;
+}
+
+.login-box .login-btn:disabled {
+    background: var(--border);
+    color: var(--text2);
+}
+
+.login-msg {
+    margin-top: 12px;
+    font-size: 13px;
+    color: var(--green);
+}
+
+.login-msg.error { color: var(--red); }
+
+.sync-status {
+    font-size: 11px;
+    color: #B0B7C3;
+    text-align: center;
+    padding: 4px;
+}
+
+.user-bar {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 8px;
+    padding: 6px;
+    font-size: 11px;
+    color: #B0B7C3;
+    background: var(--card);
+    border-bottom: 1px solid var(--border);
+}
+
+.user-bar .logout-btn {
+    background: none;
+    border: none;
+    color: #B0B7C3;
+    font-size: 11px;
+    cursor: pointer;
+    text-decoration: underline;
+}
     </style>
 </head>
 <body>
+    <!-- LOGIN OVERLAY -->
+    <div class="login-overlay" id="loginOverlay">
+        <div class="login-box">
+            <h2>BostAI</h2>
+            <p>Vnesite email za prijavo</p>
+            <input type="email" id="loginEmail" placeholder="email@primer.com" autocomplete="email">
+            <button class="login-btn" id="loginBtn" onclick="handleLogin()">Poslji povezavo</button>
+            <div class="login-msg" id="loginMsg"></div>
+        </div>
+    </div>
+
+    <!-- USER BAR -->
+    <div class="user-bar hidden" id="userBar">
+        <span id="userEmail"></span>
+        <button class="logout-btn" onclick="handleLogout()">Odjava</button>
+    </div>
+
     <div class="tabs">
         <button class="tab active" onclick="showTab('entry')">Vnos</button>
         <button class="tab" onclick="showTab('dashboard')">Pregled</button>
@@ -489,15 +606,20 @@ tbody tr:nth-child(3) td {
     </div>
 
 <script>
-// ===== STORE =====
+// ===== SUPABASE =====
+const sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
+// ===== STORE (localStorage + Supabase sync) =====
 const Store = {
     _get(key) { try { return JSON.parse(localStorage.getItem(key)) || []; } catch { return []; } },
     _set(key, data) { localStorage.setItem(key, JSON.stringify(data)); },
 
     saveReading(systolic, diastolic, pulse) {
+        const reading = { systolic, diastolic, pulse: pulse || null, measured_at: new Date().toISOString() };
         const readings = this._get('readings');
-        readings.push({ systolic, diastolic, pulse: pulse || null, measured_at: new Date().toISOString() });
+        readings.push(reading);
         this._set('readings', readings);
+        this.syncToCloud(reading);
     },
     getReadings(days) {
         const readings = this._get('readings');
@@ -508,8 +630,9 @@ const Store = {
     getLastReadings(count) { return this._get('readings').slice(-count); },
     deleteReading(index) {
         const readings = this._get('readings');
-        readings.splice(index, 1);
+        const removed = readings.splice(index, 1)[0];
         this._set('readings', readings);
+        if (removed && removed.cloud_id) this.deleteFromCloud(removed.cloud_id);
     },
     getStats(days) {
         const readings = days ? this.getReadings(days) : this.getReadings();
@@ -522,8 +645,117 @@ const Store = {
             avg_diastolic: sum(readings, r => r.diastolic) / readings.length,
             avg_pulse: pr.length ? sum(pr, r => r.pulse) / pr.length : null,
         };
+    },
+
+    // --- Cloud sync ---
+    async syncToCloud(reading) {
+        try {
+            const { data: { user } } = await sb.auth.getUser();
+            if (!user) return;
+            const { data, error } = await sb.from('readings').insert({
+                user_id: user.id,
+                systolic: reading.systolic,
+                diastolic: reading.diastolic,
+                pulse: reading.pulse,
+                measured_at: reading.measured_at,
+            }).select().single();
+            if (!error && data) {
+                // Store cloud_id back in localStorage
+                const readings = this._get('readings');
+                const match = readings.find(r => r.measured_at === reading.measured_at && !r.cloud_id);
+                if (match) { match.cloud_id = data.id; this._set('readings', readings); }
+            }
+        } catch (e) { /* offline — will sync later */ }
+    },
+
+    async deleteFromCloud(cloudId) {
+        try {
+            await sb.from('readings').delete().eq('id', cloudId);
+        } catch (e) { /* offline */ }
+    },
+
+    async syncFromCloud() {
+        try {
+            const { data: { user } } = await sb.auth.getUser();
+            if (!user) return;
+            const { data, error } = await sb.from('readings')
+                .select('*')
+                .eq('user_id', user.id)
+                .order('measured_at', { ascending: true });
+            if (error || !data) return;
+
+            // Get any unsynced local readings
+            const local = this._get('readings');
+            const unsynced = local.filter(r => !r.cloud_id);
+
+            // Replace local with cloud data
+            const cloudReadings = data.map(r => ({
+                systolic: r.systolic,
+                diastolic: r.diastolic,
+                pulse: r.pulse,
+                measured_at: r.measured_at,
+                cloud_id: r.id,
+            }));
+            this._set('readings', cloudReadings);
+
+            // Push any unsynced local readings to cloud
+            for (const r of unsynced) {
+                await this.syncToCloud(r);
+            }
+        } catch (e) { /* offline — use local data */ }
     }
 };
+
+// ===== AUTH =====
+async function handleLogin() {
+    const email = document.getElementById('loginEmail').value.trim();
+    const msg = document.getElementById('loginMsg');
+    const btn = document.getElementById('loginBtn');
+    if (!email) { msg.textContent = 'Vnesite email'; msg.className = 'login-msg error'; return; }
+    btn.disabled = true;
+    btn.textContent = 'Posiljam...';
+    const { error } = await sb.auth.signInWithOtp({
+        email,
+        options: { emailRedirectTo: window.location.origin + window.location.pathname }
+    });
+    if (error) {
+        msg.textContent = 'Napaka: ' + error.message;
+        msg.className = 'login-msg error';
+    } else {
+        msg.textContent = 'Povezava poslana! Preverite email.';
+        msg.className = 'login-msg';
+    }
+    btn.disabled = false;
+    btn.textContent = 'Poslji povezavo';
+}
+
+async function handleLogout() {
+    await sb.auth.signOut();
+    document.getElementById('loginOverlay').classList.remove('hidden');
+    document.getElementById('userBar').classList.add('hidden');
+}
+
+async function checkAuth() {
+    const { data: { session } } = await sb.auth.getSession();
+    if (session) {
+        document.getElementById('loginOverlay').classList.add('hidden');
+        document.getElementById('userBar').classList.remove('hidden');
+        document.getElementById('userEmail').textContent = session.user.email;
+        await Store.syncFromCloud();
+        renderHistory();
+    }
+}
+
+// Listen for auth changes (magic link redirect)
+sb.auth.onAuthStateChange(async (event, session) => {
+    if (event === 'SIGNED_IN' && session) {
+        document.getElementById('loginOverlay').classList.add('hidden');
+        document.getElementById('userBar').classList.remove('hidden');
+        document.getElementById('userEmail').textContent = session.user.email;
+        await Store.syncFromCloud();
+        renderHistory();
+    }
+});
 
 // Global Chart.js defaults for mobile readability
 Chart.defaults.font.size = 13;
@@ -1045,6 +1277,7 @@ function setFilter(days) {
 }
 
 renderHistory();
+checkAuth();
 
 if ('serviceWorker' in navigator) navigator.serviceWorker.register('sw.js');
 </script>
