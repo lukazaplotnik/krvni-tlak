@@ -45,9 +45,6 @@ body {
 
 .tabs {
     display: flex;
-    background: var(--card);
-    border-bottom: 1px solid var(--border);
-    padding-top: env(safe-area-inset-top);
 }
 
 .tab {
@@ -443,6 +440,13 @@ tbody tr:nth-child(3) td {
     text-align: center;
 }
 
+.login-logo {
+    width: 64px;
+    height: 64px;
+    border-radius: 16px;
+    margin: 0 auto 16px;
+}
+
 .login-box h2 {
     font-size: 20px;
     margin-bottom: 4px;
@@ -476,11 +480,17 @@ tbody tr:nth-child(3) td {
     font-size: 15px;
     font-weight: 600;
     cursor: pointer;
+    transition: all 0.3s;
 }
 
 .login-box .login-btn:disabled {
     background: var(--border);
     color: var(--text2);
+}
+
+.login-box .login-btn.sent {
+    background: var(--green);
+    pointer-events: none;
 }
 
 .login-msg {
@@ -491,32 +501,111 @@ tbody tr:nth-child(3) td {
 
 .login-msg.error { color: var(--red); }
 
-.sync-status {
-    font-size: 11px;
-    color: #B0B7C3;
-    text-align: center;
-    padding: 4px;
-}
-
-.user-bar {
+.tabs-row {
     display: flex;
-    justify-content: center;
-    align-items: center;
-    gap: 8px;
-    padding: 6px;
-    font-size: 11px;
-    color: #B0B7C3;
     background: var(--card);
     border-bottom: 1px solid var(--border);
+    padding-top: env(safe-area-inset-top);
+    align-items: center;
 }
 
-.user-bar .logout-btn {
+.tabs-row .tabs { flex: 1; display: flex; border: none; padding: 0; }
+
+.settings-btn {
     background: none;
     border: none;
     color: #B0B7C3;
-    font-size: 11px;
+    font-size: 20px;
+    padding: 12px 14px;
     cursor: pointer;
-    text-decoration: underline;
+    line-height: 1;
+}
+
+.settings-btn:active { color: var(--primary); }
+
+.settings-overlay {
+    position: fixed;
+    inset: 0;
+    z-index: 90;
+    background: rgba(0,0,0,0.3);
+}
+
+.settings-panel {
+    position: fixed;
+    top: 0;
+    right: 0;
+    bottom: 0;
+    width: 280px;
+    max-width: 85%;
+    z-index: 91;
+    background: var(--bg);
+    box-shadow: -4px 0 20px rgba(0,0,0,0.1);
+    display: flex;
+    flex-direction: column;
+    padding: 20px;
+    overflow-y: auto;
+}
+
+.settings-panel h3 {
+    font-size: 16px;
+    margin-bottom: 20px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.settings-close {
+    background: none;
+    border: none;
+    font-size: 22px;
+    color: #B0B7C3;
+    cursor: pointer;
+}
+
+.settings-section {
+    margin-bottom: 20px;
+}
+
+.settings-label {
+    font-size: 11px;
+    color: #B0B7C3;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    margin-bottom: 6px;
+}
+
+.settings-value {
+    font-size: 14px;
+    color: var(--text);
+    margin-bottom: 4px;
+}
+
+.settings-action {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    width: 100%;
+    padding: 12px;
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    font-size: 14px;
+    color: var(--text);
+    cursor: pointer;
+    margin-bottom: 8px;
+    transition: all 0.15s;
+}
+
+.settings-action:active { background: var(--bg); }
+.settings-action.danger { color: var(--red); border-color: rgba(231,76,60,0.2); }
+.settings-action .icon { font-size: 16px; opacity: 0.6; }
+
+.settings-version {
+    margin-top: auto;
+    text-align: center;
+    font-size: 11px;
+    color: #C0C5CC;
+    padding-top: 20px;
 }
     </style>
 </head>
@@ -524,6 +613,7 @@ tbody tr:nth-child(3) td {
     <!-- LOGIN OVERLAY -->
     <div class="login-overlay" id="loginOverlay">
         <div class="login-box">
+            <img src="icon-192.png" class="login-logo" alt="BostAI">
             <h2>BostAI</h2>
             <p>Vnesite email za prijavo</p>
             <input type="email" id="loginEmail" placeholder="email@primer.com" autocomplete="email">
@@ -532,15 +622,34 @@ tbody tr:nth-child(3) td {
         </div>
     </div>
 
-    <!-- USER BAR -->
-    <div class="user-bar hidden" id="userBar">
-        <span id="userEmail"></span>
-        <button class="logout-btn" onclick="handleLogout()">Odjava</button>
+    <!-- SETTINGS PANEL -->
+    <div class="settings-overlay hidden" id="settingsOverlay" onclick="closeSettings()"></div>
+    <div class="settings-panel hidden" id="settingsPanel">
+        <h3>Nastavitve <button class="settings-close" onclick="closeSettings()">&times;</button></h3>
+        <div class="settings-section">
+            <div class="settings-label">Prijavljen kot</div>
+            <div class="settings-value" id="settingsEmail">—</div>
+        </div>
+        <div class="settings-section">
+            <button class="settings-action" onclick="exportExcel(); closeSettings();">
+                <span class="icon">&#8681;</span> Izvozi podatke (CSV)
+            </button>
+            <button class="settings-action danger" onclick="clearAllData()">
+                <span class="icon">&#128465;</span> Izbrisi vse podatke
+            </button>
+            <button class="settings-action" onclick="handleLogout()">
+                <span class="icon">&#8594;</span> Odjava
+            </button>
+        </div>
+        <div class="settings-version">BostAI v1.0</div>
     </div>
 
-    <div class="tabs">
-        <button class="tab active" onclick="showTab('entry')">Vnos</button>
-        <button class="tab" onclick="showTab('dashboard')">Pregled</button>
+    <div class="tabs-row">
+        <div class="tabs">
+            <button class="tab active" onclick="showTab('entry')">Vnos</button>
+            <button class="tab" onclick="showTab('dashboard')">Pregled</button>
+        </div>
+        <button class="settings-btn" onclick="openSettings()">&#9776;</button>
     </div>
 
     <!-- ENTRY PAGE -->
@@ -586,10 +695,7 @@ tbody tr:nth-child(3) td {
             <div class="feedback" id="feedback"></div>
         </div>
         <div class="history-section">
-            <div class="history-header">
-                <h2>Zadnje meritve</h2>
-                <button class="export-btn" onclick="exportExcel()"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg></button>
-            </div>
+            <h2 style="font-size:15px;color:var(--text2);margin-bottom:12px;padding-left:4px">Zadnje meritve</h2>
             <div id="historyList"></div>
         </div>
     </div>
@@ -721,26 +827,31 @@ async function handleLogin() {
     if (error) {
         msg.textContent = 'Napaka: ' + error.message;
         msg.className = 'login-msg error';
+        btn.disabled = false;
+        btn.textContent = 'Poslji povezavo';
     } else {
         msg.textContent = 'Povezava poslana! Preverite email.';
         msg.className = 'login-msg';
+        btn.textContent = 'Poslano!';
+        btn.classList.add('sent');
     }
-    btn.disabled = false;
-    btn.textContent = 'Poslji povezavo';
 }
 
 async function handleLogout() {
     await sb.auth.signOut();
+    closeSettings();
     document.getElementById('loginOverlay').classList.remove('hidden');
-    document.getElementById('userBar').classList.add('hidden');
+}
+
+function showLoggedIn(email) {
+    document.getElementById('loginOverlay').classList.add('hidden');
+    document.getElementById('settingsEmail').textContent = email;
 }
 
 async function checkAuth() {
     const { data: { session } } = await sb.auth.getSession();
     if (session) {
-        document.getElementById('loginOverlay').classList.add('hidden');
-        document.getElementById('userBar').classList.remove('hidden');
-        document.getElementById('userEmail').textContent = session.user.email;
+        showLoggedIn(session.user.email);
         await Store.syncFromCloud();
         renderHistory();
     }
@@ -749,13 +860,31 @@ async function checkAuth() {
 // Listen for auth changes (magic link redirect)
 sb.auth.onAuthStateChange(async (event, session) => {
     if (event === 'SIGNED_IN' && session) {
-        document.getElementById('loginOverlay').classList.add('hidden');
-        document.getElementById('userBar').classList.remove('hidden');
-        document.getElementById('userEmail').textContent = session.user.email;
+        showLoggedIn(session.user.email);
         await Store.syncFromCloud();
         renderHistory();
     }
 });
+
+// ===== SETTINGS =====
+function openSettings() {
+    document.getElementById('settingsOverlay').classList.remove('hidden');
+    document.getElementById('settingsPanel').classList.remove('hidden');
+}
+
+function closeSettings() {
+    document.getElementById('settingsOverlay').classList.add('hidden');
+    document.getElementById('settingsPanel').classList.add('hidden');
+}
+
+function clearAllData() {
+    if (confirm('Res zelite izbrisati vse podatke?')) {
+        localStorage.clear();
+        closeSettings();
+        renderHistory();
+        if (document.getElementById('pageDashboard').classList.contains('active')) loadDashboard();
+    }
+}
 
 // Global Chart.js defaults for mobile readability
 Chart.defaults.font.size = 13;
