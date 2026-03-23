@@ -793,12 +793,15 @@ const Store = {
     async syncFromCloud() {
         try {
             const { data: { user } } = await sb.auth.getUser();
-            if (!user) return;
+            if (!user) { console.warn('Sync: no user'); return; }
             const { data, error } = await sb.from('readings')
                 .select('*')
                 .eq('user_id', user.id)
                 .order('measured_at', { ascending: true });
-            if (error || !data) return;
+            if (error) { console.warn('Sync fetch error:', error.message); return; }
+            if (!data) return;
+
+            console.log('Sync: got', data.length, 'readings from cloud');
 
             // Get any unsynced local readings
             const local = this._get('readings');
@@ -818,7 +821,7 @@ const Store = {
             for (const r of unsynced) {
                 await this.syncToCloud(r);
             }
-        } catch (e) { /* offline — use local data */ }
+        } catch (e) { console.warn('Sync offline:', e.message); }
     }
 };
 
@@ -890,8 +893,8 @@ async function checkAuth() {
     if (session) {
         showLoggedIn(session.user.email);
         await Store.syncFromCloud();
-        renderHistory();
     }
+    renderHistory();
 }
 
 // Listen for auth changes (magic link redirect)
@@ -1451,7 +1454,6 @@ function setFilter(days) {
     loadDashboard();
 }
 
-renderHistory();
 checkAuth();
 
 if ('serviceWorker' in navigator) navigator.serviceWorker.register('sw.js');
