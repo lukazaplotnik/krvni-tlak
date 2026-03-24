@@ -687,9 +687,9 @@ tbody tr:nth-child(3) td {
                     </tr>
                     <tr class="avg-row">
                         <td>&mu;</td>
-                        <td><div class="avg-display empty" id="avgS">&#9829;</div></td>
-                        <td><div class="avg-display empty" id="avgD">&#9829;</div></td>
-                        <td><div class="avg-display empty" id="avgP">&#9829;</div></td>
+                        <td><div class="avg-display empty" id="avgS">&#8212;</div></td>
+                        <td><div class="avg-display empty" id="avgD">&#8212;</div></td>
+                        <td><div class="avg-display empty" id="avgP">&#8212;</div></td>
                     </tr>
                 </tbody>
             </table>
@@ -1075,11 +1075,11 @@ function computeAvg() {
     const d = dVals.length ? avg(dVals) : null;
     const p = pVals.length ? avg(pVals) : null;
 
-    avgS.textContent = s !== null ? s : '\u2665';
+    avgS.textContent = s !== null ? s : '\u2014';
     avgS.className = s !== null ? 'avg-display' : 'avg-display empty';
-    avgD.textContent = d !== null ? d : '\u2665';
+    avgD.textContent = d !== null ? d : '\u2014';
     avgD.className = d !== null ? 'avg-display' : 'avg-display empty';
-    avgP.textContent = p !== null ? p : '\u2665';
+    avgP.textContent = p !== null ? p : '\u2014';
     avgP.className = p !== null ? 'avg-display' : 'avg-display empty';
 
     // Need at least one systolic AND one diastolic to save
