@@ -735,7 +735,7 @@ const Store = {
         const readings = this._get('readings');
         readings.push(reading);
         this._set('readings', readings);
-        this.syncToCloud(reading);
+        this.syncPending();
     },
     getReadings(days) {
         const readings = this._get('readings');
@@ -763,37 +763,54 @@ const Store = {
         };
     },
 
-    // --- Cloud sync ---
-    async syncToCloud(reading) {
+    // --- Cloud sync engine ---
+    _syncing: false,
+
+    async pushOne(reading) {
+        const { data: { user } } = await sb.auth.getUser();
+        if (!user) return false;
+        const { data, error } = await sb.from('readings').insert({
+            user_id: user.id,
+            systolic: reading.systolic,
+            diastolic: reading.diastolic,
+            pulse: reading.pulse,
+            measured_at: reading.measured_at,
+        }).select().single();
+        if (error) return false;
+        if (data) {
+            const readings = this._get('readings');
+            const match = readings.find(r => r.measured_at === reading.measured_at && !r.cloud_id);
+            if (match) { match.cloud_id = data.id; this._set('readings', readings); }
+        }
+        return true;
+    },
+
+    async syncPending() {
+        if (this._syncing) return;
+        this._syncing = true;
         try {
-            const { data: { user } } = await sb.auth.getUser();
-            if (!user) return;
-            const { data, error } = await sb.from('readings').insert({
-                user_id: user.id,
-                systolic: reading.systolic,
-                diastolic: reading.diastolic,
-                pulse: reading.pulse,
-                measured_at: reading.measured_at,
-            }).select().single();
-            if (error) { console.warn('Sync error:', error.message); return; }
-            if (data) {
-                const readings = this._get('readings');
-                const match = readings.find(r => r.measured_at === reading.measured_at && !r.cloud_id);
-                if (match) { match.cloud_id = data.id; this._set('readings', readings); }
+            const readings = this._get('readings');
+            const unsynced = readings.filter(r => !r.cloud_id);
+            if (!unsynced.length) { this._syncing = false; this.updateSyncDot(); return; }
+            console.log('Sync: pushing', unsynced.length, 'pending readings');
+            for (const r of unsynced) {
+                const ok = await this.pushOne(r);
+                if (!ok) break; // stop on first failure (likely offline)
             }
-        } catch (e) { console.warn('Sync offline:', e.message); }
+        } catch (e) { console.warn('Sync error:', e.message); }
+        this._syncing = false;
     },
 
     async deleteFromCloud(cloudId) {
         try {
             await sb.from('readings').delete().eq('id', cloudId);
-        } catch (e) { /* offline */ }
+        } catch (e) { /* offline — row already removed locally */ }
     },
 
     async syncFromCloud() {
         try {
             const { data: { user } } = await sb.auth.getUser();
-            if (!user) { console.warn('Sync: no user'); return; }
+            if (!user) return;
             const { data, error } = await sb.from('readings')
                 .select('*')
                 .eq('user_id', user.id)
@@ -803,11 +820,9 @@ const Store = {
 
             console.log('Sync: got', data.length, 'readings from cloud');
 
-            // Get any unsynced local readings
             const local = this._get('readings');
             const unsynced = local.filter(r => !r.cloud_id);
 
-            // Replace local with cloud data
             const cloudReadings = data.map(r => ({
                 systolic: r.systolic,
                 diastolic: r.diastolic,
@@ -817,9 +832,9 @@ const Store = {
             }));
             this._set('readings', cloudReadings);
 
-            // Push any unsynced local readings to cloud
+            // Push unsynced local readings
             for (const r of unsynced) {
-                await this.syncToCloud(r);
+                await this.pushOne(r);
             }
         } catch (e) { console.warn('Sync offline:', e.message); }
     }
@@ -1463,17 +1478,15 @@ function setFilter(days) {
 // Initial render with local data (cloud sync will re-render when ready)
 renderHistory();
 
-// Auto-sync unsynced readings when back online
-window.addEventListener('online', async () => {
-    const readings = Store._get('readings');
-    const unsynced = readings.filter(r => !r.cloud_id);
-    if (unsynced.length) {
-        console.log('Back online: syncing', unsynced.length, 'readings');
-        for (const r of unsynced) {
-            await Store.syncToCloud(r);
-        }
-    }
+// === SYNC ENGINE: multiple triggers to ensure data reaches the cloud ===
+// 1. When device comes back online
+window.addEventListener('online', () => Store.syncPending());
+// 2. When app comes to foreground
+document.addEventListener('visibilitychange', () => {
+    if (!document.hidden) Store.syncPending();
 });
+// 3. Periodic retry every 30 seconds while app is open
+setInterval(() => { if (!document.hidden) Store.syncPending(); }, 30000);
 
 if ('serviceWorker' in navigator) navigator.serviceWorker.register('sw.js');
 </script>
