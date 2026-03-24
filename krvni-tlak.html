@@ -155,10 +155,9 @@ tbody tr:nth-child(3) td {
 }
 
 .avg-row .avg-display.empty {
-    color: #D0D5DD;
+    color: rgba(74,144,217,0.3);
     font-size: 16px;
     font-weight: 500;
-    background: none;
 }
 
 .avg-row td:first-child {
@@ -687,9 +686,9 @@ tbody tr:nth-child(3) td {
                     </tr>
                     <tr class="avg-row">
                         <td>&#8709;</td>
-                        <td><div class="avg-display empty" id="avgS">&#8212;</div></td>
-                        <td><div class="avg-display empty" id="avgD">&#8212;</div></td>
-                        <td><div class="avg-display empty" id="avgP">&#8212;</div></td>
+                        <td><div class="avg-display empty" id="avgS">&#9829;</div></td>
+                        <td><div class="avg-display empty" id="avgD">&#9829;</div></td>
+                        <td><div class="avg-display empty" id="avgP">&#9829;</div></td>
                     </tr>
                 </tbody>
             </table>
@@ -1061,9 +1060,9 @@ function computeAvg() {
     const btn = document.getElementById('saveBtn');
 
     if (filled.length === 0) {
-        avgS.textContent = '\u2014'; avgS.className = 'avg-display empty';
-        avgD.textContent = '\u2014'; avgD.className = 'avg-display empty';
-        avgP.textContent = '\u2014'; avgP.className = 'avg-display empty';
+        avgS.textContent = '\u2665'; avgS.className = 'avg-display empty';
+        avgD.textContent = '\u2665'; avgD.className = 'avg-display empty';
+        avgP.textContent = '\u2665'; avgP.className = 'avg-display empty';
         btn.disabled = true;
         return null;
     }
@@ -1075,7 +1074,7 @@ function computeAvg() {
 
     avgS.textContent = s; avgS.className = 'avg-display';
     avgD.textContent = d; avgD.className = 'avg-display';
-    avgP.textContent = p || '\u2014'; avgP.className = p ? 'avg-display' : 'avg-display empty';
+    avgP.textContent = p || '\u2665'; avgP.className = p ? 'avg-display' : 'avg-display empty';
     btn.disabled = false;
 
     return { s, d, p };
