@@ -888,20 +888,14 @@ function showLoggedIn(email) {
     document.getElementById('settingsEmail').textContent = email;
 }
 
-async function checkAuth() {
-    const { data: { session } } = await sb.auth.getSession();
+// Single auth handler for all cases (initial load, magic link, etc.)
+sb.auth.onAuthStateChange(async (event, session) => {
     if (session) {
         showLoggedIn(session.user.email);
         await Store.syncFromCloud();
-    }
-    renderHistory();
-}
-
-// Listen for auth changes (magic link redirect)
-sb.auth.onAuthStateChange(async (event, session) => {
-    if (event === 'SIGNED_IN' && session) {
-        showLoggedIn(session.user.email);
-        await Store.syncFromCloud();
+        renderHistory();
+    } else {
+        document.getElementById('loginOverlay').classList.remove('hidden');
         renderHistory();
     }
 });
@@ -1454,7 +1448,8 @@ function setFilter(days) {
     loadDashboard();
 }
 
-checkAuth();
+// Initial render with local data (cloud sync will re-render when ready)
+renderHistory();
 
 if ('serviceWorker' in navigator) navigator.serviceWorker.register('sw.js');
 </script>
