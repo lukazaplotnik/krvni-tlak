@@ -727,7 +727,14 @@ const Store = {
     _set(key, data) { localStorage.setItem(key, JSON.stringify(data)); },
 
     saveReading(systolic, diastolic, pulse) {
-        const reading = { systolic, diastolic, pulse: pulse || null, measured_at: new Date().toISOString() };
+        const reading = {
+            id: crypto.randomUUID(),
+            systolic,
+            diastolic,
+            pulse: pulse || null,
+            measured_at: new Date().toISOString(),
+            cloud_id: null,
+        };
         const readings = this._get('readings');
         readings.push(reading);
         this._set('readings', readings);
@@ -740,15 +747,13 @@ const Store = {
         return readings.filter(r => new Date(r.measured_at) >= since);
     },
     getLastReadings(count) { return this._get('readings').slice(-count); },
-    deleteReading(id, measured_at) {
+    deleteReading(localId) {
         const readings = this._get('readings');
-        const idx = id
-            ? readings.findIndex(r => r.cloud_id === id)
-            : readings.findIndex(r => r.measured_at === measured_at);
+        const idx = readings.findIndex(r => r.id === localId);
         if (idx === -1) return;
         const removed = readings.splice(idx, 1)[0];
         this._set('readings', readings);
-        if (removed && removed.cloud_id) this.deleteFromCloud(removed.cloud_id);
+        if (removed.cloud_id) this.deleteFromCloud(removed.cloud_id);
     },
     getStats(days) {
         const readings = days ? this.getReadings(days) : this.getReadings();
@@ -812,7 +817,7 @@ const Store = {
 
                 // Mark as synced — re-read localStorage to avoid stale writes
                 readings = this._get('readings');
-                const match = readings.find(x => x.measured_at === r.measured_at && !x.cloud_id);
+                const match = readings.find(x => x.id === r.id);
                 if (match) {
                     match.cloud_id = data.id;
                     this._set('readings', readings);
@@ -854,7 +859,12 @@ const Store = {
             console.log('Sync: got', (data||[]).length, 'from cloud,', unsynced.length, 'local pending');
 
             // 3. Build merged list: cloud data + unsynced local
+            // Preserve local id if we already have this cloud reading locally
+            const localByCloudId = {};
+            local.forEach(r => { if (r.cloud_id) localByCloudId[r.cloud_id] = r; });
+
             const cloudReadings = (data || []).map(r => ({
+                id: localByCloudId[r.id]?.id || crypto.randomUUID(),
                 systolic: r.systolic,
                 diastolic: r.diastolic,
                 pulse: r.pulse,
@@ -862,11 +872,12 @@ const Store = {
                 cloud_id: r.id,
             }));
 
-            // Add unsynced local readings that don't exist in cloud (by measured_at)
+            // Add unsynced local readings that don't exist in cloud
             const cloudTimestamps = new Set(cloudReadings.map(r => r.measured_at));
             for (const r of unsynced) {
                 if (!cloudTimestamps.has(r.measured_at)) {
-                    cloudReadings.push(r); // keeps without cloud_id → will be pushed
+                    if (!r.id) r.id = crypto.randomUUID();
+                    cloudReadings.push(r);
                 }
             }
 
@@ -1122,7 +1133,7 @@ function askDelete(el) {
 
 function cancelDelete(el) { el.closest('.history-item').classList.remove('confirm-delete'); }
 
-function confirmDelete(id, measured_at) { Store.deleteReading(id, measured_at); renderHistory(); }
+function confirmDelete(localId) { Store.deleteReading(localId); renderHistory(); }
 
 let showAll = false;
 
@@ -1139,7 +1150,6 @@ function renderHistory() {
         const time = date.toLocaleDateString('sl-SI', { day: 'numeric', month: 'short' })
             + ' ' + date.toLocaleTimeString('sl-SI', { hour: '2-digit', minute: '2-digit' });
         const pulse = r.pulse ? `<div class="pulse-val">Pulz: ${r.pulse} u/min</div>` : '';
-        const delArg = r.cloud_id ? `'${r.cloud_id}',null` : `null,'${ts}'`;
         return `
             <div class="history-item">
                 <div class="item-content">
@@ -1153,7 +1163,7 @@ function renderHistory() {
                 </div>
                 <div class="confirm-bar">
                     <span>Izbrisati?</span>
-                    <button class="confirm-yes" onclick="confirmDelete(${delArg})">Da</button>
+                    <button class="confirm-yes" onclick="confirmDelete('${r.id}')">Da</button>
                     <button class="confirm-no" onclick="cancelDelete(this)">Ne</button>
                 </div>
             </div>`;
