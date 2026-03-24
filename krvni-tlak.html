@@ -1158,7 +1158,7 @@ function renderHistory() {
         const date = new Date(ts);
         const time = date.toLocaleDateString('sl-SI', { day: 'numeric', month: 'short' })
             + ' ' + date.toLocaleTimeString('sl-SI', { hour: '2-digit', minute: '2-digit' });
-        const pulse = r.pulse ? `<div class="pulse-val">Pulz: ${r.pulse} u/min</div>` : '';
+        const pulse = r.pulse ? `<div class="pulse-val">&hearts; ${r.pulse}</div>` : '';
         return `
             <div class="history-item">
                 <div class="item-content">
