@@ -776,44 +776,41 @@ const Store = {
             const user = await this._getUser();
             if (!user) { this._syncing = false; return; }
 
-            const readings = this._get('readings');
-            const unsynced = readings.filter(r => !r.cloud_id);
+            // Re-read each iteration to get fresh state
+            let readings = this._get('readings');
+            let unsynced = readings.filter(r => !r.cloud_id);
             if (!unsynced.length) { this._syncing = false; return; }
 
             console.log('Sync: pushing', unsynced.length, 'pending');
 
-            for (const r of unsynced) {
-                // Check for duplicate by measured_at before inserting
-                const { data: existing } = await sb.from('readings')
-                    .select('id')
-                    .eq('user_id', user.id)
-                    .eq('measured_at', r.measured_at)
-                    .maybeSingle();
+            for (let i = 0; i < unsynced.length; i++) {
+                const r = unsynced[i];
+                const { data, error } = await sb.from('readings').insert({
+                    user_id: user.id,
+                    systolic: r.systolic,
+                    diastolic: r.diastolic,
+                    pulse: r.pulse,
+                    measured_at: r.measured_at,
+                }).select('id').single();
 
-                let cloudId;
-                if (existing) {
-                    cloudId = existing.id;
-                } else {
-                    const { data, error } = await sb.from('readings').insert({
-                        user_id: user.id,
-                        systolic: r.systolic,
-                        diastolic: r.diastolic,
-                        pulse: r.pulse,
-                        measured_at: r.measured_at,
-                    }).select('id').single();
-                    if (error) { console.warn('Push failed:', error.message); break; }
-                    cloudId = data.id;
+                if (error) {
+                    console.warn('Push failed:', error.message);
+                    break; // likely offline, retry later
                 }
 
-                // Mark as synced in localStorage
-                const current = this._get('readings');
-                const match = current.find(x => x.measured_at === r.measured_at && !x.cloud_id);
+                console.log('Synced reading', i + 1, '/', unsynced.length);
+
+                // Mark as synced — re-read localStorage to avoid stale writes
+                readings = this._get('readings');
+                const match = readings.find(x => x.measured_at === r.measured_at && !x.cloud_id);
                 if (match) {
-                    match.cloud_id = cloudId;
-                    this._set('readings', current);
+                    match.cloud_id = data.id;
+                    this._set('readings', readings);
                 }
             }
-        } catch (e) { console.warn('Sync error:', e.message); }
+        } catch (e) {
+            console.warn('Sync error:', e.message);
+        }
         this._syncing = false;
     },
 
