@@ -1012,11 +1012,12 @@ function onMeasInput(el) {
     const len = el.value.length;
 
     let shouldJump = false;
+    const first = el.value[0];
     if (isDiastolic) {
-        // 2 digits jump, unless first digit is 1 → wait for 3
-        shouldJump = (len >= 2 && el.value[0] !== '1') || len >= 3;
+        shouldJump = (len >= 2 && first !== '1') || len >= 3;
     } else {
-        shouldJump = len >= 3;
+        // Systolic: 80-99 = 2 digits, 100+ = 3 digits
+        shouldJump = (len >= 2 && first !== '1' && first !== '2') || len >= 3;
     }
 
     if (shouldJump) {
