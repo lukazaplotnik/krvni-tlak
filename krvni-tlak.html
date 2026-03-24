@@ -1049,10 +1049,20 @@ function classifyBP(s, d) {
 // ===== ENTRY (3 measurements → average) =====
 function getVal(id) { const v = parseInt(document.getElementById(id).value); return isNaN(v) ? null : v; }
 
+function isComplete(id) {
+    const el = document.getElementById(id);
+    if (!el || !el.value) return false;
+    const len = el.value.length;
+    const first = el.value[0];
+    if (id.startsWith('d')) return (len >= 2 && first !== '1') || len >= 3;
+    if (id.startsWith('s')) return (len >= 2 && first !== '1' && first !== '2') || len >= 3;
+    return len >= 2; // pulse
+}
+
 function computeAvg() {
-    const sVals = [1,2,3].map(i => getVal('s'+i)).filter(v => v !== null);
-    const dVals = [1,2,3].map(i => getVal('d'+i)).filter(v => v !== null);
-    const pVals = [1,2,3].map(i => getVal('p'+i)).filter(v => v !== null);
+    const sVals = [1,2,3].filter(i => isComplete('s'+i)).map(i => getVal('s'+i)).filter(v => v !== null);
+    const dVals = [1,2,3].filter(i => isComplete('d'+i)).map(i => getVal('d'+i)).filter(v => v !== null);
+    const pVals = [1,2,3].filter(i => isComplete('p'+i)).map(i => getVal('p'+i)).filter(v => v !== null);
 
     const avgS = document.getElementById('avgS');
     const avgD = document.getElementById('avgD');
