@@ -960,13 +960,19 @@ function showLoggedIn(email) {
     document.getElementById('settingsEmail').textContent = email;
 }
 
-// Single auth handler for all cases (initial load, magic link, etc.)
+// Auth handler
+let _initialSyncDone = false;
 sb.auth.onAuthStateChange(async (event, session) => {
     if (session) {
         showLoggedIn(session.user.email);
-        await Store.fullSync();
+        // Full sync only on first load or actual sign-in, not on every tab focus
+        if (!_initialSyncDone || event === 'SIGNED_IN') {
+            _initialSyncDone = true;
+            await Store.fullSync();
+        }
         renderHistory();
     } else {
+        _initialSyncDone = false;
         document.getElementById('loginOverlay').classList.remove('hidden');
         renderHistory();
     }
