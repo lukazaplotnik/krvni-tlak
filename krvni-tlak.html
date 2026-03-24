@@ -693,7 +693,7 @@ tbody tr:nth-child(3) td {
                     </tr>
                 </tbody>
             </table>
-            <button class="save-btn" id="saveBtn" onclick="saveEntry()" disabled>Shrani povprecje</button>
+            <button class="save-btn" id="saveBtn" onclick="saveEntry()" disabled>Shrani meritev</button>
             <div class="feedback" id="feedback"></div>
         </div>
         <div class="history-section">
@@ -1117,7 +1117,7 @@ function saveEntry() {
     btn.classList.add('saved');
 
     setTimeout(() => {
-        btn.textContent = 'Shrani povprecje';
+        btn.textContent = 'Shrani meritev';
         btn.classList.remove('saved');
         btn.disabled = true;
         document.querySelectorAll('.measurement-table input').forEach(i => i.value = '');
