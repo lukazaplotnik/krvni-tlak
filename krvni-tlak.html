@@ -329,32 +329,76 @@ tbody tr:nth-child(3) td {
 .avg-bar {
     background: var(--card);
     border-radius: var(--radius);
-    padding: 18px 20px;
+    padding: 20px;
     box-shadow: var(--shadow);
     margin-bottom: 20px;
     display: flex;
-    gap: 16px;
     align-items: center;
 }
 
-.avg-bar .avg-icon {
-    width: 42px;
-    height: 42px;
-    border-radius: 12px;
-    background: linear-gradient(135deg, #EBF2FC, #D6E6F9);
+.avg-bar .avg-main {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.avg-label {
+    font-size: 11px;
+    color: var(--text2);
+    font-weight: 500;
+    text-transform: uppercase;
+    letter-spacing: 0.3px;
+}
+
+.avg-values {
+    display: flex;
+    align-items: baseline;
+    gap: 12px;
+}
+
+.avg-bp {
+    font-size: 28px;
+    font-weight: 800;
+    color: var(--text);
+    letter-spacing: -0.5px;
+}
+
+.avg-bp .avg-unit {
+    font-size: 13px;
+    font-weight: 500;
+    color: #B0B7C3;
+    margin-left: 2px;
+}
+
+.avg-pulse-box {
     display: flex;
     align-items: center;
-    justify-content: center;
-    font-size: 20px;
-    flex-shrink: 0;
+    gap: 4px;
+    font-size: 15px;
+    font-weight: 600;
+    color: var(--text2);
 }
 
-.avg-bar .avg-details { flex: 1; display: flex; flex-direction: column; gap: 2px; }
-.avg-label { font-size: 12px; color: var(--text2); font-weight: 500; }
-.avg-value { font-size: 20px; font-weight: 700; color: var(--text); letter-spacing: -0.3px; }
-.avg-value .avg-pulse { font-size: 14px; font-weight: 500; color: var(--text2); margin-left: 4px; }
+.avg-pulse-box .heart {
+    color: rgba(74,144,217,0.4);
+    font-size: 12px;
+}
 
-.avg-meta { font-size: 12px; color: #B0B7C3; font-weight: 400; }
+.avg-count {
+    font-size: 12px;
+    color: #B0B7C3;
+    text-align: right;
+    flex-shrink: 0;
+    padding-left: 16px;
+}
+
+.avg-count strong {
+    font-size: 22px;
+    font-weight: 700;
+    color: var(--text);
+    display: block;
+}
 
 .chart-card {
     background: var(--card);
@@ -1240,15 +1284,23 @@ function loadDashboard() {
     }
 
     const periodLabel = currentDays > 0 ? `${currentDays} dni` : 'vse';
-    const pulseAvg = stats.avg_pulse ? `<span class="avg-pulse">\u00b7 ${Math.round(stats.avg_pulse)} u/min</span>` : '';
+    const pulseHtml = stats.avg_pulse ? `
+        <div class="avg-pulse-box">
+            <span class="heart">&hearts;</span>${Math.round(stats.avg_pulse)}
+        </div>` : '';
 
     content.innerHTML = `
         <div class="avg-bar">
-            <div class="avg-icon">\u2665</div>
-            <div class="avg-details">
+            <div class="avg-main">
                 <span class="avg-label">Povprecje (${periodLabel})</span>
-                <span class="avg-value">${Math.round(stats.avg_systolic)}/${Math.round(stats.avg_diastolic)} <span class="avg-pulse">mmHg</span> ${pulseAvg}</span>
-                <span class="avg-meta">${stats.count} meritev</span>
+                <div class="avg-values">
+                    <span class="avg-bp">${Math.round(stats.avg_systolic)}/${Math.round(stats.avg_diastolic)}<span class="avg-unit">mmHg</span></span>
+                    ${pulseHtml}
+                </div>
+            </div>
+            <div class="avg-count">
+                <strong>${stats.count}</strong>
+                meritev
             </div>
         </div>
         <div class="chart-card">
