@@ -329,75 +329,49 @@ tbody tr:nth-child(3) td {
 .avg-bar {
     background: var(--card);
     border-radius: var(--radius);
-    padding: 20px;
+    padding: 18px 16px 14px;
     box-shadow: var(--shadow);
     margin-bottom: 20px;
-    display: flex;
-    align-items: center;
 }
 
-.avg-bar .avg-main {
+.avg-cols {
+    display: flex;
+    text-align: center;
+}
+
+.avg-col {
     flex: 1;
     display: flex;
     flex-direction: column;
+    align-items: center;
     gap: 4px;
 }
 
-.avg-label {
-    font-size: 11px;
+.avg-col .avg-col-label {
+    font-size: 10px;
     color: var(--text2);
-    font-weight: 500;
+    font-weight: 600;
     text-transform: uppercase;
-    letter-spacing: 0.3px;
+    letter-spacing: 0.5px;
 }
 
-.avg-values {
-    display: flex;
-    align-items: baseline;
-    gap: 12px;
-}
-
-.avg-bp {
-    font-size: 28px;
+.avg-col .avg-col-value {
+    font-size: 26px;
     font-weight: 800;
     color: var(--text);
     letter-spacing: -0.5px;
 }
 
-.avg-bp .avg-unit {
-    font-size: 13px;
-    font-weight: 500;
-    color: #B0B7C3;
-    margin-left: 2px;
-}
-
-.avg-pulse-box {
-    display: flex;
-    align-items: center;
-    gap: 4px;
-    font-size: 15px;
-    font-weight: 600;
+.avg-col.pulse .avg-col-value {
     color: var(--text2);
-}
-
-.avg-pulse-box .heart {
-    color: rgba(74,144,217,0.4);
-    font-size: 12px;
-}
-
-.avg-count {
-    font-size: 12px;
-    color: #B0B7C3;
-    text-align: right;
-    flex-shrink: 0;
-    padding-left: 16px;
-}
-
-.avg-count strong {
-    font-size: 22px;
     font-weight: 700;
-    color: var(--text);
-    display: block;
+}
+
+.avg-footer {
+    text-align: center;
+    margin-top: 10px;
+    font-size: 11px;
+    color: #C0C5CC;
 }
 
 .chart-card {
@@ -1284,24 +1258,27 @@ function loadDashboard() {
     }
 
     const periodLabel = currentDays > 0 ? `${currentDays} dni` : 'vse';
-    const pulseHtml = stats.avg_pulse ? `
-        <div class="avg-pulse-box">
-            <span class="heart">&hearts;</span>${Math.round(stats.avg_pulse)}
-        </div>` : '';
+    const pulseCol = stats.avg_pulse
+        ? `<div class="avg-col pulse">
+                <span class="avg-col-label">Pulz</span>
+                <span class="avg-col-value">${Math.round(stats.avg_pulse)}</span>
+           </div>`
+        : '';
 
     content.innerHTML = `
         <div class="avg-bar">
-            <div class="avg-main">
-                <span class="avg-label">Povprecje (${periodLabel})</span>
-                <div class="avg-values">
-                    <span class="avg-bp">${Math.round(stats.avg_systolic)}/${Math.round(stats.avg_diastolic)}<span class="avg-unit">mmHg</span></span>
-                    ${pulseHtml}
+            <div class="avg-cols">
+                <div class="avg-col">
+                    <span class="avg-col-label">Sistolicni</span>
+                    <span class="avg-col-value">${Math.round(stats.avg_systolic)}</span>
                 </div>
+                <div class="avg-col">
+                    <span class="avg-col-label">Diastolicni</span>
+                    <span class="avg-col-value">${Math.round(stats.avg_diastolic)}</span>
+                </div>
+                ${pulseCol}
             </div>
-            <div class="avg-count">
-                <strong>${stats.count}</strong>
-                meritev
-            </div>
+            <div class="avg-footer">n=${stats.count}</div>
         </div>
         <div class="chart-card">
             <h3>Krvni tlak in pulz</h3>
