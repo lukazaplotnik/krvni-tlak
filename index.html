@@ -740,9 +740,11 @@ const Store = {
         return readings.filter(r => new Date(r.measured_at) >= since);
     },
     getLastReadings(count) { return this._get('readings').slice(-count); },
-    deleteReading(index) {
+    deleteReading(measured_at) {
         const readings = this._get('readings');
-        const removed = readings.splice(index, 1)[0];
+        const idx = readings.findIndex(r => r.measured_at === measured_at);
+        if (idx === -1) return;
+        const removed = readings.splice(idx, 1)[0];
         this._set('readings', readings);
         if (removed && removed.cloud_id) this.deleteFromCloud(removed.cloud_id);
     },
@@ -1111,14 +1113,14 @@ document.querySelectorAll('.measurement-table input').forEach(inp => {
 });
 
 // ===== HISTORY =====
-function askDelete(index, el) {
+function askDelete(el) {
     document.querySelectorAll('.history-item.confirm-delete').forEach(item => item.classList.remove('confirm-delete'));
     el.closest('.history-item').classList.add('confirm-delete');
 }
 
 function cancelDelete(el) { el.closest('.history-item').classList.remove('confirm-delete'); }
 
-function confirmDelete(index) { Store.deleteReading(index); renderHistory(); }
+function confirmDelete(measured_at) { Store.deleteReading(measured_at); renderHistory(); }
 
 let showAll = false;
 
@@ -1128,13 +1130,14 @@ function renderHistory() {
     if (!allReadings.length) { list.innerHTML = '<div class="empty-msg">Se ni meritev</div>'; return; }
 
     const display = showAll ? allReadings : allReadings.slice(-5);
-    const items = display.slice().reverse().map((r, i) => {
-        const actualIdx = showAll ? (allReadings.length - 1 - i) : (allReadings.length - display.length + (display.length - 1 - i));
+    const items = display.slice().reverse().map((r) => {
+        const ts = r.measured_at;
         const bp = classifyBP(r.systolic, r.diastolic);
-        const date = new Date(r.measured_at);
+        const date = new Date(ts);
         const time = date.toLocaleDateString('sl-SI', { day: 'numeric', month: 'short' })
             + ' ' + date.toLocaleTimeString('sl-SI', { hour: '2-digit', minute: '2-digit' });
         const pulse = r.pulse ? `<div class="pulse-val">Pulz: ${r.pulse} u/min</div>` : '';
+        const safeTs = ts.replace(/'/g, "\\'");
         return `
             <div class="history-item">
                 <div class="item-content">
@@ -1144,11 +1147,11 @@ function renderHistory() {
                     </div>
                     <span class="badge ${bp.cls}">${bp.label}</span>
                     <div class="time">${time}</div>
-                    <button class="delete-btn" onclick="askDelete(${actualIdx}, this)" title="Izbrisi">&times;</button>
+                    <button class="delete-btn" onclick="askDelete(this)" title="Izbrisi">&times;</button>
                 </div>
                 <div class="confirm-bar">
                     <span>Izbrisati?</span>
-                    <button class="confirm-yes" onclick="confirmDelete(${actualIdx})">Da</button>
+                    <button class="confirm-yes" onclick="confirmDelete('${safeTs}')">Da</button>
                     <button class="confirm-no" onclick="cancelDelete(this)">Ne</button>
                 </div>
             </div>`;
