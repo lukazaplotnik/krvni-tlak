@@ -766,36 +766,56 @@ const Store = {
     // --- Cloud sync engine ---
     _syncing: false,
 
-    async pushOne(reading) {
-        const { data: { user } } = await sb.auth.getUser();
-        if (!user) return false;
-        const { data, error } = await sb.from('readings').insert({
-            user_id: user.id,
-            systolic: reading.systolic,
-            diastolic: reading.diastolic,
-            pulse: reading.pulse,
-            measured_at: reading.measured_at,
-        }).select().single();
-        if (error) return false;
-        if (data) {
-            const readings = this._get('readings');
-            const match = readings.find(r => r.measured_at === reading.measured_at && !r.cloud_id);
-            if (match) { match.cloud_id = data.id; this._set('readings', readings); }
-        }
-        return true;
+    async _getUser() {
+        try {
+            const { data: { user } } = await sb.auth.getUser();
+            return user;
+        } catch (e) { return null; }
     },
 
     async syncPending() {
         if (this._syncing) return;
         this._syncing = true;
         try {
+            const user = await this._getUser();
+            if (!user) { this._syncing = false; return; }
+
             const readings = this._get('readings');
             const unsynced = readings.filter(r => !r.cloud_id);
-            if (!unsynced.length) { this._syncing = false; this.updateSyncDot(); return; }
-            console.log('Sync: pushing', unsynced.length, 'pending readings');
+            if (!unsynced.length) { this._syncing = false; return; }
+
+            console.log('Sync: pushing', unsynced.length, 'pending');
+
             for (const r of unsynced) {
-                const ok = await this.pushOne(r);
-                if (!ok) break; // stop on first failure (likely offline)
+                // Check for duplicate by measured_at before inserting
+                const { data: existing } = await sb.from('readings')
+                    .select('id')
+                    .eq('user_id', user.id)
+                    .eq('measured_at', r.measured_at)
+                    .maybeSingle();
+
+                let cloudId;
+                if (existing) {
+                    cloudId = existing.id;
+                } else {
+                    const { data, error } = await sb.from('readings').insert({
+                        user_id: user.id,
+                        systolic: r.systolic,
+                        diastolic: r.diastolic,
+                        pulse: r.pulse,
+                        measured_at: r.measured_at,
+                    }).select('id').single();
+                    if (error) { console.warn('Push failed:', error.message); break; }
+                    cloudId = data.id;
+                }
+
+                // Mark as synced in localStorage
+                const current = this._get('readings');
+                const match = current.find(x => x.measured_at === r.measured_at && !x.cloud_id);
+                if (match) {
+                    match.cloud_id = cloudId;
+                    this._set('readings', current);
+                }
             }
         } catch (e) { console.warn('Sync error:', e.message); }
         this._syncing = false;
@@ -807,36 +827,55 @@ const Store = {
         } catch (e) { /* offline — row already removed locally */ }
     },
 
-    async syncFromCloud() {
+    async fullSync() {
+        if (this._syncing) return;
+        this._syncing = true;
         try {
-            const { data: { user } } = await sb.auth.getUser();
-            if (!user) return;
+            const user = await this._getUser();
+            if (!user) { this._syncing = false; return; }
+
+            // 1. Save unsynced local readings before overwriting
+            const local = this._get('readings');
+            const unsynced = local.filter(r => !r.cloud_id);
+
+            // 2. Pull cloud data
             const { data, error } = await sb.from('readings')
                 .select('*')
                 .eq('user_id', user.id)
                 .order('measured_at', { ascending: true });
-            if (error) { console.warn('Sync fetch error:', error.message); return; }
-            if (!data) return;
+            if (error) { console.warn('Sync fetch error:', error.message); this._syncing = false; return; }
 
-            console.log('Sync: got', data.length, 'readings from cloud');
+            console.log('Sync: got', (data||[]).length, 'from cloud,', unsynced.length, 'local pending');
 
-            const local = this._get('readings');
-            const unsynced = local.filter(r => !r.cloud_id);
-
-            const cloudReadings = data.map(r => ({
+            // 3. Build merged list: cloud data + unsynced local
+            const cloudReadings = (data || []).map(r => ({
                 systolic: r.systolic,
                 diastolic: r.diastolic,
                 pulse: r.pulse,
                 measured_at: r.measured_at,
                 cloud_id: r.id,
             }));
+
+            // Add unsynced local readings that don't exist in cloud (by measured_at)
+            const cloudTimestamps = new Set(cloudReadings.map(r => r.measured_at));
+            for (const r of unsynced) {
+                if (!cloudTimestamps.has(r.measured_at)) {
+                    cloudReadings.push(r); // keeps without cloud_id → will be pushed
+                }
+            }
+
+            // Sort by measured_at
+            cloudReadings.sort((a, b) => new Date(a.measured_at) - new Date(b.measured_at));
             this._set('readings', cloudReadings);
 
-            // Push unsynced local readings
-            for (const r of unsynced) {
-                await this.pushOne(r);
-            }
-        } catch (e) { console.warn('Sync offline:', e.message); }
+            this._syncing = false;
+
+            // 4. Push any still-unsynced readings
+            await this.syncPending();
+        } catch (e) {
+            console.warn('Sync offline:', e.message);
+            this._syncing = false;
+        }
     }
 };
 
@@ -908,7 +947,7 @@ function showLoggedIn(email) {
 sb.auth.onAuthStateChange(async (event, session) => {
     if (session) {
         showLoggedIn(session.user.email);
-        await Store.syncFromCloud();
+        await Store.fullSync();
         renderHistory();
     } else {
         document.getElementById('loginOverlay').classList.remove('hidden');
@@ -930,7 +969,7 @@ function closeSettings() {
 async function manualSync() {
     const btn = event.target.closest('.settings-action');
     btn.textContent = 'Sinhroniziram...';
-    await Store.syncFromCloud();
+    await Store.fullSync();
     btn.innerHTML = '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#1A1A2E" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="23 4 23 10 17 10"/><polyline points="1 20 1 14 7 14"/><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/></svg> Sinhronizirano!';
     renderHistory();
     setTimeout(() => closeSettings(), 800);
