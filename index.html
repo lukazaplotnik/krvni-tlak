@@ -788,14 +788,21 @@ const Store = {
         this._syncTimer = setTimeout(() => this.sync(), 500);
     },
 
+    // Wrap any promise with a timeout
+    _withTimeout(promise, ms) {
+        return Promise.race([
+            promise,
+            new Promise((_, reject) => setTimeout(() => reject(new Error('timeout')), ms))
+        ]);
+    },
+
     async _getUser() {
         try {
-            const { data: { session } } = await sb.auth.getSession();
+            const { data: { session } } = await this._withTimeout(sb.auth.getSession(), 5000);
             return session?.user || null;
         } catch (e) { return null; }
     },
 
-    // Single sync function that handles everything
     async sync() {
         if (this._syncRunning) return;
         this._syncRunning = true;
@@ -810,8 +817,10 @@ const Store = {
                 const remaining = [];
                 for (const cloudId of deleteQueue) {
                     try {
-                        const { error } = await sb.from('readings').delete().eq('id', cloudId);
-                        if (error) { remaining.push(cloudId); }
+                        const { error } = await this._withTimeout(
+                            sb.from('readings').delete().eq('id', cloudId), 10000
+                        );
+                        if (error) remaining.push(cloudId);
                     } catch (e) { remaining.push(cloudId); break; }
                 }
                 this._set('_delete_queue', remaining);
@@ -822,17 +831,18 @@ const Store = {
             const unsynced = readings.filter(r => !r.cloud_id);
             for (const r of unsynced) {
                 try {
-                    const { data, error } = await sb.from('readings').insert({
-                        user_id: user.id,
-                        systolic: r.systolic,
-                        diastolic: r.diastolic,
-                        pulse: r.pulse,
-                        measured_at: r.measured_at,
-                    }).select('id').single();
+                    const { data, error } = await this._withTimeout(
+                        sb.from('readings').insert({
+                            user_id: user.id,
+                            systolic: r.systolic,
+                            diastolic: r.diastolic,
+                            pulse: r.pulse,
+                            measured_at: r.measured_at,
+                        }).select('id').single(), 10000
+                    );
 
                     if (error) break;
 
-                    // Mark synced — re-read to avoid stale state
                     const fresh = this._get('readings');
                     const match = fresh.find(x => x.id === r.id);
                     if (match) {
@@ -860,10 +870,13 @@ const Store = {
             const local = this._get('readings');
             const unsynced = local.filter(r => !r.cloud_id);
 
-            const { data, error } = await sb.from('readings')
-                .select('*')
-                .eq('user_id', user.id)
-                .order('measured_at', { ascending: true });
+            const { data, error } = await this._withTimeout(
+                sb.from('readings')
+                    .select('*')
+                    .eq('user_id', user.id)
+                    .order('measured_at', { ascending: true }),
+                10000
+            );
             if (error || !data) return;
 
             // Build merged list preserving local IDs
