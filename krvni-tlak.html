@@ -1451,6 +1451,18 @@ function setFilter(days) {
 // Initial render with local data (cloud sync will re-render when ready)
 renderHistory();
 
+// Auto-sync unsynced readings when back online
+window.addEventListener('online', async () => {
+    const readings = Store._get('readings');
+    const unsynced = readings.filter(r => !r.cloud_id);
+    if (unsynced.length) {
+        console.log('Back online: syncing', unsynced.length, 'readings');
+        for (const r of unsynced) {
+            await Store.syncToCloud(r);
+        }
+    }
+});
+
 if ('serviceWorker' in navigator) navigator.serviceWorker.register('sw.js');
 </script>
 </body>
