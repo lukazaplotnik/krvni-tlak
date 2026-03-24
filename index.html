@@ -1054,9 +1054,9 @@ function isComplete(id) {
     if (!el || !el.value) return false;
     const len = el.value.length;
     const first = el.value[0];
-    if (id.startsWith('d')) return (len >= 2 && first !== '1') || len >= 3;
+    if (id.startsWith('d') || id.startsWith('p')) return (len >= 2 && first !== '1') || len >= 3;
     if (id.startsWith('s')) return (len >= 2 && first !== '1' && first !== '2') || len >= 3;
-    return len >= 2; // pulse
+    return false;
 }
 
 function computeAvg() {
@@ -1090,17 +1090,7 @@ function computeAvg() {
 
 function onMeasInput(el) {
     const id = el.id;
-    const isDiastolic = id.startsWith('d');
-    const len = el.value.length;
-
-    let shouldJump = false;
-    const first = el.value[0];
-    if (isDiastolic) {
-        shouldJump = (len >= 2 && first !== '1') || len >= 3;
-    } else {
-        // Systolic: 80-99 = 2 digits, 100+ = 3 digits
-        shouldJump = (len >= 2 && first !== '1' && first !== '2') || len >= 3;
-    }
+    const shouldJump = isComplete(id);
 
     if (shouldJump) {
         const inputs = [...document.querySelectorAll('.measurement-table input')];
