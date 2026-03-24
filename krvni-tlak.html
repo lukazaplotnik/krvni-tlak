@@ -821,9 +821,12 @@ const Store = {
     },
 
     async deleteFromCloud(cloudId) {
+        if (!cloudId) { console.warn('Delete: no cloud_id'); return; }
         try {
-            await sb.from('readings').delete().eq('id', cloudId);
-        } catch (e) { /* offline — row already removed locally */ }
+            const { error } = await sb.from('readings').delete().eq('id', cloudId);
+            if (error) console.warn('Delete failed:', error.message);
+            else console.log('Deleted from cloud:', cloudId);
+        } catch (e) { console.warn('Delete error:', e.message); }
     },
 
     async fullSync() {
