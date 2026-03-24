@@ -726,6 +726,7 @@ const Store = {
     _get(key) { try { return JSON.parse(localStorage.getItem(key)) || []; } catch { return []; } },
     _set(key, data) { localStorage.setItem(key, JSON.stringify(data)); },
 
+    // --- Reading operations (always instant, always local-first) ---
     saveReading(systolic, diastolic, pulse) {
         const reading = {
             id: crypto.randomUUID(),
@@ -738,23 +739,33 @@ const Store = {
         const readings = this._get('readings');
         readings.push(reading);
         this._set('readings', readings);
-        this.syncPending();
+        this._scheduleSyncSoon();
     },
-    getReadings(days) {
-        const readings = this._get('readings');
-        if (!days) return readings;
-        const since = new Date(); since.setDate(since.getDate() - days);
-        return readings.filter(r => new Date(r.measured_at) >= since);
-    },
-    getLastReadings(count) { return this._get('readings').slice(-count); },
+
     deleteReading(localId) {
         const readings = this._get('readings');
         const idx = readings.findIndex(r => r.id === localId);
         if (idx === -1) return;
         const removed = readings.splice(idx, 1)[0];
         this._set('readings', readings);
-        if (removed.cloud_id) this.deleteFromCloud(removed.cloud_id);
+        // Queue cloud delete
+        if (removed.cloud_id) {
+            const q = this._get('_delete_queue');
+            q.push(removed.cloud_id);
+            this._set('_delete_queue', q);
+            this._scheduleSyncSoon();
+        }
     },
+
+    getReadings(days) {
+        const readings = this._get('readings');
+        if (!days) return readings;
+        const since = new Date(); since.setDate(since.getDate() - days);
+        return readings.filter(r => new Date(r.measured_at) >= since);
+    },
+
+    getLastReadings(count) { return this._get('readings').slice(-count); },
+
     getStats(days) {
         const readings = days ? this.getReadings(days) : this.getReadings();
         if (!readings.length) return { count: 0 };
@@ -768,9 +779,14 @@ const Store = {
         };
     },
 
-    // --- Cloud sync engine ---
-    _syncing: false,
-    _syncStarted: 0,
+    // --- Sync engine ---
+    _syncTimer: null,
+    _syncRunning: false,
+
+    _scheduleSyncSoon() {
+        clearTimeout(this._syncTimer);
+        this._syncTimer = setTimeout(() => this.sync(), 500);
+    },
 
     async _getUser() {
         try {
@@ -779,91 +795,82 @@ const Store = {
         } catch (e) { return null; }
     },
 
-    async syncPending() {
-        // Auto-reset if stuck for more than 15 seconds
-        if (this._syncing && (Date.now() - this._syncStarted) > 15000) {
-            this._syncing = false;
-        }
-        if (this._syncing) return;
-        this._syncing = true;
-        this._syncStarted = Date.now();
+    // Single sync function that handles everything
+    async sync() {
+        if (this._syncRunning) return;
+        this._syncRunning = true;
+
         try {
             const user = await this._getUser();
-            if (!user) { this._syncing = false; clearTimeout(this._syncTimeout); return; }
+            if (!user) return;
 
-            // Re-read each iteration to get fresh state
-            let readings = this._get('readings');
-            let unsynced = readings.filter(r => !r.cloud_id);
-            if (!unsynced.length) { this._syncing = false; return; }
-
-            console.log('Sync: pushing', unsynced.length, 'pending');
-
-            for (let i = 0; i < unsynced.length; i++) {
-                const r = unsynced[i];
-                const { data, error } = await sb.from('readings').insert({
-                    user_id: user.id,
-                    systolic: r.systolic,
-                    diastolic: r.diastolic,
-                    pulse: r.pulse,
-                    measured_at: r.measured_at,
-                }).select('id').single();
-
-                if (error) {
-                    console.warn('Push failed:', error.message);
-                    break; // likely offline, retry later
+            // 1. Process delete queue
+            const deleteQueue = this._get('_delete_queue');
+            if (deleteQueue.length) {
+                const remaining = [];
+                for (const cloudId of deleteQueue) {
+                    try {
+                        const { error } = await sb.from('readings').delete().eq('id', cloudId);
+                        if (error) { remaining.push(cloudId); }
+                    } catch (e) { remaining.push(cloudId); break; }
                 }
+                this._set('_delete_queue', remaining);
+            }
 
-                console.log('Synced reading', i + 1, '/', unsynced.length);
+            // 2. Push unsynced readings
+            const readings = this._get('readings');
+            const unsynced = readings.filter(r => !r.cloud_id);
+            for (const r of unsynced) {
+                try {
+                    const { data, error } = await sb.from('readings').insert({
+                        user_id: user.id,
+                        systolic: r.systolic,
+                        diastolic: r.diastolic,
+                        pulse: r.pulse,
+                        measured_at: r.measured_at,
+                    }).select('id').single();
 
-                // Mark as synced — re-read localStorage to avoid stale writes
-                readings = this._get('readings');
-                const match = readings.find(x => x.id === r.id);
-                if (match) {
-                    match.cloud_id = data.id;
-                    this._set('readings', readings);
-                }
+                    if (error) break;
+
+                    // Mark synced — re-read to avoid stale state
+                    const fresh = this._get('readings');
+                    const match = fresh.find(x => x.id === r.id);
+                    if (match) {
+                        match.cloud_id = data.id;
+                        this._set('readings', fresh);
+                    }
+                } catch (e) { break; }
             }
         } catch (e) {
-            console.warn('Sync error:', e.message);
+            // offline or error — will retry
+        } finally {
+            this._syncRunning = false;
         }
-        this._syncing = false;
     },
 
-    async deleteFromCloud(cloudId) {
-        if (!cloudId) { console.warn('Delete: no cloud_id'); return; }
-        try {
-            const { error } = await sb.from('readings').delete().eq('id', cloudId);
-            if (error) console.warn('Delete failed:', error.message);
-            else console.log('Deleted from cloud:', cloudId);
-        } catch (e) { console.warn('Delete error:', e.message); }
-    },
-
+    // Full sync: pull cloud → merge with local → push unsynced
     async fullSync() {
-        if (this._syncing) return;
-        this._syncing = true;
+        if (this._syncRunning) return;
+        this._syncRunning = true;
+
         try {
             const user = await this._getUser();
-            if (!user) { this._syncing = false; return; }
+            if (!user) return;
 
-            // 1. Save unsynced local readings before overwriting
             const local = this._get('readings');
             const unsynced = local.filter(r => !r.cloud_id);
 
-            // 2. Pull cloud data
             const { data, error } = await sb.from('readings')
                 .select('*')
                 .eq('user_id', user.id)
                 .order('measured_at', { ascending: true });
-            if (error) { console.warn('Sync fetch error:', error.message); this._syncing = false; return; }
+            if (error || !data) return;
 
-            console.log('Sync: got', (data||[]).length, 'from cloud,', unsynced.length, 'local pending');
-
-            // 3. Build merged list: cloud data + unsynced local
-            // Preserve local id if we already have this cloud reading locally
+            // Build merged list preserving local IDs
             const localByCloudId = {};
             local.forEach(r => { if (r.cloud_id) localByCloudId[r.cloud_id] = r; });
 
-            const cloudReadings = (data || []).map(r => ({
+            const merged = data.map(r => ({
                 id: localByCloudId[r.id]?.id || crypto.randomUUID(),
                 systolic: r.systolic,
                 diastolic: r.diastolic,
@@ -872,27 +879,25 @@ const Store = {
                 cloud_id: r.id,
             }));
 
-            // Add unsynced local readings that don't exist in cloud
-            const cloudTimestamps = new Set(cloudReadings.map(r => r.measured_at));
+            // Keep unsynced local readings
+            const cloudTimestamps = new Set(merged.map(r => r.measured_at));
             for (const r of unsynced) {
                 if (!cloudTimestamps.has(r.measured_at)) {
                     if (!r.id) r.id = crypto.randomUUID();
-                    cloudReadings.push(r);
+                    merged.push(r);
                 }
             }
 
-            // Sort by measured_at
-            cloudReadings.sort((a, b) => new Date(a.measured_at) - new Date(b.measured_at));
-            this._set('readings', cloudReadings);
-
-            this._syncing = false;
-
-            // 4. Push any still-unsynced readings
-            await this.syncPending();
+            merged.sort((a, b) => new Date(a.measured_at) - new Date(b.measured_at));
+            this._set('readings', merged);
         } catch (e) {
-            console.warn('Sync offline:', e.message);
-            this._syncing = false;
+            // offline — use local data
+        } finally {
+            this._syncRunning = false;
         }
+
+        // Now push any unsynced
+        await this.sync();
     }
 };
 
@@ -1532,15 +1537,10 @@ function setFilter(days) {
 // Initial render with local data (cloud sync will re-render when ready)
 renderHistory();
 
-// === SYNC ENGINE: multiple triggers to ensure data reaches the cloud ===
-// 1. When device comes back online
-window.addEventListener('online', () => Store.syncPending());
-// 2. When app comes to foreground
-document.addEventListener('visibilitychange', () => {
-    if (!document.hidden) Store.syncPending();
-});
-// 3. Periodic retry every 30 seconds while app is open
-setInterval(() => { if (!document.hidden) Store.syncPending(); }, 30000);
+// === SYNC TRIGGERS ===
+window.addEventListener('online', () => Store.sync());
+document.addEventListener('visibilitychange', () => { if (!document.hidden) Store.sync(); });
+setInterval(() => { if (!document.hidden) Store.sync(); }, 30000);
 
 if ('serviceWorker' in navigator) navigator.serviceWorker.register('sw.js');
 </script>
