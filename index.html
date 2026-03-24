@@ -1050,35 +1050,32 @@ function classifyBP(s, d) {
 function getVal(id) { const v = parseInt(document.getElementById(id).value); return isNaN(v) ? null : v; }
 
 function computeAvg() {
-    const vals = [1,2,3].map(i => ({
-        s: getVal('s'+i), d: getVal('d'+i), p: getVal('p'+i)
-    }));
+    const sVals = [1,2,3].map(i => getVal('s'+i)).filter(v => v !== null);
+    const dVals = [1,2,3].map(i => getVal('d'+i)).filter(v => v !== null);
+    const pVals = [1,2,3].map(i => getVal('p'+i)).filter(v => v !== null);
 
-    const filled = vals.filter(v => v.s && v.d);
     const avgS = document.getElementById('avgS');
     const avgD = document.getElementById('avgD');
     const avgP = document.getElementById('avgP');
     const btn = document.getElementById('saveBtn');
 
-    if (filled.length === 0) {
-        avgS.textContent = '\u2665'; avgS.className = 'avg-display empty';
-        avgD.textContent = '\u2665'; avgD.className = 'avg-display empty';
-        avgP.textContent = '\u2665'; avgP.className = 'avg-display empty';
-        btn.disabled = true;
-        return null;
-    }
+    const avg = arr => Math.round(arr.reduce((a, b) => a + b, 0) / arr.length);
 
-    const s = Math.round(filled.reduce((a, v) => a + v.s, 0) / filled.length);
-    const d = Math.round(filled.reduce((a, v) => a + v.d, 0) / filled.length);
-    const pVals = filled.filter(v => v.p);
-    const p = pVals.length ? Math.round(pVals.reduce((a, v) => a + v.p, 0) / pVals.length) : null;
+    const s = sVals.length ? avg(sVals) : null;
+    const d = dVals.length ? avg(dVals) : null;
+    const p = pVals.length ? avg(pVals) : null;
 
-    avgS.textContent = s; avgS.className = 'avg-display';
-    avgD.textContent = d; avgD.className = 'avg-display';
-    avgP.textContent = p || '\u2665'; avgP.className = p ? 'avg-display' : 'avg-display empty';
-    btn.disabled = false;
+    avgS.textContent = s !== null ? s : '\u2665';
+    avgS.className = s !== null ? 'avg-display' : 'avg-display empty';
+    avgD.textContent = d !== null ? d : '\u2665';
+    avgD.className = d !== null ? 'avg-display' : 'avg-display empty';
+    avgP.textContent = p !== null ? p : '\u2665';
+    avgP.className = p !== null ? 'avg-display' : 'avg-display empty';
 
-    return { s, d, p };
+    // Need at least one systolic AND one diastolic to save
+    btn.disabled = !(s && d);
+
+    return (s && d) ? { s, d, p } : null;
 }
 
 function onMeasInput(el) {
