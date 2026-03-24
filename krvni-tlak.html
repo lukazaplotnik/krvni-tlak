@@ -740,9 +740,11 @@ const Store = {
         return readings.filter(r => new Date(r.measured_at) >= since);
     },
     getLastReadings(count) { return this._get('readings').slice(-count); },
-    deleteReading(measured_at) {
+    deleteReading(id, measured_at) {
         const readings = this._get('readings');
-        const idx = readings.findIndex(r => r.measured_at === measured_at);
+        const idx = id
+            ? readings.findIndex(r => r.cloud_id === id)
+            : readings.findIndex(r => r.measured_at === measured_at);
         if (idx === -1) return;
         const removed = readings.splice(idx, 1)[0];
         this._set('readings', readings);
@@ -1120,7 +1122,7 @@ function askDelete(el) {
 
 function cancelDelete(el) { el.closest('.history-item').classList.remove('confirm-delete'); }
 
-function confirmDelete(measured_at) { Store.deleteReading(measured_at); renderHistory(); }
+function confirmDelete(id, measured_at) { Store.deleteReading(id, measured_at); renderHistory(); }
 
 let showAll = false;
 
@@ -1137,7 +1139,7 @@ function renderHistory() {
         const time = date.toLocaleDateString('sl-SI', { day: 'numeric', month: 'short' })
             + ' ' + date.toLocaleTimeString('sl-SI', { hour: '2-digit', minute: '2-digit' });
         const pulse = r.pulse ? `<div class="pulse-val">Pulz: ${r.pulse} u/min</div>` : '';
-        const safeTs = ts.replace(/'/g, "\\'");
+        const delArg = r.cloud_id ? `'${r.cloud_id}',null` : `null,'${ts}'`;
         return `
             <div class="history-item">
                 <div class="item-content">
@@ -1151,7 +1153,7 @@ function renderHistory() {
                 </div>
                 <div class="confirm-bar">
                     <span>Izbrisati?</span>
-                    <button class="confirm-yes" onclick="confirmDelete('${safeTs}')">Da</button>
+                    <button class="confirm-yes" onclick="confirmDelete(${delArg})">Da</button>
                     <button class="confirm-no" onclick="cancelDelete(this)">Ne</button>
                 </div>
             </div>`;
