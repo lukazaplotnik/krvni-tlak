@@ -1007,8 +1007,19 @@ function computeAvg() {
 }
 
 function onMeasInput(el) {
-    // Auto-tab on 3 digits
-    if (el.value.length >= 3) {
+    const id = el.id;
+    const isDiastolic = id.startsWith('d');
+    const len = el.value.length;
+
+    let shouldJump = false;
+    if (isDiastolic) {
+        // 2 digits jump, unless first digit is 1 → wait for 3
+        shouldJump = (len >= 2 && el.value[0] !== '1') || len >= 3;
+    } else {
+        shouldJump = len >= 3;
+    }
+
+    if (shouldJump) {
         const inputs = [...document.querySelectorAll('.measurement-table input')];
         const idx = inputs.indexOf(el);
         if (idx < inputs.length - 1) inputs[idx + 1].focus();
