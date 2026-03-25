@@ -467,7 +467,8 @@ tbody tr:nth-child(3) td {
     display: flex;
     flex-wrap: wrap;
     gap: 4px;
-    padding: 0 16px 8px;
+    padding: 0 16px 10px;
+    min-height: 20px;
 }
 
 .history-tag {
@@ -1346,7 +1347,8 @@ function renderHistory() {
         const time = date.toLocaleDateString('sl-SI', { day: 'numeric', month: 'short' })
             + ' ' + date.toLocaleTimeString('sl-SI', { hour: '2-digit', minute: '2-digit' });
         const pulse = r.pulse ? `<div class="pulse-val">&hearts; ${r.pulse}</div>` : '';
-        const tags = (r.tags && r.tags.length) ? `<div class="history-tags">${r.tags.map(t => `<span class="history-tag">${t}</span>`).join('')}</div>` : '';
+        const tagContent = (r.tags && r.tags.length) ? r.tags.map(t => `<span class="history-tag">${t}</span>`).join('') : '';
+        const tags = `<div class="history-tags">${tagContent}</div>`;
         return `
             <div class="history-item">
                 <div class="item-content">
