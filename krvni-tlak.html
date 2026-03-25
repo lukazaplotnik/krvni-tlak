@@ -370,6 +370,63 @@ tbody tr:nth-child(3) td {
     color: #C0C5CC;
 }
 
+/* TAGS */
+.tags-section {
+    margin-top: 14px;
+    margin-bottom: 16px;
+}
+
+.tags-label {
+    font-size: 11px;
+    color: var(--text2);
+    font-weight: 500;
+    margin-bottom: 8px;
+}
+
+.tags-wrap {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+}
+
+.tag-chip {
+    padding: 6px 12px;
+    border: 1.5px solid var(--border);
+    border-radius: 20px;
+    font-size: 12px;
+    font-weight: 500;
+    color: var(--text2);
+    background: var(--card);
+    cursor: pointer;
+    transition: all 0.15s;
+    user-select: none;
+    -webkit-user-select: none;
+}
+
+.tag-chip.selected {
+    border-color: var(--primary);
+    background: rgba(74,144,217,0.08);
+    color: var(--primary);
+    font-weight: 600;
+}
+
+.tag-chip:active { transform: scale(0.95); }
+
+.history-tags {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 4px;
+    margin-top: 4px;
+}
+
+.history-tag {
+    font-size: 10px;
+    color: var(--primary);
+    background: rgba(74,144,217,0.08);
+    padding: 2px 8px;
+    border-radius: 10px;
+}
+
 .chart-card {
     background: var(--card);
     border-radius: var(--radius);
@@ -707,6 +764,10 @@ tbody tr:nth-child(3) td {
                     </tr>
                 </tbody>
             </table>
+            <div class="tags-section">
+                <div class="tags-label" id="tagsLabel">Oznake</div>
+                <div class="tags-wrap" id="tagsWrap"></div>
+            </div>
             <button class="save-btn" id="saveBtn" onclick="saveEntry()" disabled>Shrani meritev</button>
             <div class="feedback" id="feedback"></div>
         </div>
@@ -737,12 +798,13 @@ const Store = {
     _set(key, data) { localStorage.setItem(key, JSON.stringify(data)); },
 
     // --- Reading operations (always instant, always local-first) ---
-    saveReading(systolic, diastolic, pulse) {
+    saveReading(systolic, diastolic, pulse, tags) {
         const reading = {
             id: crypto.randomUUID(),
             systolic,
             diastolic,
             pulse: pulse || null,
+            tags: tags || [],
             measured_at: new Date().toISOString(),
             cloud_id: null,
         };
@@ -847,6 +909,7 @@ const Store = {
                             systolic: r.systolic,
                             diastolic: r.diastolic,
                             pulse: r.pulse,
+                            tags: r.tags || [],
                             measured_at: r.measured_at,
                         }).select('id').single(), 10000
                     );
@@ -898,6 +961,7 @@ const Store = {
                 systolic: r.systolic,
                 diastolic: r.diastolic,
                 pulse: r.pulse,
+                tags: r.tags || [],
                 measured_at: r.measured_at,
                 cloud_id: r.id,
             }));
@@ -1051,6 +1115,32 @@ function showTab(tab) {
 
 // ===== BP CLASSIFICATION (ESC/ESH Guidelines used in Slovenia) =====
 // Source: Evropske smernice za hipertenzijo (ESC/ESH 2018), used by Slovenian cardiology society
+// ===== TAGS =====
+const MORNING_TAGS = ['Slab spanec', 'Alkohol vceraj', 'Slana vecerja', 'Stres vceraj', 'Gibanje vceraj', 'Slabo pocutje'];
+const EVENING_TAGS = ['Dodatna zdravila', 'Alkohol', 'Slana hrana', 'Veliko gibanja', 'Stresen dan', 'Slabo pocutje'];
+let selectedTags = [];
+
+function isMorning() { return new Date().getHours() < 14; }
+
+function renderTags() {
+    const tags = isMorning() ? MORNING_TAGS : EVENING_TAGS;
+    const wrap = document.getElementById('tagsWrap');
+    wrap.innerHTML = tags.map(t =>
+        `<div class="tag-chip${selectedTags.includes(t) ? ' selected' : ''}" onclick="toggleTag('${t}')">${t}</div>`
+    ).join('');
+}
+
+function toggleTag(tag) {
+    if (selectedTags.includes(tag)) {
+        selectedTags = selectedTags.filter(t => t !== tag);
+    } else {
+        selectedTags.push(tag);
+    }
+    renderTags();
+}
+
+renderTags();
+
 function classifyBP(s, d) {
     if (s >= 180 || d >= 110) return { label: 'Stopnja 3', cls: 'crisis' };
     if (s >= 160 || d >= 100) return { label: 'Stopnja 2', cls: 'grade2' };
@@ -1123,7 +1213,7 @@ function saveEntry() {
     if (avg.s < 60 || avg.s > 250) { fb.textContent = 'Sistolicni: 60\u2013250'; fb.className = 'feedback warning'; return; }
     if (avg.d < 30 || avg.d > 150) { fb.textContent = 'Diastolicni: 30\u2013150'; fb.className = 'feedback warning'; return; }
 
-    Store.saveReading(avg.s, avg.d, avg.p);
+    Store.saveReading(avg.s, avg.d, avg.p, [...selectedTags]);
     const bp = classifyBP(avg.s, avg.d);
     fb.textContent = bp.label;
     fb.className = 'feedback ' + bp.cls.replace('crisis','danger').replace('grade2','danger').replace('grade1','warning').replace('high-normal','caution').replace('normal','good').replace('optimal','good');
@@ -1139,6 +1229,7 @@ function saveEntry() {
         document.getElementById('avgD').textContent = '\u25CF'; document.getElementById('avgD').className = 'avg-display empty';
         document.getElementById('avgP').textContent = '\u25CF'; document.getElementById('avgP').className = 'avg-display empty';
         fb.textContent = ''; fb.className = 'feedback';
+        selectedTags = []; renderTags();
     }, 1500);
     renderHistory();
 }
@@ -1173,12 +1264,14 @@ function renderHistory() {
         const time = date.toLocaleDateString('sl-SI', { day: 'numeric', month: 'short' })
             + ' ' + date.toLocaleTimeString('sl-SI', { hour: '2-digit', minute: '2-digit' });
         const pulse = r.pulse ? `<div class="pulse-val">&hearts; ${r.pulse}</div>` : '';
+        const tags = (r.tags && r.tags.length) ? `<div class="history-tags">${r.tags.map(t => `<span class="history-tag">${t}</span>`).join('')}</div>` : '';
         return `
             <div class="history-item">
                 <div class="item-content">
                     <div class="left">
                         <div class="values">${r.systolic}/${r.diastolic}</div>
                         ${pulse}
+                        ${tags}
                     </div>
                     <span class="badge ${bp.cls}">${bp.label}</span>
                     <div class="time">${time}</div>
