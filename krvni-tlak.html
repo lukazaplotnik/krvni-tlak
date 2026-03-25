@@ -371,6 +371,45 @@ tbody tr:nth-child(3) td {
 }
 
 /* TAGS */
+.save-row {
+    display: flex;
+    gap: 10px;
+    align-items: stretch;
+}
+
+.save-row .save-btn { flex: 1; }
+
+.tag-toggle {
+    width: 48px;
+    border: 2px solid var(--border);
+    border-radius: 12px;
+    background: var(--card);
+    color: #B0B7C3;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.2s;
+    flex-shrink: 0;
+    position: relative;
+}
+
+.tag-toggle.active {
+    border-color: var(--primary);
+    color: var(--primary);
+    background: rgba(74,144,217,0.05);
+}
+
+.tag-toggle .tag-dot {
+    position: absolute;
+    top: 6px;
+    right: 6px;
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: var(--primary);
+}
+
 .tags-section {
     margin-top: 10px;
     margin-bottom: 12px;
@@ -757,10 +796,15 @@ tbody tr:nth-child(3) td {
                     </tr>
                 </tbody>
             </table>
-            <div class="tags-section">
+            <div class="tags-section hidden" id="tagsSection">
                 <div class="tags-wrap" id="tagsWrap"></div>
             </div>
-            <button class="save-btn" id="saveBtn" onclick="saveEntry()" disabled>Shrani meritev</button>
+            <div class="save-row">
+                <button class="tag-toggle" id="tagToggle" onclick="toggleTagsPanel()">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z"/><line x1="7" y1="7" x2="7.01" y2="7"/></svg>
+                </button>
+                <button class="save-btn" id="saveBtn" onclick="saveEntry()" disabled>Shrani meritev</button>
+            </div>
             <div class="feedback" id="feedback"></div>
         </div>
         <div class="history-section">
@@ -1129,9 +1173,27 @@ function toggleTag(tag) {
         selectedTags.push(tag);
     }
     renderTags();
+    updateTagToggle();
 }
 
 renderTags();
+
+function toggleTagsPanel() {
+    const section = document.getElementById('tagsSection');
+    const btn = document.getElementById('tagToggle');
+    section.classList.toggle('hidden');
+    btn.classList.toggle('active', !section.classList.contains('hidden'));
+}
+
+function updateTagToggle() {
+    const btn = document.getElementById('tagToggle');
+    const existing = btn.querySelector('.tag-dot');
+    if (selectedTags.length > 0 && !existing) {
+        btn.insertAdjacentHTML('beforeend', '<span class="tag-dot"></span>');
+    } else if (selectedTags.length === 0 && existing) {
+        existing.remove();
+    }
+}
 
 function classifyBP(s, d) {
     if (s >= 180 || d >= 110) return { label: 'Stopnja 3', cls: 'crisis' };
@@ -1221,7 +1283,9 @@ function saveEntry() {
         document.getElementById('avgD').textContent = '\u25CF'; document.getElementById('avgD').className = 'avg-display empty';
         document.getElementById('avgP').textContent = '\u25CF'; document.getElementById('avgP').className = 'avg-display empty';
         fb.textContent = ''; fb.className = 'feedback';
-        selectedTags = []; renderTags();
+        selectedTags = []; renderTags(); updateTagToggle();
+        document.getElementById('tagsSection').classList.add('hidden');
+        document.getElementById('tagToggle').classList.remove('active');
     }, 1500);
     renderHistory();
 }
