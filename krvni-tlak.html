@@ -1321,7 +1321,7 @@ function renderHistory() {
     const allReadings = Store.getReadings();
     if (!allReadings.length) { list.innerHTML = '<div class="empty-msg">Se ni meritev</div>'; return; }
 
-    const display = showAll ? allReadings : allReadings.slice(-5);
+    const display = showAll ? allReadings : allReadings.slice(-10);
     const items = display.slice().reverse().map((r) => {
         const ts = r.measured_at;
         const bp = classifyBP(r.systolic, r.diastolic);
