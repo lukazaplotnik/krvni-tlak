@@ -1583,7 +1583,7 @@ function renderMorningEveningChart(readings) {
         return Math.round(Math.sqrt(arr.reduce((a, v) => a + (v - m) ** 2, 0) / arr.length));
     };
 
-    const labels = ['Jutro', 'Vecer'];
+    const labels = ['🥐 Jutro', '🌙 Vecer'];
     const sysAvgs = [avg(morning.sys), avg(evening.sys)];
     const diaAvgs = [avg(morning.dia), avg(evening.dia)];
     const sysStds = [std(morning.sys), std(evening.sys)];
