@@ -1335,13 +1335,14 @@ function renderHistory() {
                 <div class="item-content">
                     <div class="item-top">
                         <div class="values">${r.systolic}/${r.diastolic}</div>
+                        ${pulse}
                         <div class="item-right">
                             <span class="badge ${bp.cls}">${bp.label}</span>
                         </div>
                     </div>
                     <button class="delete-btn" onclick="askDelete(this)" title="Izbrisi">&times;</button>
                 </div>
-                <div class="history-bottom">${pulse}${tagChips}<span class="time">${time}</span></div>
+                <div class="history-bottom">${tagChips}<span class="time">${time}</span></div>
                 <div class="confirm-bar">
                     <span>Izbrisati?</span>
                     <button class="confirm-yes" onclick="confirmDelete('${r.id}')">Da</button>
