@@ -1311,6 +1311,7 @@ function saveEntry() {
         document.getElementById('avgP').textContent = '\u2665'; document.getElementById('avgP').className = 'entry-avg empty';
         fb.textContent = ''; fb.className = 'feedback';
         selectedTags = []; renderTags(); updateTagToggle();
+        document.getElementById('tagToggle').classList.remove('active');
     }, 1500);
     renderHistory();
 }
