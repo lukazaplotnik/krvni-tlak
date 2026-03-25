@@ -215,9 +215,9 @@ tbody tr:nth-child(3) td {
 .history-item {
     background: var(--card);
     border-radius: 12px;
-    margin-bottom: 8px;
+    margin-bottom: 10px;
     box-shadow: var(--shadow);
-    overflow: hidden;
+    overflow: visible;
     position: relative;
 }
 
@@ -257,23 +257,27 @@ tbody tr:nth-child(3) td {
 .badge.crisis { background: #E74C3C; color: white; }
 
 .delete-btn {
-    background: none;
-    border: none;
+    position: absolute;
+    top: -6px;
+    right: -6px;
+    background: var(--card);
+    border: 1.5px solid #E5E7EB;
     color: #C9CED6;
-    font-size: 14px;
+    font-size: 12px;
     cursor: pointer;
-    width: 26px;
-    height: 26px;
+    width: 20px;
+    height: 20px;
     border-radius: 50%;
     display: flex;
     align-items: center;
     justify-content: center;
     transition: all 0.2s;
-    flex-shrink: 0;
     line-height: 1;
+    z-index: 2;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.08);
 }
 
-.delete-btn:hover, .delete-btn:active { background: #FEE2E2; color: var(--red); }
+.delete-btn:hover, .delete-btn:active { background: #FEE2E2; border-color: #E8918A; color: var(--red); }
 .history-item.confirm-delete .item-content { opacity: 0.3; }
 
 .history-item .confirm-bar {
@@ -1363,8 +1367,8 @@ function renderHistory() {
                         ${pulse}
                         <div class="item-right">
                             <span class="badge ${bp.cls}">${bp.label}</span>
-                            <button class="delete-btn" onclick="askDelete(this)" title="Izbrisi">&times;</button>
                         </div>
+                    <button class="delete-btn" onclick="askDelete(this)" title="Izbrisi">&times;</button>
                     </div>
                 </div>
                 <div class="history-tags">${tagContent}<span class="time">${time}</span></div>
