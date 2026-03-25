@@ -1120,7 +1120,7 @@ const MORNING_TAGS = ['Slab spanec', 'Alkohol vceraj', 'Slana vecerja', 'Stres v
 const EVENING_TAGS = ['Dodatna zdravila', 'Alkohol', 'Slana hrana', 'Veliko gibanja', 'Stresen dan', 'Slabo pocutje'];
 let selectedTags = [];
 
-function isMorning() { return new Date().getHours() < 14; }
+function isMorning() { return new Date().getHours() < 12; }
 
 function renderTags() {
     const tags = isMorning() ? MORNING_TAGS : EVENING_TAGS;
