@@ -218,7 +218,7 @@ body {
 }
 
 .history-item .values { font-size: 20px; font-weight: 700; }
-.history-item .pulse-val { font-size: 13px; color: var(--text2); font-weight: 400; }
+.history-item .pulse-val { font-size: 12px; color: var(--text2); font-weight: 500; }
 .history-item .item-right { margin-left: auto; display: flex; align-items: center; gap: 8px; }
 
 .history-item .badge {
@@ -449,19 +449,19 @@ body {
 
 .tag-chip:active { transform: scale(0.95); }
 
-.history-tags {
+.history-bottom {
     display: flex;
-    flex-wrap: wrap;
     align-items: center;
-    gap: 4px;
+    gap: 6px;
     padding: 0 16px 10px;
-    min-height: 20px;
+    flex-wrap: wrap;
 }
 
-.history-tags .time {
+.history-bottom .time {
     margin-left: auto;
     font-size: 11px;
     color: #C0C5CC;
+    flex-shrink: 0;
 }
 
 .history-tag {
@@ -1328,22 +1328,20 @@ function renderHistory() {
         const date = new Date(ts);
         const time = date.toLocaleDateString('sl-SI', { day: 'numeric', month: 'short' })
             + ' ' + date.toLocaleTimeString('sl-SI', { hour: '2-digit', minute: '2-digit' });
-        const pulse = r.pulse ? `<div class="pulse-val">&hearts; ${r.pulse}</div>` : '';
-        const tagContent = (r.tags && r.tags.length) ? r.tags.map(t => `<span class="history-tag">${t}</span>`).join('') : '';
-        const tags = `<div class="history-tags">${tagContent}</div>`;
+        const pulse = r.pulse ? `<span class="pulse-val">&hearts; ${r.pulse}</span>` : '';
+        const tagChips = (r.tags && r.tags.length) ? r.tags.map(t => `<span class="history-tag">${t}</span>`).join('') : '';
         return `
             <div class="history-item">
                 <div class="item-content">
                     <div class="item-top">
                         <div class="values">${r.systolic}/${r.diastolic}</div>
-                        ${pulse}
                         <div class="item-right">
                             <span class="badge ${bp.cls}">${bp.label}</span>
                         </div>
-                    <button class="delete-btn" onclick="askDelete(this)" title="Izbrisi">&times;</button>
                     </div>
+                    <button class="delete-btn" onclick="askDelete(this)" title="Izbrisi">&times;</button>
                 </div>
-                <div class="history-tags">${tagContent}<span class="time">${time}</span></div>
+                <div class="history-bottom">${pulse}${tagChips}<span class="time">${time}</span></div>
                 <div class="confirm-bar">
                     <span>Izbrisati?</span>
                     <button class="confirm-yes" onclick="confirmDelete('${r.id}')">Da</button>
