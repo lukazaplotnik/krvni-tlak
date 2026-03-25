@@ -1278,7 +1278,8 @@ function saveEntry() {
     if (avg.s < 60 || avg.s > 250) { fb.textContent = 'Sistolicni: 60\u2013250'; fb.className = 'feedback warning'; return; }
     if (avg.d < 30 || avg.d > 150) { fb.textContent = 'Diastolicni: 30\u2013150'; fb.className = 'feedback warning'; return; }
 
-    Store.saveReading(avg.s, avg.d, avg.p, [...selectedTags]);
+    const allTags = [isMorning() ? '☀️' : '🌙', ...selectedTags];
+    Store.saveReading(avg.s, avg.d, avg.p, allTags);
     const bp = classifyBP(avg.s, avg.d);
     fb.textContent = bp.label;
     fb.className = 'feedback ' + bp.cls.replace('crisis','danger').replace('grade2','danger').replace('grade1','warning').replace('high-normal','caution').replace('normal','good').replace('optimal','good');
