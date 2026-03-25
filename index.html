@@ -413,53 +413,36 @@ tbody tr:nth-child(3) td {
 .sheet-overlay {
     position: fixed;
     inset: 0;
-    background: rgba(0,0,0,0.3);
     z-index: 80;
-    transition: opacity 0.2s;
 }
 
-.sheet {
-    position: fixed;
-    bottom: 0;
+.save-row {
+    position: relative;
+}
+
+.tag-popover {
+    position: absolute;
+    bottom: calc(100% + 8px);
     left: 0;
     right: 0;
     z-index: 81;
     background: var(--card);
-    border-radius: 20px 20px 0 0;
-    padding: 12px 20px 28px;
-    box-shadow: 0 -4px 20px rgba(0,0,0,0.1);
-    transition: transform 0.3s ease;
-}
-
-.sheet.hidden { transform: translateY(100%); }
-
-.sheet-handle {
-    width: 36px;
-    height: 4px;
-    background: #D0D5DD;
-    border-radius: 2px;
-    margin: 0 auto 14px;
-}
-
-.sheet-title {
-    font-size: 15px;
-    font-weight: 600;
-    color: var(--text);
-    margin-bottom: 14px;
+    border-radius: var(--radius);
+    padding: 14px;
+    box-shadow: 0 4px 24px rgba(0,0,0,0.12);
 }
 
 .tags-wrap {
     display: flex;
     flex-wrap: wrap;
-    gap: 8px;
-    margin-bottom: 18px;
+    gap: 7px;
 }
 
 .tag-chip {
-    padding: 8px 16px;
+    padding: 6px 14px;
     border: 1.5px solid var(--border);
     border-radius: 20px;
-    font-size: 13px;
+    font-size: 12px;
     font-weight: 500;
     color: var(--text2);
     background: var(--card);
@@ -477,20 +460,6 @@ tbody tr:nth-child(3) td {
 }
 
 .tag-chip:active { transform: scale(0.95); }
-
-.sheet-done {
-    width: 100%;
-    padding: 14px;
-    background: var(--primary);
-    color: white;
-    border: none;
-    border-radius: 12px;
-    font-size: 15px;
-    font-weight: 600;
-    cursor: pointer;
-}
-
-.sheet-done:active { transform: scale(0.98); }
 
 .history-tags {
     display: flex;
@@ -845,6 +814,9 @@ tbody tr:nth-child(3) td {
                 </tbody>
             </table>
             <div class="save-row">
+                <div class="tag-popover hidden" id="tagPopover">
+                    <div class="tags-wrap" id="tagsWrap"></div>
+                </div>
                 <button class="tag-toggle" id="tagToggle" onclick="openTagSheet()">
                     <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z"/><line x1="7" y1="7" x2="7.01" y2="7"/></svg>
                 </button>
@@ -869,14 +841,7 @@ tbody tr:nth-child(3) td {
         <div id="content"></div>
     </div>
 
-    <!-- TAG BOTTOM SHEET -->
     <div class="sheet-overlay hidden" id="sheetOverlay" onclick="closeTagSheet()"></div>
-    <div class="sheet hidden" id="tagSheet">
-        <div class="sheet-handle"></div>
-        <div class="sheet-title">Oznake</div>
-        <div class="tags-wrap" id="tagsWrap"></div>
-        <button class="sheet-done" onclick="closeTagSheet()">Potrdi</button>
-    </div>
 
 <script>
 // ===== SUPABASE =====
@@ -1235,12 +1200,14 @@ renderTags();
 function openTagSheet() {
     renderTags();
     document.getElementById('sheetOverlay').classList.remove('hidden');
-    document.getElementById('tagSheet').classList.remove('hidden');
+    document.getElementById('tagPopover').classList.remove('hidden');
+    document.getElementById('tagToggle').classList.add('active');
 }
 
 function closeTagSheet() {
     document.getElementById('sheetOverlay').classList.add('hidden');
-    document.getElementById('tagSheet').classList.add('hidden');
+    document.getElementById('tagPopover').classList.add('hidden');
+    document.getElementById('tagToggle').classList.toggle('active', selectedTags.length > 0);
     updateTagToggle();
 }
 
