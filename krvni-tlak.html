@@ -469,14 +469,21 @@ body {
     align-items: center;
     gap: 6px;
     padding: 0 16px 10px;
+}
+
+.history-bottom .tags-group {
+    display: flex;
     flex-wrap: wrap;
+    gap: 4px;
+    flex: 1;
+    min-width: 0;
 }
 
 .history-bottom .time {
-    margin-left: auto;
     font-size: 11px;
     color: #C0C5CC;
     flex-shrink: 0;
+    margin-left: auto;
 }
 
 .history-tag {
@@ -1359,7 +1366,7 @@ function renderHistory() {
                     </div>
                     <button class="delete-btn" onclick="askDelete(this)" title="Izbrisi">&times;</button>
                 </div>
-                <div class="history-bottom">${tagChips}<span class="time">${time}</span></div>
+                <div class="history-bottom"><div class="tags-group">${tagChips}</div><span class="time">${time}</span></div>
                 <div class="confirm-bar">
                     <span>Izbrisati?</span>
                     <button class="confirm-yes" onclick="confirmDelete('${r.id}')">Da</button>
