@@ -1135,9 +1135,9 @@ function saveEntry() {
         btn.classList.remove('saved');
         btn.disabled = true;
         document.querySelectorAll('.measurement-table input').forEach(i => i.value = '');
-        document.getElementById('avgS').textContent = '\u2014'; document.getElementById('avgS').className = 'avg-display empty';
-        document.getElementById('avgD').textContent = '\u2014'; document.getElementById('avgD').className = 'avg-display empty';
-        document.getElementById('avgP').textContent = '\u2014'; document.getElementById('avgP').className = 'avg-display empty';
+        document.getElementById('avgS').textContent = '\u25CF'; document.getElementById('avgS').className = 'avg-display empty';
+        document.getElementById('avgD').textContent = '\u25CF'; document.getElementById('avgD').className = 'avg-display empty';
+        document.getElementById('avgP').textContent = '\u25CF'; document.getElementById('avgP').className = 'avg-display empty';
         fb.textContent = ''; fb.className = 'feedback';
     }, 1500);
     renderHistory();
