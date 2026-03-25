@@ -779,14 +779,14 @@ body {
                     <input type="number" class="entry-input" id="s1" placeholder="&#8212;" inputmode="numeric" oninput="onMeasInput(this)">
                     <input type="number" class="entry-input" id="s2" placeholder="&#8212;" inputmode="numeric" oninput="onMeasInput(this)">
                     <input type="number" class="entry-input" id="s3" placeholder="&#8212;" inputmode="numeric" oninput="onMeasInput(this)">
-                    <div class="entry-avg empty" id="avgS">&#9679;</div>
+                    <div class="entry-avg empty" id="avgS">&hearts;</div>
                 </div>
                 <div class="entry-col">
                     <span class="entry-col-label">Diastolicni</span>
                     <input type="number" class="entry-input" id="d1" placeholder="&#8212;" inputmode="numeric" oninput="onMeasInput(this)">
                     <input type="number" class="entry-input" id="d2" placeholder="&#8212;" inputmode="numeric" oninput="onMeasInput(this)">
                     <input type="number" class="entry-input" id="d3" placeholder="&#8212;" inputmode="numeric" oninput="onMeasInput(this)">
-                    <div class="entry-avg empty" id="avgD">&#9679;</div>
+                    <div class="entry-avg empty" id="avgD"><span style="display:inline-block;transform:rotate(180deg)">&hearts;</span></div>
                 </div>
                 <div class="entry-col">
                     <span class="entry-col-label">Pulz</span>
@@ -1242,9 +1242,9 @@ function computeAvg() {
     const d = dVals.length ? avg(dVals) : null;
     const p = pVals.length ? avg(pVals) : null;
 
-    avgS.textContent = s !== null ? s : '\u25CF';
+    avgS.textContent = s !== null ? s : '\u2665';
     avgS.className = s !== null ? 'entry-avg' : 'entry-avg empty';
-    avgD.textContent = d !== null ? d : '\u25CF';
+    if (d !== null) { avgD.textContent = d; } else { avgD.innerHTML = '<span style="display:inline-block;transform:rotate(180deg)">\u2665</span>'; }
     avgD.className = d !== null ? 'entry-avg' : 'entry-avg empty';
     avgP.textContent = p !== null ? p : '\u2665';
     avgP.className = p !== null ? 'entry-avg' : 'entry-avg empty';
@@ -1291,8 +1291,8 @@ function saveEntry() {
         btn.classList.remove('saved');
         btn.disabled = true;
         document.querySelectorAll('.entry-input').forEach(i => i.value = '');
-        document.getElementById('avgS').textContent = '\u25CF'; document.getElementById('avgS').className = 'entry-avg empty';
-        document.getElementById('avgD').textContent = '\u25CF'; document.getElementById('avgD').className = 'entry-avg empty';
+        document.getElementById('avgS').textContent = '\u2665'; document.getElementById('avgS').className = 'entry-avg empty';
+        document.getElementById('avgD').innerHTML = '<span style="display:inline-block;transform:rotate(180deg)">\u2665</span>'; document.getElementById('avgD').className = 'entry-avg empty';
         document.getElementById('avgP').textContent = '\u2665'; document.getElementById('avgP').className = 'entry-avg empty';
         fb.textContent = ''; fb.className = 'feedback';
         selectedTags = []; renderTags(); updateTagToggle();
