@@ -1177,7 +1177,7 @@ function showTab(tab) {
 // Source: Evropske smernice za hipertenzijo (ESC/ESH 2018), used by Slovenian cardiology society
 // ===== TAGS =====
 const MORNING_TAGS = ['Slab spanec', 'Alkohol vceraj', 'Slana vecerja', 'Stres vceraj', 'Gibanje vceraj', 'Slabo pocutje'];
-const EVENING_TAGS = ['Dodatna zdravila', 'Alkohol', 'Slana hrana', 'Veliko gibanja', 'Stresen dan', 'Slabo pocutje'];
+const EVENING_TAGS = ['Dodatna zdravila', 'Alkohol', 'Slana hrana', 'Veliko gibanja', 'Malo gibanja', 'Stresen dan', 'Slabo pocutje'];
 let selectedTags = [];
 
 function isMorning() { return new Date().getHours() < 12; }
@@ -1300,8 +1300,7 @@ function saveEntry() {
     if (avg.s < 60 || avg.s > 250) { fb.textContent = 'Sistolicni: 60\u2013250'; fb.className = 'feedback warning'; return; }
     if (avg.d < 30 || avg.d > 150) { fb.textContent = 'Diastolicni: 30\u2013150'; fb.className = 'feedback warning'; return; }
 
-    const allTags = [isMorning() ? '☀️' : '🌙', ...selectedTags];
-    Store.saveReading(avg.s, avg.d, avg.p, allTags);
+    Store.saveReading(avg.s, avg.d, avg.p, [...selectedTags]);
     const bp = classifyBP(avg.s, avg.d);
     fb.textContent = bp.label;
     fb.className = 'feedback ' + bp.cls.replace('crisis','danger').replace('grade2','danger').replace('grade1','warning').replace('high-normal','caution').replace('normal','good').replace('optimal','good');
@@ -1353,7 +1352,9 @@ function renderHistory() {
         const time = date.toLocaleDateString('sl-SI', { day: 'numeric', month: 'short' })
             + ' ' + date.toLocaleTimeString('sl-SI', { hour: '2-digit', minute: '2-digit' });
         const pulse = r.pulse ? `<span class="pulse-val">&hearts; ${r.pulse}</span>` : '';
-        const tagChips = (r.tags && r.tags.length) ? r.tags.map(t => `<span class="history-tag">${t}</span>`).join('') : '';
+        const timeEmoji = new Date(r.measured_at).getHours() < 12 ? '☀️' : '🌙';
+        const userTags = (r.tags && r.tags.length) ? r.tags.map(t => `<span class="history-tag">${t}</span>`).join('') : '';
+        const tagChips = `<span class="history-tag">${timeEmoji}</span>${userTags}`;
         return `
             <div class="history-item">
                 <div class="item-content">
