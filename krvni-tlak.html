@@ -1384,7 +1384,7 @@ function renderHistory() {
         const time = date.toLocaleDateString('sl-SI', { day: 'numeric', month: 'short' })
             + ' ' + date.toLocaleTimeString('sl-SI', { hour: '2-digit', minute: '2-digit' });
         const pulse = r.pulse ? `<span class="pulse-val">&hearts; ${r.pulse}</span>` : '';
-        const timeEmoji = new Date(r.measured_at).getHours() < 12 ? '🌅' : '🌙';
+        const timeEmoji = new Date(r.measured_at).getHours() < 12 ? '🥐' : '🌙';
         const userTags = (r.tags && r.tags.length) ? r.tags.map(t => `<span class="history-tag">${t}</span>`).join('') : '';
         const tagChips = `<span class="history-tag">${timeEmoji}</span>${userTags}`;
         return `
