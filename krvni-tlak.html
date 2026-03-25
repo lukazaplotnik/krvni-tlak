@@ -435,6 +435,12 @@ body {
     transform: rotate(45deg);
 }
 
+.tag-question {
+    font-size: 12px;
+    color: var(--text2);
+    margin-bottom: 10px;
+}
+
 .tags-wrap {
     display: flex;
     flex-wrap: wrap;
@@ -820,6 +826,7 @@ body {
             </div>
             <div class="save-row">
                 <div class="tag-popover hidden" id="tagPopover">
+                    <div class="tag-question" id="tagQuestion"></div>
                     <div class="tags-wrap" id="tagsWrap"></div>
                 </div>
                 <button class="tag-toggle" id="tagToggle" onclick="openTagSheet()">
@@ -1177,13 +1184,17 @@ function showTab(tab) {
 // Source: Evropske smernice za hipertenzijo (ESC/ESH 2018), used by Slovenian cardiology society
 // ===== TAGS =====
 const MORNING_TAGS = ['Slab spanec', 'Alkohol vceraj', 'Slana vecerja', 'Stres vceraj', 'Gibanje vceraj', 'Slabo pocutje'];
-const EVENING_TAGS = ['Dodatna zdravila', 'Alkohol', 'Slana hrana', 'Veliko gibanja', 'Kofein popoldne', 'Stresen dan', 'Slabo pocutje'];
+const EVENING_TAGS = ['Dodatna zdravila', 'Alkohol', 'Slana hrana', 'Veliko gibanja', 'Stresen dan', 'Slabo pocutje'];
 let selectedTags = [];
 
 function isMorning() { return new Date().getHours() < 12; }
 
 function renderTags() {
-    const tags = isMorning() ? MORNING_TAGS : EVENING_TAGS;
+    const morning = isMorning();
+    const tags = morning ? MORNING_TAGS : EVENING_TAGS;
+    document.getElementById('tagQuestion').textContent = morning
+        ? 'Kaj je vceraj ali ponoci lahko vplivalo na vas krvni tlak?'
+        : 'Kaj je danes lahko vplivalo na vas krvni tlak?';
     const wrap = document.getElementById('tagsWrap');
     wrap.innerHTML = tags.map(t =>
         `<div class="tag-chip${selectedTags.includes(t) ? ' selected' : ''}" onclick="toggleTag('${t}')">${t}</div>`
