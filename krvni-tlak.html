@@ -1255,14 +1255,16 @@ function computeAvg() {
     return (s && d) ? { s, d, p } : null;
 }
 
+// Row-first order: s1→d1→p1→s2→d2→p2→s3→d3→p3
+const INPUT_ORDER = ['s1','d1','p1','s2','d2','p2','s3','d3','p3'];
+
 function onMeasInput(el) {
     const id = el.id;
-    const shouldJump = isComplete(id);
-
-    if (shouldJump) {
-        const inputs = [...document.querySelectorAll('.entry-input')];
-        const idx = inputs.indexOf(el);
-        if (idx < inputs.length - 1) inputs[idx + 1].focus();
+    if (isComplete(id)) {
+        const idx = INPUT_ORDER.indexOf(id);
+        if (idx >= 0 && idx < INPUT_ORDER.length - 1) {
+            document.getElementById(INPUT_ORDER[idx + 1]).focus();
+        }
     }
     computeAvg();
 }
