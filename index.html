@@ -9,6 +9,8 @@
     <title>BostAI</title>
     <link rel="manifest" href="manifest.json">
     <link rel="icon" href="icon-192.png">
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
+    <script src="config.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/chartjs-adapter-date-fns@3.0.0/dist/chartjs-adapter-date-fns.bundle.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2.2.0/dist/chartjs-plugin-datalabels.min.js"></script>
@@ -43,9 +45,6 @@ body {
 
 .tabs {
     display: flex;
-    background: var(--card);
-    border-bottom: 1px solid var(--border);
-    padding-top: env(safe-area-inset-top);
 }
 
 .tab {
@@ -135,11 +134,11 @@ body {
 .measurement-table input:focus { border-color: var(--primary); }
 
 .avg-row td {
-    padding-top: 14px !important;
+    padding-top: 8px !important;
 }
 
 tbody tr:nth-child(3) td {
-    padding-bottom: 6px !important;
+    padding-bottom: 2px !important;
 }
 
 .avg-row .avg-display {
@@ -147,7 +146,7 @@ tbody tr:nth-child(3) td {
     font-weight: 800;
     color: var(--primary);
     padding: 10px 4px;
-    min-height: 44px;
+    height: 44px;
     display: flex;
     align-items: center;
     justify-content: center;
@@ -156,16 +155,16 @@ tbody tr:nth-child(3) td {
 }
 
 .avg-row .avg-display.empty {
-    color: #D0D5DD;
-    font-size: 16px;
-    font-weight: 500;
+    color: rgba(74,144,217,0.25);
+    font-size: 14px;
+    font-weight: 400;
     background: none;
 }
 
 .avg-row td:first-child {
     font-size: 18px !important;
     font-weight: 800 !important;
-    color: #2C5F8A !important;
+    color: var(--primary) !important;
 }
 
 .save-btn {
@@ -330,32 +329,46 @@ tbody tr:nth-child(3) td {
 .avg-bar {
     background: var(--card);
     border-radius: var(--radius);
-    padding: 18px 20px;
+    padding: 18px 16px 14px;
     box-shadow: var(--shadow);
     margin-bottom: 20px;
-    display: flex;
-    gap: 16px;
-    align-items: center;
 }
 
-.avg-bar .avg-icon {
-    width: 42px;
-    height: 42px;
-    border-radius: 12px;
-    background: linear-gradient(135deg, #EBF2FC, #D6E6F9);
+.avg-cols {
     display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 20px;
-    flex-shrink: 0;
+    text-align: center;
 }
 
-.avg-bar .avg-details { flex: 1; display: flex; flex-direction: column; gap: 2px; }
-.avg-label { font-size: 12px; color: var(--text2); font-weight: 500; }
-.avg-value { font-size: 20px; font-weight: 700; color: var(--text); letter-spacing: -0.3px; }
-.avg-value .avg-pulse { font-size: 14px; font-weight: 500; color: var(--text2); margin-left: 4px; }
+.avg-col {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 4px;
+}
 
-.avg-meta { font-size: 12px; color: #B0B7C3; font-weight: 400; }
+.avg-col .avg-col-label {
+    font-size: 10px;
+    color: var(--text2);
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.avg-col .avg-col-value {
+    font-size: 26px;
+    font-weight: 800;
+    color: var(--text);
+    letter-spacing: -0.5px;
+}
+
+
+.avg-footer {
+    text-align: center;
+    margin-top: 10px;
+    font-size: 11px;
+    color: #C0C5CC;
+}
 
 .chart-card {
     background: var(--card);
@@ -418,12 +431,241 @@ tbody tr:nth-child(3) td {
 }
 
 .filter-btn.active { background: var(--primary); color: white; border-color: var(--primary); }
+/* LOGIN */
+.login-overlay {
+    position: fixed;
+    inset: 0;
+    z-index: 100;
+    background: var(--bg);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.hidden { display: none !important; }
+
+.login-box {
+    background: var(--card);
+    border-radius: var(--radius);
+    padding: 32px 24px;
+    box-shadow: var(--shadow);
+    width: 90%;
+    max-width: 340px;
+    text-align: center;
+}
+
+.login-logo {
+    width: 64px;
+    height: 64px;
+    border-radius: 16px;
+    margin: 0 auto 16px;
+}
+
+.login-box h2 {
+    font-size: 20px;
+    margin-bottom: 4px;
+}
+
+.login-box p {
+    font-size: 13px;
+    color: var(--text2);
+    margin-bottom: 20px;
+}
+
+.login-box input {
+    width: 100%;
+    padding: 14px;
+    border: 2px solid var(--border);
+    border-radius: 10px;
+    font-size: 15px;
+    outline: none;
+    margin-bottom: 12px;
+}
+
+.login-box input:focus { border-color: var(--primary); }
+
+.login-box .login-btn {
+    width: 100%;
+    padding: 14px;
+    background: var(--primary);
+    color: white;
+    border: none;
+    border-radius: 10px;
+    font-size: 15px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s;
+}
+
+.login-box .login-btn:disabled {
+    background: var(--border);
+    color: var(--text2);
+}
+
+.login-box .login-btn.sent {
+    background: var(--green);
+    pointer-events: none;
+}
+
+.login-msg {
+    margin-top: 12px;
+    font-size: 13px;
+    color: var(--green);
+}
+
+.login-msg.error { color: var(--red); }
+
+.tabs-row {
+    display: flex;
+    background: var(--card);
+    border-bottom: 1px solid var(--border);
+    padding-top: env(safe-area-inset-top);
+    align-items: center;
+}
+
+.tabs-row .tabs { flex: 1; display: flex; border: none; padding: 0; }
+
+.settings-btn {
+    background: none;
+    border: none;
+    color: #B0B7C3;
+    font-size: 20px;
+    padding: 12px 14px;
+    cursor: pointer;
+    line-height: 1;
+}
+
+.settings-btn:active { color: var(--primary); }
+
+.settings-overlay {
+    position: fixed;
+    inset: 0;
+    z-index: 90;
+    background: rgba(0,0,0,0.3);
+}
+
+.settings-panel {
+    position: fixed;
+    top: 0;
+    right: 0;
+    bottom: 0;
+    width: 280px;
+    max-width: 85%;
+    z-index: 91;
+    background: var(--bg);
+    box-shadow: -4px 0 20px rgba(0,0,0,0.1);
+    display: flex;
+    flex-direction: column;
+    padding: 20px;
+    overflow-y: auto;
+}
+
+.settings-panel h3 {
+    font-size: 16px;
+    margin-bottom: 20px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.settings-close {
+    background: none;
+    border: none;
+    font-size: 22px;
+    color: #B0B7C3;
+    cursor: pointer;
+}
+
+.settings-section {
+    margin-bottom: 20px;
+}
+
+.settings-label {
+    font-size: 11px;
+    color: #B0B7C3;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    margin-bottom: 6px;
+}
+
+.settings-value {
+    font-size: 14px;
+    color: var(--text);
+    margin-bottom: 4px;
+}
+
+.settings-action {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    width: 100%;
+    padding: 14px 12px;
+    background: var(--card);
+    border: none;
+    border-bottom: 1px solid var(--border);
+    border-radius: 0;
+    font-size: 14px;
+    color: var(--text);
+    cursor: pointer;
+    transition: all 0.15s;
+}
+
+.settings-action:first-child { border-radius: 10px 10px 0 0; }
+.settings-action:last-child { border-bottom: none; border-radius: 0 0 10px 10px; }
+.settings-action:only-child { border-radius: 10px; }
+.settings-action:active { background: var(--bg); }
+.settings-action svg { flex-shrink: 0; }
+
+.settings-version {
+    margin-top: auto;
+    text-align: center;
+    font-size: 11px;
+    color: #C0C5CC;
+    padding-top: 20px;
+}
     </style>
 </head>
 <body>
-    <div class="tabs">
-        <button class="tab active" onclick="showTab('entry')">Vnos</button>
-        <button class="tab" onclick="showTab('dashboard')">Pregled</button>
+    <!-- LOGIN OVERLAY -->
+    <div class="login-overlay" id="loginOverlay">
+        <div class="login-box">
+            <img src="icon-192.png" class="login-logo" alt="BostAI" onclick="devTaps()">
+            <h2>BostAI</h2>
+            <p>Vnesite email za prijavo</p>
+            <input type="email" id="loginEmail" placeholder="email@primer.com" autocomplete="email">
+            <input type="password" id="loginPassword" placeholder="Geslo" autocomplete="current-password" class="hidden" style="width:100%;padding:14px;border:2px solid var(--border);border-radius:10px;font-size:15px;outline:none;margin-bottom:12px">
+            <button class="login-btn" id="loginBtn" onclick="handleLogin()">Poslji povezavo</button>
+            <div class="login-msg" id="loginMsg"></div>
+        </div>
+    </div>
+
+    <!-- SETTINGS PANEL -->
+    <div class="settings-overlay hidden" id="settingsOverlay" onclick="closeSettings()"></div>
+    <div class="settings-panel hidden" id="settingsPanel">
+        <h3>Nastavitve <button class="settings-close" onclick="closeSettings()">&times;</button></h3>
+        <div class="settings-section">
+            <div class="settings-label">Prijavljen kot</div>
+            <div class="settings-value" id="settingsEmail">—</div>
+        </div>
+        <div class="settings-section">
+            <button class="settings-action" onclick="exportExcel(); closeSettings();">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#1A1A2E" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+                Izvozi podatke
+            </button>
+            <button class="settings-action" onclick="handleLogout()">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#1A1A2E" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
+                Odjava
+            </button>
+        </div>
+        <div class="settings-version">BostAI v1.0</div>
+    </div>
+
+    <div class="tabs-row">
+        <div class="tabs">
+            <button class="tab active" onclick="showTab('entry')">Vnos</button>
+            <button class="tab" onclick="showTab('dashboard')">Pregled</button>
+        </div>
+        <button class="settings-btn" onclick="openSettings()">&#9776;</button>
     </div>
 
     <!-- ENTRY PAGE -->
@@ -458,21 +700,18 @@ tbody tr:nth-child(3) td {
                         <td><input type="number" id="p3" placeholder="&#8212;" inputmode="numeric" oninput="onMeasInput(this)"></td>
                     </tr>
                     <tr class="avg-row">
-                        <td>&#8709;</td>
-                        <td><div class="avg-display empty" id="avgS">&#8212;</div></td>
-                        <td><div class="avg-display empty" id="avgD">&#8212;</div></td>
-                        <td><div class="avg-display empty" id="avgP">&#8212;</div></td>
+                        <td>&mu;</td>
+                        <td><div class="avg-display empty" id="avgS">&#9679;</div></td>
+                        <td><div class="avg-display empty" id="avgD">&#9679;</div></td>
+                        <td><div class="avg-display empty" id="avgP">&#9679;</div></td>
                     </tr>
                 </tbody>
             </table>
-            <button class="save-btn" id="saveBtn" onclick="saveEntry()" disabled>Shrani povprecje</button>
+            <button class="save-btn" id="saveBtn" onclick="saveEntry()" disabled>Shrani meritev</button>
             <div class="feedback" id="feedback"></div>
         </div>
         <div class="history-section">
-            <div class="history-header">
-                <h2>Zadnje meritve</h2>
-                <button class="export-btn" onclick="exportExcel()"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg></button>
-            </div>
+            <h2 style="font-size:15px;color:var(--text2);margin-bottom:12px;padding-left:4px">Zadnje meritve</h2>
             <div id="historyList"></div>
         </div>
     </div>
@@ -489,28 +728,54 @@ tbody tr:nth-child(3) td {
     </div>
 
 <script>
-// ===== STORE =====
+// ===== SUPABASE =====
+var sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
+// ===== STORE (localStorage + Supabase sync) =====
 const Store = {
     _get(key) { try { return JSON.parse(localStorage.getItem(key)) || []; } catch { return []; } },
     _set(key, data) { localStorage.setItem(key, JSON.stringify(data)); },
 
+    // --- Reading operations (always instant, always local-first) ---
     saveReading(systolic, diastolic, pulse) {
+        const reading = {
+            id: crypto.randomUUID(),
+            systolic,
+            diastolic,
+            pulse: pulse || null,
+            measured_at: new Date().toISOString(),
+            cloud_id: null,
+        };
         const readings = this._get('readings');
-        readings.push({ systolic, diastolic, pulse: pulse || null, measured_at: new Date().toISOString() });
+        readings.push(reading);
         this._set('readings', readings);
+        this._scheduleSyncSoon();
     },
+
+    deleteReading(localId) {
+        const readings = this._get('readings');
+        const idx = readings.findIndex(r => r.id === localId);
+        if (idx === -1) return;
+        const removed = readings.splice(idx, 1)[0];
+        this._set('readings', readings);
+        // Queue cloud delete
+        if (removed.cloud_id) {
+            const q = this._get('_delete_queue');
+            q.push(removed.cloud_id);
+            this._set('_delete_queue', q);
+            this._scheduleSyncSoon();
+        }
+    },
+
     getReadings(days) {
         const readings = this._get('readings');
         if (!days) return readings;
         const since = new Date(); since.setDate(since.getDate() - days);
         return readings.filter(r => new Date(r.measured_at) >= since);
     },
+
     getLastReadings(count) { return this._get('readings').slice(-count); },
-    deleteReading(index) {
-        const readings = this._get('readings');
-        readings.splice(index, 1);
-        this._set('readings', readings);
-    },
+
     getStats(days) {
         const readings = days ? this.getReadings(days) : this.getReadings();
         if (!readings.length) return { count: 0 };
@@ -522,8 +787,236 @@ const Store = {
             avg_diastolic: sum(readings, r => r.diastolic) / readings.length,
             avg_pulse: pr.length ? sum(pr, r => r.pulse) / pr.length : null,
         };
+    },
+
+    // --- Sync engine ---
+    _syncTimer: null,
+    _syncRunning: false,
+
+    _scheduleSyncSoon() {
+        clearTimeout(this._syncTimer);
+        this._syncTimer = setTimeout(() => this.sync(), 500);
+    },
+
+    // Wrap any promise with a timeout
+    _withTimeout(promise, ms) {
+        return Promise.race([
+            promise,
+            new Promise((_, reject) => setTimeout(() => reject(new Error('timeout')), ms))
+        ]);
+    },
+
+    async _getUser() {
+        try {
+            const { data: { session } } = await this._withTimeout(sb.auth.getSession(), 5000);
+            return session?.user || null;
+        } catch (e) { return null; }
+    },
+
+    async sync() {
+        if (this._syncRunning) return;
+        this._syncRunning = true;
+
+        try {
+            const user = await this._getUser();
+            if (!user) return;
+
+            // 1. Process delete queue
+            const deleteQueue = this._get('_delete_queue');
+            if (deleteQueue.length) {
+                const remaining = [];
+                for (const cloudId of deleteQueue) {
+                    try {
+                        const { error } = await this._withTimeout(
+                            sb.from('readings').delete().eq('id', cloudId), 10000
+                        );
+                        if (error) remaining.push(cloudId);
+                    } catch (e) { remaining.push(cloudId); break; }
+                }
+                this._set('_delete_queue', remaining);
+            }
+
+            // 2. Push unsynced readings
+            const readings = this._get('readings');
+            const unsynced = readings.filter(r => !r.cloud_id);
+            for (const r of unsynced) {
+                try {
+                    const { data, error } = await this._withTimeout(
+                        sb.from('readings').insert({
+                            user_id: user.id,
+                            systolic: r.systolic,
+                            diastolic: r.diastolic,
+                            pulse: r.pulse,
+                            measured_at: r.measured_at,
+                        }).select('id').single(), 10000
+                    );
+
+                    if (error) break;
+
+                    const fresh = this._get('readings');
+                    const match = fresh.find(x => x.id === r.id);
+                    if (match) {
+                        match.cloud_id = data.id;
+                        this._set('readings', fresh);
+                    }
+                } catch (e) { break; }
+            }
+        } catch (e) {
+            // offline or error — will retry
+        } finally {
+            this._syncRunning = false;
+        }
+    },
+
+    // Full sync: pull cloud → merge with local → push unsynced
+    async fullSync() {
+        if (this._syncRunning) return;
+        this._syncRunning = true;
+
+        try {
+            const user = await this._getUser();
+            if (!user) return;
+
+            const local = this._get('readings');
+            const unsynced = local.filter(r => !r.cloud_id);
+
+            const { data, error } = await this._withTimeout(
+                sb.from('readings')
+                    .select('*')
+                    .eq('user_id', user.id)
+                    .order('measured_at', { ascending: true }),
+                10000
+            );
+            if (error || !data) return;
+
+            // Build merged list preserving local IDs
+            const localByCloudId = {};
+            local.forEach(r => { if (r.cloud_id) localByCloudId[r.cloud_id] = r; });
+
+            const merged = data.map(r => ({
+                id: localByCloudId[r.id]?.id || crypto.randomUUID(),
+                systolic: r.systolic,
+                diastolic: r.diastolic,
+                pulse: r.pulse,
+                measured_at: r.measured_at,
+                cloud_id: r.id,
+            }));
+
+            // Keep unsynced local readings
+            const cloudTimestamps = new Set(merged.map(r => r.measured_at));
+            for (const r of unsynced) {
+                if (!cloudTimestamps.has(r.measured_at)) {
+                    if (!r.id) r.id = crypto.randomUUID();
+                    merged.push(r);
+                }
+            }
+
+            merged.sort((a, b) => new Date(a.measured_at) - new Date(b.measured_at));
+            this._set('readings', merged);
+        } catch (e) {
+            // offline — use local data
+        } finally {
+            this._syncRunning = false;
+        }
+
+        // Now push any unsynced
+        await this.sync();
     }
 };
+
+// ===== AUTH =====
+// Hidden dev login: tap logo 5 times
+let _devTaps = 0, _devTimer;
+function devTaps() {
+    _devTaps++;
+    clearTimeout(_devTimer);
+    _devTimer = setTimeout(() => _devTaps = 0, 2000);
+    if (_devTaps >= 5) {
+        _devTaps = 0;
+        document.getElementById('loginPassword').classList.remove('hidden');
+        document.getElementById('loginBtn').textContent = 'Prijava';
+    }
+}
+
+async function handleLogin() {
+    const email = document.getElementById('loginEmail').value.trim();
+    const password = document.getElementById('loginPassword').value;
+    const msg = document.getElementById('loginMsg');
+    const btn = document.getElementById('loginBtn');
+    if (!email) { msg.textContent = 'Vnesite email'; msg.className = 'login-msg error'; return; }
+    btn.disabled = true;
+
+    if (password) {
+        // Password login (dev mode)
+        btn.textContent = 'Prijavljam...';
+        const { error } = await sb.auth.signInWithPassword({ email, password });
+        if (error) {
+            msg.textContent = 'Napaka: ' + error.message;
+            msg.className = 'login-msg error';
+            btn.disabled = false;
+            btn.textContent = 'Prijava';
+        }
+    } else {
+        // Magic link login (normal)
+        btn.textContent = 'Posiljam...';
+        const { error } = await sb.auth.signInWithOtp({
+            email,
+            options: { emailRedirectTo: window.location.origin + window.location.pathname }
+        });
+        if (error) {
+            msg.textContent = 'Napaka: ' + error.message;
+            msg.className = 'login-msg error';
+            btn.disabled = false;
+            btn.textContent = 'Poslji povezavo';
+        } else {
+            msg.textContent = 'Povezava poslana! Preverite email.';
+            msg.className = 'login-msg';
+            btn.textContent = 'Poslano!';
+            btn.classList.add('sent');
+        }
+    }
+}
+
+async function handleLogout() {
+    try { await sb.auth.signOut(); } catch(e) { console.warn('Logout error:', e); }
+    localStorage.removeItem('sb-' + SUPABASE_URL.split('//')[1].split('.')[0] + '-auth-token');
+    location.reload();
+}
+
+function showLoggedIn(email) {
+    document.getElementById('loginOverlay').classList.add('hidden');
+    document.getElementById('settingsEmail').textContent = email;
+}
+
+// Auth handler
+let _initialSyncDone = false;
+sb.auth.onAuthStateChange(async (event, session) => {
+    if (session) {
+        showLoggedIn(session.user.email);
+        // Full sync only on first load or actual sign-in, not on every tab focus
+        if (!_initialSyncDone || event === 'SIGNED_IN') {
+            _initialSyncDone = true;
+            await Store.fullSync();
+        }
+        renderHistory();
+    } else {
+        _initialSyncDone = false;
+        document.getElementById('loginOverlay').classList.remove('hidden');
+        renderHistory();
+    }
+});
+
+// ===== SETTINGS =====
+function openSettings() {
+    document.getElementById('settingsOverlay').classList.remove('hidden');
+    document.getElementById('settingsPanel').classList.remove('hidden');
+}
+
+function closeSettings() {
+    document.getElementById('settingsOverlay').classList.add('hidden');
+    document.getElementById('settingsPanel').classList.add('hidden');
+}
+
 
 // Global Chart.js defaults for mobile readability
 Chart.defaults.font.size = 13;
@@ -570,41 +1063,50 @@ function classifyBP(s, d) {
 // ===== ENTRY (3 measurements → average) =====
 function getVal(id) { const v = parseInt(document.getElementById(id).value); return isNaN(v) ? null : v; }
 
-function computeAvg() {
-    const vals = [1,2,3].map(i => ({
-        s: getVal('s'+i), d: getVal('d'+i), p: getVal('p'+i)
-    }));
+function isComplete(id) {
+    const el = document.getElementById(id);
+    if (!el || !el.value) return false;
+    const len = el.value.length;
+    const first = el.value[0];
+    if (id.startsWith('d') || id.startsWith('p')) return (len >= 2 && first !== '1') || len >= 3;
+    if (id.startsWith('s')) return (len >= 2 && first !== '1' && first !== '2') || len >= 3;
+    return false;
+}
 
-    const filled = vals.filter(v => v.s && v.d);
+function computeAvg() {
+    const sVals = [1,2,3].filter(i => isComplete('s'+i)).map(i => getVal('s'+i)).filter(v => v !== null);
+    const dVals = [1,2,3].filter(i => isComplete('d'+i)).map(i => getVal('d'+i)).filter(v => v !== null);
+    const pVals = [1,2,3].filter(i => isComplete('p'+i)).map(i => getVal('p'+i)).filter(v => v !== null);
+
     const avgS = document.getElementById('avgS');
     const avgD = document.getElementById('avgD');
     const avgP = document.getElementById('avgP');
     const btn = document.getElementById('saveBtn');
 
-    if (filled.length === 0) {
-        avgS.textContent = '\u2014'; avgS.className = 'avg-display empty';
-        avgD.textContent = '\u2014'; avgD.className = 'avg-display empty';
-        avgP.textContent = '\u2014'; avgP.className = 'avg-display empty';
-        btn.disabled = true;
-        return null;
-    }
+    const avg = arr => Math.round(arr.reduce((a, b) => a + b, 0) / arr.length);
 
-    const s = Math.round(filled.reduce((a, v) => a + v.s, 0) / filled.length);
-    const d = Math.round(filled.reduce((a, v) => a + v.d, 0) / filled.length);
-    const pVals = filled.filter(v => v.p);
-    const p = pVals.length ? Math.round(pVals.reduce((a, v) => a + v.p, 0) / pVals.length) : null;
+    const s = sVals.length ? avg(sVals) : null;
+    const d = dVals.length ? avg(dVals) : null;
+    const p = pVals.length ? avg(pVals) : null;
 
-    avgS.textContent = s; avgS.className = 'avg-display';
-    avgD.textContent = d; avgD.className = 'avg-display';
-    avgP.textContent = p || '\u2014'; avgP.className = p ? 'avg-display' : 'avg-display empty';
-    btn.disabled = false;
+    avgS.textContent = s !== null ? s : '\u25CF';
+    avgS.className = s !== null ? 'avg-display' : 'avg-display empty';
+    avgD.textContent = d !== null ? d : '\u25CF';
+    avgD.className = d !== null ? 'avg-display' : 'avg-display empty';
+    avgP.textContent = p !== null ? p : '\u25CF';
+    avgP.className = p !== null ? 'avg-display' : 'avg-display empty';
 
-    return { s, d, p };
+    // Need at least one systolic AND one diastolic to save
+    btn.disabled = !(s && d);
+
+    return (s && d) ? { s, d, p } : null;
 }
 
 function onMeasInput(el) {
-    // Auto-tab on 3 digits
-    if (el.value.length >= 3) {
+    const id = el.id;
+    const shouldJump = isComplete(id);
+
+    if (shouldJump) {
         const inputs = [...document.querySelectorAll('.measurement-table input')];
         const idx = inputs.indexOf(el);
         if (idx < inputs.length - 1) inputs[idx + 1].focus();
@@ -629,13 +1131,13 @@ function saveEntry() {
     btn.classList.add('saved');
 
     setTimeout(() => {
-        btn.textContent = 'Shrani povprecje';
+        btn.textContent = 'Shrani meritev';
         btn.classList.remove('saved');
         btn.disabled = true;
         document.querySelectorAll('.measurement-table input').forEach(i => i.value = '');
-        document.getElementById('avgS').textContent = '\u2014'; document.getElementById('avgS').className = 'avg-display empty';
-        document.getElementById('avgD').textContent = '\u2014'; document.getElementById('avgD').className = 'avg-display empty';
-        document.getElementById('avgP').textContent = '\u2014'; document.getElementById('avgP').className = 'avg-display empty';
+        document.getElementById('avgS').textContent = '\u25CF'; document.getElementById('avgS').className = 'avg-display empty';
+        document.getElementById('avgD').textContent = '\u25CF'; document.getElementById('avgD').className = 'avg-display empty';
+        document.getElementById('avgP').textContent = '\u25CF'; document.getElementById('avgP').className = 'avg-display empty';
         fb.textContent = ''; fb.className = 'feedback';
     }, 1500);
     renderHistory();
@@ -647,14 +1149,14 @@ document.querySelectorAll('.measurement-table input').forEach(inp => {
 });
 
 // ===== HISTORY =====
-function askDelete(index, el) {
+function askDelete(el) {
     document.querySelectorAll('.history-item.confirm-delete').forEach(item => item.classList.remove('confirm-delete'));
     el.closest('.history-item').classList.add('confirm-delete');
 }
 
 function cancelDelete(el) { el.closest('.history-item').classList.remove('confirm-delete'); }
 
-function confirmDelete(index) { Store.deleteReading(index); renderHistory(); }
+function confirmDelete(localId) { Store.deleteReading(localId); renderHistory(); }
 
 let showAll = false;
 
@@ -664,13 +1166,13 @@ function renderHistory() {
     if (!allReadings.length) { list.innerHTML = '<div class="empty-msg">Se ni meritev</div>'; return; }
 
     const display = showAll ? allReadings : allReadings.slice(-5);
-    const items = display.slice().reverse().map((r, i) => {
-        const actualIdx = showAll ? (allReadings.length - 1 - i) : (allReadings.length - display.length + (display.length - 1 - i));
+    const items = display.slice().reverse().map((r) => {
+        const ts = r.measured_at;
         const bp = classifyBP(r.systolic, r.diastolic);
-        const date = new Date(r.measured_at);
+        const date = new Date(ts);
         const time = date.toLocaleDateString('sl-SI', { day: 'numeric', month: 'short' })
             + ' ' + date.toLocaleTimeString('sl-SI', { hour: '2-digit', minute: '2-digit' });
-        const pulse = r.pulse ? `<div class="pulse-val">Pulz: ${r.pulse} u/min</div>` : '';
+        const pulse = r.pulse ? `<div class="pulse-val">&hearts; ${r.pulse}</div>` : '';
         return `
             <div class="history-item">
                 <div class="item-content">
@@ -680,11 +1182,11 @@ function renderHistory() {
                     </div>
                     <span class="badge ${bp.cls}">${bp.label}</span>
                     <div class="time">${time}</div>
-                    <button class="delete-btn" onclick="askDelete(${actualIdx}, this)" title="Izbrisi">&times;</button>
+                    <button class="delete-btn" onclick="askDelete(this)" title="Izbrisi">&times;</button>
                 </div>
                 <div class="confirm-bar">
                     <span>Izbrisati?</span>
-                    <button class="confirm-yes" onclick="confirmDelete(${actualIdx})">Da</button>
+                    <button class="confirm-yes" onclick="confirmDelete('${r.id}')">Da</button>
                     <button class="confirm-no" onclick="cancelDelete(this)">Ne</button>
                 </div>
             </div>`;
@@ -752,16 +1254,27 @@ function loadDashboard() {
     }
 
     const periodLabel = currentDays > 0 ? `${currentDays} dni` : 'vse';
-    const pulseAvg = stats.avg_pulse ? `<span class="avg-pulse">\u00b7 ${Math.round(stats.avg_pulse)} u/min</span>` : '';
+    const pulseCol = stats.avg_pulse
+        ? `<div class="avg-col pulse">
+                <span class="avg-col-label">Pulz</span>
+                <span class="avg-col-value">${Math.round(stats.avg_pulse)}</span>
+           </div>`
+        : '';
 
     content.innerHTML = `
         <div class="avg-bar">
-            <div class="avg-icon">\u2665</div>
-            <div class="avg-details">
-                <span class="avg-label">Povprecje (${periodLabel})</span>
-                <span class="avg-value">${Math.round(stats.avg_systolic)}/${Math.round(stats.avg_diastolic)} ${pulseAvg}</span>
-                <span class="avg-meta">${stats.count} meritev</span>
+            <div class="avg-cols">
+                <div class="avg-col">
+                    <span class="avg-col-label">Sistolicni</span>
+                    <span class="avg-col-value">${Math.round(stats.avg_systolic)}</span>
+                </div>
+                <div class="avg-col">
+                    <span class="avg-col-label">Diastolicni</span>
+                    <span class="avg-col-value">${Math.round(stats.avg_diastolic)}</span>
+                </div>
+                ${pulseCol}
             </div>
+            <div class="avg-footer">Povprecje &middot; ${stats.count} meritev</div>
         </div>
         <div class="chart-card">
             <h3>Krvni tlak in pulz</h3>
@@ -1044,7 +1557,13 @@ function setFilter(days) {
     loadDashboard();
 }
 
+// Initial render with local data (cloud sync will re-render when ready)
 renderHistory();
+
+// === SYNC TRIGGERS ===
+window.addEventListener('online', () => Store.sync());
+document.addEventListener('visibilitychange', () => { if (!document.hidden) Store.sync(); });
+setInterval(() => { if (!document.hidden) Store.sync(); }, 30000);
 
 if ('serviceWorker' in navigator) navigator.serviceWorker.register('sw.js');
 </script>
