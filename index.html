@@ -160,7 +160,20 @@ body {
     font-size: 17px;
     font-weight: 600;
     cursor: pointer;
-    transition: all 0.2s;
+    transition: all 0.3s ease;
+}
+
+.save-row.result .tag-toggle {
+    width: 0;
+    padding: 0;
+    border: none;
+    overflow: hidden;
+    opacity: 0;
+    transition: all 0.3s ease;
+}
+
+.save-row.result .save-btn {
+    transition: all 0.3s ease;
 }
 
 @keyframes shake {
@@ -1369,12 +1382,14 @@ function saveEntry() {
     btn.style.background = c.bg;
     btn.style.color = c.color;
     btn.style.pointerEvents = 'none';
+    btn.closest('.save-row').classList.add('result');
 
     setTimeout(() => {
         btn.textContent = 'Shrani meritev';
         btn.style.background = '';
         btn.style.color = '';
         btn.style.pointerEvents = '';
+        btn.closest('.save-row').classList.remove('result');
         btn.disabled = true;
         document.querySelectorAll('.entry-input').forEach(i => i.value = '');
         document.getElementById('avgS').textContent = '\u25CF'; document.getElementById('avgS').className = 'entry-avg empty';
