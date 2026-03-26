@@ -193,7 +193,7 @@ body {
 .save-btn.saved { background: var(--green); pointer-events: none; }
 .save-btn:disabled { background: var(--border); color: var(--text2); pointer-events: none; }
 
-.feedback { text-align: center; margin-top: 8px; font-size: 11px; font-weight: 400; min-height: 16px; color: #C0C5CC; }
+.feedback { text-align: center; margin-top: 4px; font-size: 11px; font-weight: 400; min-height: 14px; color: #C0C5CC; }
 .feedback.good { color: var(--green); }
 .feedback.caution { color: var(--yellow); }
 .feedback.warning { color: var(--orange); }
@@ -1363,8 +1363,13 @@ function saveEntry() {
     const btn = document.getElementById('saveBtn');
 
     const fb = document.getElementById('feedback');
-    if (avg.s < 60 || avg.s > 250 || avg.d < 30 || avg.d > 150) {
-        fb.textContent = 'Vrednosti izven normalnega razpona';
+    if (avg.s < 60 || avg.s > 250) {
+        fb.textContent = 'Sistolicni mora biti med 60 in 250';
+        setTimeout(() => fb.textContent = '', 3000);
+        return;
+    }
+    if (avg.d < 30 || avg.d > 150) {
+        fb.textContent = 'Diastolicni mora biti med 30 in 150';
         setTimeout(() => fb.textContent = '', 3000);
         return;
     }
