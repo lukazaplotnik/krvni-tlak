@@ -261,36 +261,42 @@ body {
 }
 
 .delete-btn:hover, .delete-btn:active { background: #FEE2E2; border-color: #E8918A; color: var(--red); }
-.history-item.confirm-delete .item-content { opacity: 0.3; }
+.history-item.confirm-delete .item-content { opacity: 0.15; }
+.history-item.confirm-delete .history-bottom { opacity: 0.15; }
+.history-item.confirm-delete .delete-btn { display: none; }
 
 .history-item .confirm-bar {
     display: none;
     position: absolute;
     inset: 0;
-    z-index: 2;
+    z-index: 3;
+    flex-direction: column;
     align-items: center;
     justify-content: center;
-    gap: 12px;
-    background: rgba(255,255,255,0.95);
+    gap: 10px;
+    background: rgba(255,255,255,0.97);
+    border-radius: 12px;
 }
 
 .history-item.confirm-delete .confirm-bar { display: flex; }
-.confirm-bar span { font-size: 13px; color: #B0B7C3; }
+.confirm-bar .confirm-text { font-size: 13px; color: var(--text2); font-weight: 500; }
+
+.confirm-bar .confirm-actions { display: flex; gap: 8px; }
 
 .confirm-bar button {
-    padding: 6px 16px;
+    padding: 8px 20px;
     border: none;
-    border-radius: 6px;
-    font-size: 12px;
-    font-weight: 500;
+    border-radius: 8px;
+    font-size: 13px;
+    font-weight: 600;
     cursor: pointer;
     transition: all 0.15s;
 }
 
-.confirm-bar .confirm-yes { background: none; border: 1px solid #E8918A; color: #E8918A; }
+.confirm-bar .confirm-yes { background: var(--bg); color: var(--red); }
 .confirm-bar .confirm-yes:active { background: #FEE2E2; transform: scale(0.95); }
-.confirm-bar .confirm-no { background: none; border: 1px solid var(--border); color: #B0B7C3; }
-.confirm-bar .confirm-no:active { background: var(--bg); transform: scale(0.95); }
+.confirm-bar .confirm-no { background: var(--bg); color: var(--text2); }
+.confirm-bar .confirm-no:active { background: var(--border); transform: scale(0.95); }
 
 .empty-msg { text-align: center; color: var(--text2); padding: 40px 20px; font-size: 14px; }
 
@@ -1400,9 +1406,11 @@ function renderHistory() {
                 </div>
                 <div class="history-bottom"><div class="tags-group">${tagChips}</div><span class="time">${time}</span></div>
                 <div class="confirm-bar">
-                    <span>Izbrisati?</span>
-                    <button class="confirm-yes" onclick="confirmDelete('${r.id}')">Da</button>
-                    <button class="confirm-no" onclick="cancelDelete(this)">Ne</button>
+                    <span class="confirm-text">Zelite izbrisati meritev?</span>
+                    <div class="confirm-actions">
+                        <button class="confirm-no" onclick="cancelDelete(this)">Ne</button>
+                        <button class="confirm-yes" onclick="confirmDelete('${r.id}')">Izbrisi</button>
+                    </div>
                 </div>
             </div>`;
     }).join('');
