@@ -861,7 +861,7 @@ body {
                     <input type="number" class="entry-input" id="s1" placeholder="&#8212;" inputmode="numeric" oninput="onMeasInput(this)">
                     <input type="number" class="entry-input" id="s2" placeholder="&#8212;" inputmode="numeric" oninput="onMeasInput(this)">
                     <input type="number" class="entry-input" id="s3" placeholder="&#8212;" inputmode="numeric" oninput="onMeasInput(this)">
-                    <div class="entry-avg empty" id="avgS">&#9679;</div>
+                    <div class="entry-avg empty" id="avgS"></div>
                 </div>
                 <div class="entry-col">
                     <span class="entry-col-label">Diastolicni</span>
@@ -875,7 +875,7 @@ body {
                     <input type="number" class="entry-input" id="p1" placeholder="&#8212;" inputmode="numeric" oninput="onMeasInput(this)">
                     <input type="number" class="entry-input" id="p2" placeholder="&#8212;" inputmode="numeric" oninput="onMeasInput(this)">
                     <input type="number" class="entry-input" id="p3" placeholder="&#8212;" inputmode="numeric" oninput="onMeasInput(this)">
-                    <div class="entry-avg empty" id="avgP">&#9679;</div>
+                    <div class="entry-avg empty" id="avgP"></div>
                 </div>
             </div>
             <div class="save-row">
@@ -1334,11 +1334,11 @@ function computeAvg() {
     const d = dVals.length ? avg(dVals) : null;
     const p = pVals.length ? avg(pVals) : null;
 
-    avgS.textContent = s !== null ? s : '\u25CF';
+    avgS.textContent = s !== null ? s : '';
     avgS.className = s !== null ? 'entry-avg' : 'entry-avg empty';
     avgD.textContent = d !== null ? d : '\u2665';
     avgD.className = d !== null ? 'entry-avg' : 'entry-avg empty';
-    avgP.textContent = p !== null ? p : '\u25CF';
+    avgP.textContent = p !== null ? p : '';
     avgP.className = p !== null ? 'entry-avg' : 'entry-avg empty';
 
     // Need at least one systolic AND one diastolic to save
