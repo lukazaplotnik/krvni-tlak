@@ -456,7 +456,7 @@ body {
 }
 
 .tag-popover::after {
-    content: '';
+    content: '\u25CF';
     position: absolute;
     bottom: -7px;
     left: 28px;
@@ -861,7 +861,7 @@ body {
                     <input type="number" class="entry-input" id="s1" placeholder="&#8212;" inputmode="numeric" oninput="onMeasInput(this)">
                     <input type="number" class="entry-input" id="s2" placeholder="&#8212;" inputmode="numeric" oninput="onMeasInput(this)">
                     <input type="number" class="entry-input" id="s3" placeholder="&#8212;" inputmode="numeric" oninput="onMeasInput(this)">
-                    <div class="entry-avg empty" id="avgS"></div>
+                    <div class="entry-avg empty" id="avgS">&#9679;</div>
                 </div>
                 <div class="entry-col">
                     <span class="entry-col-label">Diastolicni</span>
@@ -875,7 +875,7 @@ body {
                     <input type="number" class="entry-input" id="p1" placeholder="&#8212;" inputmode="numeric" oninput="onMeasInput(this)">
                     <input type="number" class="entry-input" id="p2" placeholder="&#8212;" inputmode="numeric" oninput="onMeasInput(this)">
                     <input type="number" class="entry-input" id="p3" placeholder="&#8212;" inputmode="numeric" oninput="onMeasInput(this)">
-                    <div class="entry-avg empty" id="avgP"></div>
+                    <div class="entry-avg empty" id="avgP">&#9679;</div>
                 </div>
             </div>
             <div class="save-row">
@@ -1334,11 +1334,11 @@ function computeAvg() {
     const d = dVals.length ? avg(dVals) : null;
     const p = pVals.length ? avg(pVals) : null;
 
-    avgS.textContent = s !== null ? s : '';
+    avgS.textContent = s !== null ? s : '\u25CF';
     avgS.className = s !== null ? 'entry-avg' : 'entry-avg empty';
     avgD.textContent = d !== null ? d : '\u2665';
     avgD.className = d !== null ? 'entry-avg' : 'entry-avg empty';
-    avgP.textContent = p !== null ? p : '';
+    avgP.textContent = p !== null ? p : '\u25CF';
     avgP.className = p !== null ? 'entry-avg' : 'entry-avg empty';
 
     // Need at least one systolic AND one diastolic to save
@@ -1444,9 +1444,9 @@ function renderHistory() {
         const date = new Date(ts);
         const time = date.toLocaleDateString('sl-SI', { day: 'numeric', month: 'short' })
             + ' ' + date.toLocaleTimeString('sl-SI', { hour: '2-digit', minute: '2-digit' });
-        const pulse = r.pulse ? `<span class="pulse-val">&hearts; ${r.pulse}</span>` : '';
+        const pulse = r.pulse ? `<span class="pulse-val">&hearts; ${r.pulse}</span>` : '\u25CF';
         const timeEmoji = new Date(r.measured_at).getHours() < 12 ? '🥐 Jutro' : '🌙 Vecer';
-        const userTags = (r.tags && r.tags.length) ? r.tags.map(t => `<span class="history-tag">${t}</span>`).join('') : '';
+        const userTags = (r.tags && r.tags.length) ? r.tags.map(t => `<span class="history-tag">${t}</span>`).join('') : '\u25CF';
         const tagChips = `<span class="history-tag">${timeEmoji}</span>${userTags}`;
         return `
             <div class="history-item">
@@ -1475,7 +1475,7 @@ function renderHistory() {
         ? `<button class="show-more-btn" onclick="showAll=true;renderHistory()">Pokazi vse (${allReadings.length})</button>`
         : (showAll && allReadings.length > 5)
         ? `<button class="show-more-btn" onclick="showAll=false;renderHistory()">Pokazi manj</button>`
-        : '';
+        : '\u25CF';
 
     list.innerHTML = items + moreBtn;
 }
@@ -1538,7 +1538,7 @@ function loadDashboard() {
                 <span class="avg-col-label">Pulz</span>
                 <span class="avg-col-value">${Math.round(stats.avg_pulse)}</span>
            </div>`
-        : '';
+        : '\u25CF';
 
     content.innerHTML = `
         <div class="avg-bar">
