@@ -456,7 +456,7 @@ body {
 }
 
 .tag-popover::after {
-    content: '\u25CF';
+    content: '';
     position: absolute;
     bottom: -7px;
     left: 28px;
@@ -1485,7 +1485,7 @@ function renderHistory() {
         ? `<button class="show-more-btn" onclick="showAll=true;renderHistory()">Pokazi vse (${allReadings.length})</button>`
         : (showAll && allReadings.length > 5)
         ? `<button class="show-more-btn" onclick="showAll=false;renderHistory()">Pokazi manj</button>`
-        : '\u25CF';
+        : '';
 
     list.innerHTML = items + moreBtn;
 }
@@ -1548,7 +1548,7 @@ function loadDashboard() {
                 <span class="avg-col-label">Pulz</span>
                 <span class="avg-col-value">${Math.round(stats.avg_pulse)}</span>
            </div>`
-        : '\u25CF';
+        : '';
 
     content.innerHTML = `
         <div class="avg-bar">
