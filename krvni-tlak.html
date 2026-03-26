@@ -1269,6 +1269,10 @@ function toggleTag(tag) {
 renderTags();
 
 function openTagSheet() {
+    if (!document.getElementById('tagPopover').classList.contains('hidden')) {
+        closeTagSheet();
+        return;
+    }
     renderTags();
     document.getElementById('sheetOverlay').classList.remove('hidden');
     document.getElementById('tagPopover').classList.remove('hidden');
