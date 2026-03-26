@@ -441,29 +441,33 @@ body {
     transform: rotate(45deg);
 }
 
-.tag-popover-header {
-    display: flex;
-    align-items: flex-start;
-    gap: 8px;
-    margin-bottom: 10px;
-}
-
 .tag-question {
     font-size: 13px;
     color: var(--text2);
-    flex: 1;
+    margin-bottom: 10px;
 }
 
 .tag-popover-close {
-    background: none;
-    border: none;
-    color: #C0C5CC;
-    font-size: 18px;
+    position: absolute;
+    top: -6px;
+    right: -6px;
+    background: var(--card);
+    border: 1.5px solid #E5E7EB;
+    color: #C9CED6;
+    font-size: 12px;
     cursor: pointer;
+    width: 20px;
+    height: 20px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
     line-height: 1;
-    padding: 0;
-    flex-shrink: 0;
+    z-index: 82;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.08);
 }
+
+.tag-popover-close:active { background: #FEE2E2; border-color: #E8918A; color: var(--red); }
 
 .tags-wrap {
     display: flex;
@@ -849,10 +853,8 @@ body {
             </div>
             <div class="save-row">
                 <div class="tag-popover hidden" id="tagPopover">
-                    <div class="tag-popover-header">
-                        <div class="tag-question" id="tagQuestion"></div>
-                        <button class="tag-popover-close" onclick="closeTagSheet()">&times;</button>
-                    </div>
+                    <button class="tag-popover-close" onclick="closeTagSheet()">&times;</button>
+                    <div class="tag-question" id="tagQuestion"></div>
                     <div class="tags-wrap" id="tagsWrap"></div>
                 </div>
                 <button class="tag-toggle" id="tagToggle" onclick="openTagSheet()">
