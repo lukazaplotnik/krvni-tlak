@@ -1397,6 +1397,15 @@ function saveEntry() {
     btn.style.pointerEvents = 'none';
     btn.closest('.save-row').classList.add('result');
 
+    // Color the averages to match
+    const avgS = document.getElementById('avgS');
+    const avgD = document.getElementById('avgD');
+    const avgP = document.getElementById('avgP');
+    [avgS, avgD, avgP].forEach(el => {
+        el.style.color = c.color;
+        el.style.background = c.bg;
+    });
+
     setTimeout(() => {
         btn.textContent = 'Shrani meritev';
         btn.style.background = '';
@@ -1405,9 +1414,10 @@ function saveEntry() {
         btn.closest('.save-row').classList.remove('result');
         btn.disabled = true;
         document.querySelectorAll('.entry-input').forEach(i => i.value = '');
-        document.getElementById('avgS').textContent = '\u25CF'; document.getElementById('avgS').className = 'entry-avg empty';
-        document.getElementById('avgD').textContent = '\u2665'; document.getElementById('avgD').className = 'entry-avg empty';
-        document.getElementById('avgP').textContent = '\u25CF'; document.getElementById('avgP').className = 'entry-avg empty';
+        [avgS, avgD, avgP].forEach(el => { el.style.color = ''; el.style.background = ''; });
+        avgS.textContent = '\u25CF'; avgS.className = 'entry-avg empty';
+        avgD.textContent = '\u2665'; avgD.className = 'entry-avg empty';
+        avgP.textContent = '\u25CF'; avgP.className = 'entry-avg empty';
         document.getElementById('feedback').textContent = '';
         selectedTags = []; renderTags(); updateTagToggle();
         document.getElementById('tagToggle').classList.remove('active');
