@@ -1411,8 +1411,8 @@ function saveEntry() {
         document.getElementById('feedback').textContent = '';
         selectedTags = []; renderTags(); updateTagToggle();
         document.getElementById('tagToggle').classList.remove('active');
+        renderHistory();
     }, 2000);
-    renderHistory();
 }
 
 // Enter key saves
