@@ -176,7 +176,7 @@ body {
 .save-btn.saved { background: var(--green); pointer-events: none; }
 .save-btn:disabled { background: var(--border); color: var(--text2); pointer-events: none; }
 
-.feedback { text-align: center; margin-top: 12px; font-size: 14px; font-weight: 500; min-height: 20px; }
+.feedback { text-align: center; margin-top: 8px; font-size: 11px; font-weight: 400; min-height: 16px; color: #C0C5CC; }
 .feedback.good { color: var(--green); }
 .feedback.caution { color: var(--yellow); }
 .feedback.warning { color: var(--orange); }
@@ -872,6 +872,7 @@ body {
                 </button>
                 <button class="save-btn" id="saveBtn" onclick="saveEntry()" disabled>Shrani meritev</button>
             </div>
+            <div class="feedback" id="feedback"></div>
         </div>
         <div class="history-section">
             <h2 style="font-size:15px;color:var(--text2);margin-bottom:12px;padding-left:4px">Zadnje meritve</h2>
@@ -1344,9 +1345,10 @@ function saveEntry() {
     if (!avg) return;
     const btn = document.getElementById('saveBtn');
 
+    const fb = document.getElementById('feedback');
     if (avg.s < 60 || avg.s > 250 || avg.d < 30 || avg.d > 150) {
-        btn.style.animation = 'shake 0.4s';
-        setTimeout(() => btn.style.animation = '', 400);
+        fb.textContent = 'Vrednosti izven normalnega razpona';
+        setTimeout(() => fb.textContent = '', 3000);
         return;
     }
 
@@ -1378,6 +1380,7 @@ function saveEntry() {
         document.getElementById('avgS').textContent = '\u25CF'; document.getElementById('avgS').className = 'entry-avg empty';
         document.getElementById('avgD').textContent = '\u2665'; document.getElementById('avgD').className = 'entry-avg empty';
         document.getElementById('avgP').textContent = '\u25CF'; document.getElementById('avgP').className = 'entry-avg empty';
+        document.getElementById('feedback').textContent = '';
         selectedTags = []; renderTags(); updateTagToggle();
         document.getElementById('tagToggle').classList.remove('active');
     }, 2500);
