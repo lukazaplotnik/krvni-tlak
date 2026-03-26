@@ -864,7 +864,6 @@ body {
                 </button>
                 <button class="save-btn" id="saveBtn" onclick="saveEntry()" disabled>Shrani meritev</button>
             </div>
-            <div class="feedback" id="feedback"></div>
         </div>
         <div class="history-section">
             <h2 style="font-size:15px;color:var(--text2);margin-bottom:12px;padding-left:4px">Zadnje meritve</h2>
@@ -1335,31 +1334,47 @@ function onMeasInput(el) {
 function saveEntry() {
     const avg = computeAvg();
     if (!avg) return;
-    const fb = document.getElementById('feedback');
     const btn = document.getElementById('saveBtn');
 
-    if (avg.s < 60 || avg.s > 250) { fb.textContent = 'Sistolicni: 60\u2013250'; fb.className = 'feedback warning'; return; }
-    if (avg.d < 30 || avg.d > 150) { fb.textContent = 'Diastolicni: 30\u2013150'; fb.className = 'feedback warning'; return; }
+    if (avg.s < 60 || avg.s > 250 || avg.d < 30 || avg.d > 150) {
+        btn.textContent = 'Napacne vrednosti';
+        btn.style.background = '#FFE0CC';
+        btn.style.color = '#CC4400';
+        setTimeout(() => { btn.textContent = 'Shrani meritev'; btn.style.background = ''; btn.style.color = ''; }, 2000);
+        return;
+    }
 
     Store.saveReading(avg.s, avg.d, avg.p, [...selectedTags]);
     const bp = classifyBP(avg.s, avg.d);
-    fb.textContent = bp.label;
-    fb.className = 'feedback ' + bp.cls.replace('crisis','danger').replace('grade2','danger').replace('grade1','warning').replace('high-normal','caution').replace('normal','good').replace('optimal','good');
-    btn.textContent = 'Shranjeno!';
-    btn.classList.add('saved');
+
+    const btnColors = {
+        optimal: { bg: '#C2E0C6', color: '#1A5C2A' },
+        normal: { bg: '#D4EDDA', color: '#155724' },
+        'high-normal': { bg: '#E0F0D0', color: '#4A7A2A' },
+        grade1: { bg: '#FFF3CD', color: '#856404' },
+        grade2: { bg: '#FFE0CC', color: '#CC4400' },
+        grade3: { bg: '#F8D7DA', color: '#721C24' },
+        crisis: { bg: '#E74C3C', color: 'white' },
+    };
+    const c = btnColors[bp.cls] || btnColors.normal;
+    btn.textContent = bp.label;
+    btn.style.background = c.bg;
+    btn.style.color = c.color;
+    btn.style.pointerEvents = 'none';
 
     setTimeout(() => {
         btn.textContent = 'Shrani meritev';
-        btn.classList.remove('saved');
+        btn.style.background = '';
+        btn.style.color = '';
+        btn.style.pointerEvents = '';
         btn.disabled = true;
         document.querySelectorAll('.entry-input').forEach(i => i.value = '');
         document.getElementById('avgS').textContent = '\u25CF'; document.getElementById('avgS').className = 'entry-avg empty';
         document.getElementById('avgD').textContent = '\u2665'; document.getElementById('avgD').className = 'entry-avg empty';
         document.getElementById('avgP').textContent = '\u25CF'; document.getElementById('avgP').className = 'entry-avg empty';
-        fb.textContent = ''; fb.className = 'feedback';
         selectedTags = []; renderTags(); updateTagToggle();
         document.getElementById('tagToggle').classList.remove('active');
-    }, 1500);
+    }, 2500);
     renderHistory();
 }
 
