@@ -14,6 +14,9 @@
     <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/chartjs-adapter-date-fns@3.0.0/dist/chartjs-adapter-date-fns.bundle.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2.2.0/dist/chartjs-plugin-datalabels.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/jspdf@2.5.1/dist/jspdf.umd.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/jspdf-autotable@3.8.2/dist/jspdf.plugin.autotable.min.js"></script>
     <style>
 * { margin: 0; padding: 0; box-sizing: border-box; }
 
@@ -725,7 +728,7 @@ body {
     position: fixed;
     inset: 0;
     z-index: 90;
-    background: rgba(0,0,0,0.3);
+    background: rgba(0,0,0,0.4);
 }
 
 .settings-panel {
@@ -733,31 +736,33 @@ body {
     top: 0;
     right: 0;
     bottom: 0;
-    width: 280px;
+    width: 300px;
     max-width: 85%;
     z-index: 91;
-    background: var(--bg);
-    box-shadow: -4px 0 20px rgba(0,0,0,0.1);
+    background: var(--card);
+    box-shadow: -4px 0 24px rgba(0,0,0,0.12);
     display: flex;
     flex-direction: column;
-    padding: 20px;
+    padding: 24px 20px;
     overflow-y: auto;
 }
 
-.settings-panel h3 {
-    font-size: 16px;
-    margin-bottom: 20px;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-}
-
-.settings-close {
+.settings-panel .settings-close {
+    position: absolute;
+    top: 16px;
+    right: 16px;
     background: none;
     border: none;
-    font-size: 22px;
-    color: #B0B7C3;
+    color: #C9CED6;
+    font-size: 20px;
     cursor: pointer;
+    line-height: 1;
+}
+
+.settings-title {
+    font-size: 16px;
+    font-weight: 600;
+    margin-bottom: 24px;
 }
 
 .settings-section {
@@ -768,14 +773,19 @@ body {
     font-size: 11px;
     color: #B0B7C3;
     text-transform: uppercase;
-    letter-spacing: 0.5px;
-    margin-bottom: 6px;
+    letter-spacing: 0.3px;
+    margin-bottom: 4px;
 }
 
 .settings-value {
     font-size: 14px;
     color: var(--text);
-    margin-bottom: 4px;
+}
+
+.settings-actions {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
 }
 
 .settings-action {
@@ -783,22 +793,20 @@ body {
     align-items: center;
     gap: 12px;
     width: 100%;
-    padding: 14px 12px;
-    background: var(--card);
+    padding: 14px;
+    background: var(--bg);
     border: none;
-    border-bottom: 1px solid var(--border);
-    border-radius: 0;
+    border-radius: 12px;
     font-size: 14px;
     color: var(--text);
     cursor: pointer;
     transition: all 0.15s;
 }
 
-.settings-action:first-child { border-radius: 10px 10px 0 0; }
-.settings-action:last-child { border-bottom: none; border-radius: 0 0 10px 10px; }
-.settings-action:only-child { border-radius: 10px; }
-.settings-action:active { background: var(--bg); }
-.settings-action svg { flex-shrink: 0; }
+.settings-action:active { background: var(--border); }
+.settings-action svg { flex-shrink: 0; opacity: 0.5; }
+.settings-action .action-text { display: flex; flex-direction: column; text-align: left; }
+.settings-action .action-desc { font-size: 11px; color: #B0B7C3; font-weight: 400; margin-top: 2px; }
 
 .settings-version {
     margin-top: auto;
@@ -807,6 +815,118 @@ body {
     color: #C0C5CC;
     padding-top: 20px;
 }
+
+/* MODAL PANELS */
+.modal-overlay {
+    position: fixed;
+    inset: 0;
+    z-index: 95;
+    background: rgba(0,0,0,0.5);
+}
+
+.modal-panel {
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    z-index: 96;
+    background: var(--card);
+    border-radius: var(--radius);
+    padding: 24px 20px;
+    box-shadow: 0 8px 30px rgba(0,0,0,0.15);
+    width: 90%;
+    max-width: 340px;
+}
+
+.modal-close {
+    position: absolute;
+    top: -6px;
+    right: -6px;
+    background: var(--card);
+    border: 1.5px solid #E5E7EB;
+    color: #C9CED6;
+    font-size: 12px;
+    cursor: pointer;
+    width: 20px;
+    height: 20px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.08);
+}
+
+.modal-title {
+    font-size: 16px;
+    font-weight: 600;
+    margin-bottom: 16px;
+}
+
+.modal-label {
+    font-size: 11px;
+    font-weight: 600;
+    color: var(--text2);
+    text-transform: uppercase;
+    letter-spacing: 0.3px;
+    margin-bottom: 6px;
+    margin-top: 12px;
+}
+
+.modal-label:first-of-type { margin-top: 0; }
+
+.modal-chips {
+    display: flex;
+    gap: 6px;
+}
+
+.modal-chip {
+    flex: 1;
+    padding: 8px;
+    border: none;
+    border-radius: 10px;
+    font-size: 13px;
+    font-weight: 500;
+    color: var(--text2);
+    background: var(--bg);
+    cursor: pointer;
+    text-align: center;
+    transition: all 0.15s;
+}
+
+.modal-chip.selected {
+    background: rgba(74,144,217,0.12);
+    color: var(--primary);
+    font-weight: 600;
+}
+
+.modal-input {
+    width: 100%;
+    padding: 10px 12px;
+    border: 2px solid var(--border);
+    border-radius: 10px;
+    font-size: 14px;
+    color: var(--text);
+    outline: none;
+    margin-bottom: 4px;
+}
+
+.modal-input:focus { border-color: var(--primary); }
+
+.modal-btn {
+    width: 100%;
+    padding: 14px;
+    background: var(--primary);
+    color: white;
+    border: none;
+    border-radius: 12px;
+    font-size: 15px;
+    font-weight: 600;
+    cursor: pointer;
+    margin-top: 16px;
+    transition: all 0.2s;
+}
+
+.modal-btn:active { transform: scale(0.98); }
     </style>
 </head>
 <body>
@@ -826,22 +946,63 @@ body {
     <!-- SETTINGS PANEL -->
     <div class="settings-overlay hidden" id="settingsOverlay" onclick="closeSettings()"></div>
     <div class="settings-panel hidden" id="settingsPanel">
-        <h3>Nastavitve <button class="settings-close" onclick="closeSettings()">&times;</button></h3>
+        <button class="settings-close" onclick="closeSettings()">&times;</button>
+        <div class="settings-title">Nastavitve</div>
         <div class="settings-section">
             <div class="settings-label">Prijavljen kot</div>
             <div class="settings-value" id="settingsEmail">—</div>
         </div>
-        <div class="settings-section">
-            <button class="settings-action" onclick="exportExcel(); closeSettings();">
+        <div class="settings-actions">
+            <button class="settings-action" onclick="closeSettings(); openExportPanel();">
                 <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#1A1A2E" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
-                Izvozi podatke
+Izvozi podatke
+            </button>
+            <button class="settings-action" onclick="closeSettings(); openSharePanel();">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#1A1A2E" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/></svg>
+Deli z zdravnikom
             </button>
             <button class="settings-action" onclick="handleLogout()">
                 <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#1A1A2E" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
-                Odjava
+Odjava
             </button>
         </div>
         <div class="settings-version">BostAI v1.0</div>
+    </div>
+
+    <!-- EXPORT PANEL -->
+    <div class="modal-overlay hidden" id="exportOverlay" onclick="closeExportPanel()"></div>
+    <div class="modal-panel hidden" id="exportPanel">
+        <button class="modal-close" onclick="closeExportPanel()">&times;</button>
+        <div class="modal-label">Format</div>
+        <div class="modal-chips" id="exportFormat">
+            <div class="modal-chip selected" onclick="selectChip(this)">Excel</div>
+            <div class="modal-chip" onclick="selectChip(this)">PDF</div>
+        </div>
+        <div class="modal-label">Obdobje</div>
+        <div class="modal-chips" id="exportPeriod">
+            <div class="modal-chip selected" data-days="30" onclick="selectChip(this)">30 dni</div>
+            <div class="modal-chip" data-days="90" onclick="selectChip(this)">90 dni</div>
+            <div class="modal-chip" data-days="0" onclick="selectChip(this)">Vse</div>
+        </div>
+        <button class="modal-btn" onclick="doExport()">Izvozi</button>
+    </div>
+
+    <!-- SHARE PANEL -->
+    <div class="modal-overlay hidden" id="shareOverlay" onclick="closeSharePanel()"></div>
+    <div class="modal-panel hidden" id="sharePanel">
+        <button class="modal-close" onclick="closeSharePanel()">&times;</button>
+        <div style="font-size:12px;color:#B0B7C3;margin-bottom:14px">Vnesite svoje podatke za porocilo</div>
+        <div class="modal-label">Ime in priimek</div>
+        <input type="text" class="modal-input" id="shareName" placeholder="Janez Novak">
+        <div class="modal-label">Datum rojstva</div>
+        <input type="date" class="modal-input" id="shareBirth">
+        <div class="modal-label">Obdobje</div>
+        <div class="modal-chips" id="sharePeriod">
+            <div class="modal-chip selected" data-days="30" onclick="selectChip(this)">30 dni</div>
+            <div class="modal-chip" data-days="90" onclick="selectChip(this)">90 dni</div>
+            <div class="modal-chip" data-days="0" onclick="selectChip(this)">Vse</div>
+        </div>
+        <button class="modal-btn" onclick="doShare()">Deli z zdravnikom</button>
     </div>
 
     <div class="tabs-row">
@@ -1203,6 +1364,76 @@ function closeSettings() {
     document.getElementById('settingsPanel').classList.add('hidden');
 }
 
+// ===== EXPORT & SHARE PANELS =====
+function selectChip(el) {
+    el.parentElement.querySelectorAll('.modal-chip').forEach(c => c.classList.remove('selected'));
+    el.classList.add('selected');
+}
+
+function openExportPanel() {
+    document.getElementById('exportOverlay').classList.remove('hidden');
+    document.getElementById('exportPanel').classList.remove('hidden');
+}
+
+function closeExportPanel() {
+    document.getElementById('exportOverlay').classList.add('hidden');
+    document.getElementById('exportPanel').classList.add('hidden');
+}
+
+function openSharePanel() {
+    document.getElementById('shareOverlay').classList.remove('hidden');
+    document.getElementById('sharePanel').classList.remove('hidden');
+}
+
+function closeSharePanel() {
+    document.getElementById('shareOverlay').classList.add('hidden');
+    document.getElementById('sharePanel').classList.add('hidden');
+}
+
+function doExport() {
+    const format = document.querySelector('#exportFormat .modal-chip.selected').textContent;
+    const days = parseInt(document.querySelector('#exportPeriod .modal-chip.selected').dataset.days) || null;
+    closeExportPanel();
+    if (format === 'Excel') {
+        exportXlsx(days);
+    } else {
+        const doc = exportPdf(days);
+        if (doc) doc.save('bostai-' + new Date().toISOString().slice(0, 10) + '.pdf');
+    }
+}
+
+async function doShare() {
+    const name = document.getElementById('shareName').value.trim();
+    const birth = document.getElementById('shareBirth').value;
+    const days = parseInt(document.querySelector('#sharePeriod .modal-chip.selected').dataset.days) || null;
+
+    if (!name) { alert('Vnesite ime in priimek'); return; }
+
+    const doc = exportPdf(days, name, birth);
+    if (!doc) return;
+
+    const filename = 'bostai-porocilo-' + new Date().toISOString().slice(0, 10) + '.pdf';
+    const blob = doc.output('blob');
+    const file = new File([blob], filename, { type: 'application/pdf' });
+
+    closeSharePanel();
+
+    // Try native share (mobile)
+    if (navigator.canShare && navigator.canShare({ files: [file] })) {
+        try {
+            await navigator.share({
+                title: 'BostAI - Porocilo',
+                text: `Porocilo o krvnem tlaku za ${name}`,
+                files: [file],
+            });
+            return;
+        } catch (e) { /* user cancelled or error — fall through to download */ }
+    }
+
+    // Fallback: download PDF
+    doc.save(filename);
+}
+
 
 // Global Chart.js defaults for mobile readability
 Chart.defaults.font.size = 13;
@@ -1490,28 +1721,192 @@ function renderHistory() {
     list.innerHTML = items + moreBtn;
 }
 
-// ===== EXPORT TO EXCEL (CSV) =====
-function exportExcel() {
-    const readings = Store.getReadings();
-    if (!readings.length) { alert('Ni meritev za izvoz.'); return; }
+// ===== EXPORT =====
+const RATING_COLORS = {
+    optimal:      { bg: 'C2E0C6', text: '1A5C2A', rgb: [194,224,198] },
+    normal:       { bg: 'D4EDDA', text: '155724', rgb: [212,237,218] },
+    'high-normal':{ bg: 'E0F0D0', text: '4A7A2A', rgb: [224,240,208] },
+    grade1:       { bg: 'FFF3CD', text: '856404', rgb: [255,243,205] },
+    grade2:       { bg: 'FFE0CC', text: 'CC4400', rgb: [255,224,204] },
+    grade3:       { bg: 'F8D7DA', text: '721C24', rgb: [248,215,218] },
+    crisis:       { bg: 'E74C3C', text: 'FFFFFF', rgb: [231,76,60] },
+};
 
-    const BOM = '\uFEFF';
-    const header = 'Datum;Cas;Sistolicni;Diastolicni;Pulz;Ocena\n';
-    const rows = readings.map(r => {
+function _getMorningEveningStats(days) {
+    const readings = days ? Store.getReadings(days) : Store.getReadings();
+    const morning = { sys: [], dia: [], pulse: [] };
+    const evening = { sys: [], dia: [], pulse: [] };
+    readings.forEach(r => {
+        const bucket = new Date(r.measured_at).getHours() < 12 ? morning : evening;
+        bucket.sys.push(r.systolic);
+        bucket.dia.push(r.diastolic);
+        if (r.pulse) bucket.pulse.push(r.pulse);
+    });
+    const avg = arr => arr.length ? Math.round(arr.reduce((a, b) => a + b, 0) / arr.length) : null;
+    return {
+        morning: { sys: avg(morning.sys), dia: avg(morning.dia), pulse: avg(morning.pulse), count: morning.sys.length },
+        evening: { sys: avg(evening.sys), dia: avg(evening.dia), pulse: avg(evening.pulse), count: evening.sys.length },
+    };
+}
+
+function _getExportData(days) {
+    const readings = days ? Store.getReadings(days) : Store.getReadings();
+    if (!readings.length) { alert('Ni meritev za izvoz.'); return null; }
+    return readings.map(r => {
         const d = new Date(r.measured_at);
-        const date = d.toLocaleDateString('sl-SI');
-        const time = d.toLocaleTimeString('sl-SI', { hour: '2-digit', minute: '2-digit' });
         const bp = classifyBP(r.systolic, r.diastolic);
-        return `${date};${time};${r.systolic};${r.diastolic};${r.pulse || ''};${bp.label}`;
-    }).join('\n');
+        return {
+            Datum: d.toLocaleDateString('sl-SI'),
+            Cas: d.toLocaleTimeString('sl-SI', { hour: '2-digit', minute: '2-digit' }),
+            Sistolicni: r.systolic,
+            Diastolicni: r.diastolic,
+            Pulz: r.pulse || '',
+            Ocena: bp.label,
+            Oznake: (r.tags || []).join(', '),
+            _cls: bp.cls,
+        };
+    });
+}
 
-    const blob = new Blob([BOM + header + rows], { type: 'text/csv;charset=utf-8;' });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = 'krvni-tlak-' + new Date().toISOString().slice(0,10) + '.csv';
-    a.click();
-    URL.revokeObjectURL(url);
+function exportXlsx(days) {
+    const data = _getExportData(days);
+    if (!data) return;
+
+    // Remove _cls before creating sheet
+    const sheetData = data.map(({ _cls, ...rest }) => rest);
+    const ws = XLSX.utils.json_to_sheet(sheetData);
+
+    // Color the Ocena column (F) based on rating
+    data.forEach((r, i) => {
+        const cell = ws['F' + (i + 2)]; // +2 for header row
+        if (cell && RATING_COLORS[r._cls]) {
+            const c = RATING_COLORS[r._cls];
+            cell.s = {
+                fill: { fgColor: { rgb: c.bg } },
+                font: { color: { rgb: c.text } },
+            };
+        }
+    });
+
+    // Column widths
+    ws['!cols'] = [
+        { wch: 12 }, // Datum
+        { wch: 8 },  // Cas
+        { wch: 11 }, // Sistolicni
+        { wch: 11 }, // Diastolicni
+        { wch: 6 },  // Pulz
+        { wch: 14 }, // Ocena
+        { wch: 30 }, // Oznake
+    ];
+
+    const wb = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb, ws, 'Meritve');
+
+    // Summary sheet
+    const stats = days ? Store.getStats(days) : Store.getStats();
+    const me = _getMorningEveningStats(days);
+    const summary = [
+        { Metrika: 'Stevilo meritev', Vrednost: stats.count },
+        { Metrika: 'Povp. sistolicni', Vrednost: Math.round(stats.avg_systolic) },
+        { Metrika: 'Povp. diastolicni', Vrednost: Math.round(stats.avg_diastolic) },
+        { Metrika: 'Povp. pulz', Vrednost: stats.avg_pulse ? Math.round(stats.avg_pulse) : '-' },
+        { Metrika: '', Vrednost: '' },
+        { Metrika: 'Jutro - meritev', Vrednost: me.morning.count },
+        { Metrika: 'Jutro - sistolicni', Vrednost: me.morning.sys || '-' },
+        { Metrika: 'Jutro - diastolicni', Vrednost: me.morning.dia || '-' },
+        { Metrika: 'Jutro - pulz', Vrednost: me.morning.pulse || '-' },
+        { Metrika: '', Vrednost: '' },
+        { Metrika: 'Vecer - meritev', Vrednost: me.evening.count },
+        { Metrika: 'Vecer - sistolicni', Vrednost: me.evening.sys || '-' },
+        { Metrika: 'Vecer - diastolicni', Vrednost: me.evening.dia || '-' },
+        { Metrika: 'Vecer - pulz', Vrednost: me.evening.pulse || '-' },
+    ];
+    const ws2 = XLSX.utils.json_to_sheet(summary);
+    ws2['!cols'] = [{ wch: 20 }, { wch: 12 }];
+    XLSX.utils.book_append_sheet(wb, ws2, 'Povzetek');
+
+    XLSX.writeFile(wb, 'bostai-' + new Date().toISOString().slice(0, 10) + '.xlsx');
+}
+
+function exportPdf(days, patientName, patientBirth) {
+    const data = _getExportData(days);
+    if (!data) return;
+
+    const { jsPDF } = window.jspdf;
+    const doc = new jsPDF();
+    const stats = days ? Store.getStats(days) : Store.getStats();
+    const today = new Date().toLocaleDateString('sl-SI');
+    const periodLabel = days ? `zadnjih ${days} dni` : 'celotno obdobje';
+
+    // Title
+    doc.setFontSize(18);
+    doc.text('BostAI - Porocilo o krvnem tlaku', 14, 20);
+    doc.setFontSize(10);
+    doc.setTextColor(150);
+    doc.text('Generirano: ' + today, 14, 27);
+
+    let y = 36;
+
+    // Patient info
+    if (patientName) {
+        doc.setFontSize(11);
+        doc.setTextColor(0);
+        doc.text(`Pacient: ${patientName}`, 14, y); y += 6;
+        if (patientBirth) { doc.text(`Datum rojstva: ${new Date(patientBirth).toLocaleDateString('sl-SI')}`, 14, y); y += 6; }
+        doc.text(`Obdobje: ${periodLabel}`, 14, y); y += 10;
+    }
+
+    // Summary
+    const me = _getMorningEveningStats(days);
+    doc.setFontSize(12);
+    doc.setTextColor(0);
+    doc.text('Povzetek', 14, y); y += 7;
+    doc.setFontSize(10);
+    doc.text(`Stevilo meritev: ${stats.count}`, 14, y); y += 6;
+    doc.text(`Povprecje: ${Math.round(stats.avg_systolic)}/${Math.round(stats.avg_diastolic)} mmHg`, 14, y); y += 6;
+    if (stats.avg_pulse) { doc.text(`Povprecni pulz: ${Math.round(stats.avg_pulse)} u/min`, 14, y); y += 6; }
+    y += 4;
+    if (me.morning.count) {
+        doc.text(`Jutro (${me.morning.count}x): ${me.morning.sys}/${me.morning.dia} mmHg` + (me.morning.pulse ? `, pulz ${me.morning.pulse}` : ''), 14, y); y += 6;
+    }
+    if (me.evening.count) {
+        doc.text(`Vecer (${me.evening.count}x): ${me.evening.sys}/${me.evening.dia} mmHg` + (me.evening.pulse ? `, pulz ${me.evening.pulse}` : ''), 14, y); y += 6;
+    }
+
+    // Table
+    const tableData = data.map(r => [r.Datum, r.Cas, r.Sistolicni, r.Diastolicni, r.Pulz, r.Ocena, r.Oznake]);
+
+    doc.autoTable({
+        startY: y + 4,
+        head: [['Datum', 'Cas', 'Sis', 'Dia', 'Pulz', 'Ocena', 'Oznake']],
+        body: tableData,
+        styles: { fontSize: 8, cellPadding: 2 },
+        headStyles: { fillColor: [74, 144, 217], textColor: 255, fontStyle: 'bold' },
+        alternateRowStyles: { fillColor: [245, 246, 250] },
+        columnStyles: {
+            0: { cellWidth: 22 },
+            1: { cellWidth: 14 },
+            2: { cellWidth: 12 },
+            3: { cellWidth: 12 },
+            4: { cellWidth: 12 },
+            5: { cellWidth: 24 },
+            6: { cellWidth: 'auto' },
+        },
+        didParseCell: function(hookData) {
+            // Color the Ocena column (index 5)
+            if (hookData.section === 'body' && hookData.column.index === 5) {
+                const cls = data[hookData.row.index]._cls;
+                const c = RATING_COLORS[cls];
+                if (c) {
+                    hookData.cell.styles.fillColor = c.rgb;
+                    hookData.cell.styles.textColor = c.text === 'FFFFFF' ? [255,255,255] :
+                        [parseInt(c.text.slice(0,2),16), parseInt(c.text.slice(2,4),16), parseInt(c.text.slice(4,6),16)];
+                }
+            }
+        },
+    });
+
+    return doc;
 }
 
 // ===== DASHBOARD =====
