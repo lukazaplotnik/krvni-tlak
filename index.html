@@ -2,7 +2,7 @@
 <html lang="sl">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="theme-color" content="#4A90D9">
@@ -31,6 +31,8 @@
     --card: #FFFFFF;
     --text: #1A1A2E;
     --text2: #6B7280;
+    --text3: #9CA3AF;
+    --text4: #C0C5CC;
     --border: #E5E7EB;
     --radius: 14px;
     --shadow: 0 2px 8px rgba(0,0,0,0.06);
@@ -279,8 +281,8 @@ body {
     color: #C9CED6;
     font-size: 12px;
     cursor: pointer;
-    width: 20px;
-    height: 20px;
+    width: 28px;
+    height: 28px;
     border-radius: 50%;
     display: flex;
     align-items: center;
@@ -413,6 +415,123 @@ body {
     color: #C0C5CC;
 }
 
+/* INSIGHTS */
+.insights-section {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    margin-bottom: 16px;
+}
+
+.insight-card {
+    background: var(--card);
+    border-radius: 10px;
+    padding: 10px 14px;
+    font-size: 13px;
+    color: var(--text2);
+    box-shadow: var(--shadow);
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.insight-card .insight-icon {
+    font-size: 16px;
+    flex-shrink: 0;
+}
+
+/* REMINDER */
+.reminder-banner {
+    background: linear-gradient(135deg, rgba(74,144,217,0.08), rgba(74,144,217,0.04));
+    border-radius: var(--radius);
+    padding: 14px 16px;
+    margin-bottom: 16px;
+    font-size: 14px;
+    color: var(--primary);
+    font-weight: 500;
+    text-align: center;
+}
+
+/* EXTRAS (medication + mood) */
+.extras-section {
+    background: var(--card);
+    border-radius: var(--radius);
+    padding: 14px 16px;
+    box-shadow: var(--shadow);
+    margin-bottom: 20px;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.extras-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+}
+
+.extras-label {
+    font-size: 13px;
+    color: var(--text2);
+    font-weight: 500;
+    flex-shrink: 0;
+}
+
+.extras-chips {
+    display: flex;
+    gap: 6px;
+}
+
+.extras-chip {
+    padding: 6px 18px;
+    border: none;
+    border-radius: 20px;
+    font-size: 13px;
+    font-weight: 500;
+    color: var(--text3);
+    background: var(--bg);
+    cursor: pointer;
+    transition: all 0.15s;
+}
+
+.extras-chip.selected {
+    background: rgba(74,144,217,0.12);
+    color: var(--primary);
+    font-weight: 600;
+}
+
+.mood-row {
+    display: flex;
+    gap: 4px;
+}
+
+.mood-btn {
+    width: 36px;
+    height: 36px;
+    border: none;
+    border-radius: 50%;
+    background: var(--bg);
+    font-size: 18px;
+    cursor: pointer;
+    transition: all 0.15s;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.mood-btn.selected {
+    background: rgba(74,144,217,0.12);
+    transform: scale(1.15);
+}
+
+.history-title {
+    font-size: 15px;
+    color: var(--text2);
+    margin-bottom: 12px;
+    padding-left: 4px;
+}
+
 /* TAGS */
 .save-row {
     display: flex;
@@ -507,8 +626,8 @@ body {
     color: #C9CED6;
     font-size: 12px;
     cursor: pointer;
-    width: 20px;
-    height: 20px;
+    width: 28px;
+    height: 28px;
     border-radius: 50%;
     display: flex;
     align-items: center;
@@ -571,7 +690,7 @@ body {
 }
 
 .history-tag {
-    font-size: 10px;
+    font-size: 12px;
     color: var(--text2);
     background: var(--bg);
     padding: 2px 8px;
@@ -920,8 +1039,8 @@ body {
     color: #C9CED6;
     font-size: 12px;
     cursor: pointer;
-    width: 20px;
-    height: 20px;
+    width: 28px;
+    height: 28px;
     border-radius: 50%;
     display: flex;
     align-items: center;
@@ -1249,8 +1368,33 @@ body {
             </div>
             <div class="feedback" id="feedback"></div>
         </div>
+
+        <!-- REMINDER BANNER -->
+        <div class="reminder-banner hidden" id="reminderBanner"></div>
+
+        <!-- MEDICATION & WELLBEING -->
+        <div class="extras-section">
+            <div class="extras-row">
+                <div class="extras-label" id="medLabel">Ste vzeli zdravila?</div>
+                <div class="extras-chips" id="medChips">
+                    <button class="extras-chip" onclick="selectMed('da')">Da</button>
+                    <button class="extras-chip" onclick="selectMed('ne')">Ne</button>
+                </div>
+            </div>
+            <div class="extras-row">
+                <div class="extras-label">Kako se pocutite?</div>
+                <div class="mood-row" id="moodRow">
+                    <button class="mood-btn" onclick="selectMood(1)">😫</button>
+                    <button class="mood-btn" onclick="selectMood(2)">😕</button>
+                    <button class="mood-btn" onclick="selectMood(3)">😐</button>
+                    <button class="mood-btn" onclick="selectMood(4)">🙂</button>
+                    <button class="mood-btn" onclick="selectMood(5)">😊</button>
+                </div>
+            </div>
+        </div>
+
         <div class="history-section">
-            <h2 style="font-size:15px;color:var(--text2);margin-bottom:12px;padding-left:4px">Zadnje meritve</h2>
+            <h2 class="history-title">Zadnje meritve</h2>
             <div id="historyList"></div>
         </div>
     </div>
@@ -1278,13 +1422,15 @@ const Store = {
     _set(key, data) { localStorage.setItem(key, JSON.stringify(data)); },
 
     // --- Reading operations (always instant, always local-first) ---
-    saveReading(systolic, diastolic, pulse, tags) {
+    saveReading(systolic, diastolic, pulse, tags, medication, mood) {
         const reading = {
             id: crypto.randomUUID(),
             systolic,
             diastolic,
             pulse: pulse || null,
             tags: tags || [],
+            medication: medication || null,
+            mood: mood || null,
             measured_at: new Date().toISOString(),
             cloud_id: null,
         };
@@ -1677,6 +1823,62 @@ function showTab(tab) {
 
 // ===== BP CLASSIFICATION (ESC/ESH Guidelines used in Slovenia) =====
 // Source: Evropske smernice za hipertenzijo (ESC/ESH 2018), used by Slovenian cardiology society
+// ===== MEDICATION & MOOD =====
+let selectedMed = null;
+let selectedMood = null;
+
+function selectMed(val) {
+    selectedMed = val;
+    document.querySelectorAll('#medChips .extras-chip').forEach(c => {
+        c.classList.toggle('selected', c.textContent.toLowerCase() === val);
+    });
+}
+
+function selectMood(val) {
+    selectedMood = val;
+    document.querySelectorAll('#moodRow .mood-btn').forEach((b, i) => {
+        b.classList.toggle('selected', i + 1 === val);
+    });
+}
+
+function resetExtras() {
+    selectedMed = null;
+    selectedMood = null;
+    document.querySelectorAll('.extras-chip.selected, .mood-btn.selected').forEach(e => e.classList.remove('selected'));
+}
+
+// Update medication label based on time
+function updateMedLabel() {
+    const el = document.getElementById('medLabel');
+    if (el) el.textContent = new Date().getHours() < 12 ? 'Ste vzeli jutranja zdravila?' : 'Ste vzeli vecerna zdravila?';
+}
+updateMedLabel();
+
+// ===== REMINDERS =====
+function checkReminder() {
+    const banner = document.getElementById('reminderBanner');
+    if (!banner) return;
+    const now = new Date();
+    const hour = now.getHours();
+    const todayStr = now.toISOString().slice(0, 10);
+    const readings = Store.getReadings();
+    const todayReadings = readings.filter(r => r.measured_at.startsWith(todayStr));
+    const hasMorning = todayReadings.some(r => new Date(r.measured_at).getHours() < 12);
+    const hasEvening = todayReadings.some(r => new Date(r.measured_at).getHours() >= 12);
+
+    if (hour >= 7 && hour < 12 && !hasMorning) {
+        banner.textContent = '🥐 Dobro jutro! Ste ze izmerili krvni tlak?';
+        banner.classList.remove('hidden');
+    } else if (hour >= 18 && hour < 23 && !hasEvening) {
+        banner.textContent = '🌙 Dober vecer! Cas je za vecerno meritev.';
+        banner.classList.remove('hidden');
+    } else {
+        banner.classList.add('hidden');
+    }
+}
+checkReminder();
+setInterval(checkReminder, 60000);
+
 // ===== TAGS =====
 const MORNING_TAGS = ['Slab spanec', 'Alkohol', 'Slana hrana', 'Stres', 'Slabo pocutje', 'Veliko gibanja'];
 const EVENING_TAGS = ['Dodatna zdravila', 'Alkohol', 'Slana hrana', 'Pozna kava', 'Stres', 'Slabo pocutje', 'Veliko gibanja'];
@@ -1818,7 +2020,7 @@ function saveEntry() {
         return;
     }
 
-    Store.saveReading(avg.s, avg.d, avg.p, [...selectedTags]);
+    Store.saveReading(avg.s, avg.d, avg.p, [...selectedTags], selectedMed, selectedMood);
     const bp = classifyBP(avg.s, avg.d);
 
     const btnColors = {
@@ -1860,9 +2062,10 @@ function saveEntry() {
         avgP.textContent = '\u25CF'; avgP.className = 'entry-avg empty';
         document.getElementById('feedback').textContent = '';
         selectedTags = []; renderTags(); updateTagToggle();
+        resetExtras();
         document.getElementById('tagToggle').classList.remove('active');
         renderHistory();
-    }, 2000);
+    }, 3000);
 }
 
 // Enter key saves
@@ -1896,8 +2099,11 @@ function renderHistory() {
             + ' ' + date.toLocaleTimeString('sl-SI', { hour: '2-digit', minute: '2-digit' });
         const pulse = r.pulse ? `<span class="pulse-val">&hearts; ${r.pulse}</span>` : '';
         const timeEmoji = new Date(r.measured_at).getHours() < 12 ? '🥐 Jutro' : '🌙 Vecer';
+        const moodEmojis = ['', '😫', '😕', '😐', '🙂', '😊'];
+        const moodChip = r.mood ? `<span class="history-tag">${moodEmojis[r.mood]}</span>` : '';
+        const medChip = r.medication ? `<span class="history-tag">💊 ${r.medication === 'da' ? 'Da' : 'Ne'}</span>` : '';
         const userTags = (r.tags && r.tags.length) ? r.tags.map(t => `<span class="history-tag">${t}</span>`).join('') : '';
-        const tagChips = `<span class="history-tag">${timeEmoji}</span>${userTags}`;
+        const tagChips = `<span class="history-tag">${timeEmoji}</span>${moodChip}${medChip}${userTags}`;
         return `
             <div class="history-item">
                 <div class="item-content">
@@ -1921,9 +2127,9 @@ function renderHistory() {
             </div>`;
     }).join('');
 
-    const moreBtn = (!showAll && allReadings.length > 5)
+    const moreBtn = (!showAll && allReadings.length > 10)
         ? `<button class="show-more-btn" onclick="showAll=true;renderHistory()">Pokazi vse (${allReadings.length})</button>`
-        : (showAll && allReadings.length > 5)
+        : (showAll && allReadings.length > 10)
         ? `<button class="show-more-btn" onclick="showAll=false;renderHistory()">Pokazi manj</button>`
         : '';
 
@@ -2164,6 +2370,7 @@ function loadDashboard() {
                 <span class="avg-count">${stats.count} meritev</span>
             </div>
         </div>
+        <div class="insights-section" id="insightsSection"></div>
         <div class="chart-card">
             <h3>Meritve skozi cas</h3>
             <div class="chart-wrap"><canvas id="bpChart"></canvas></div>
@@ -2187,6 +2394,68 @@ function loadDashboard() {
     renderZonesChart(readings);
     renderMorningEveningChart(readings);
     renderWeekdayChart(readings);
+    renderInsights(readings, stats, days);
+}
+
+function renderInsights(readings, stats, days) {
+    const section = document.getElementById('insightsSection');
+    if (!section || readings.length < 3) { if (section) section.innerHTML = ''; return; }
+
+    const insights = [];
+    const bp = classifyBP(Math.round(stats.avg_systolic), Math.round(stats.avg_diastolic));
+
+    // 1. Classification
+    insights.push({ icon: '📊', text: `Vas povprecni tlak je v kategoriji <strong>${bp.label}</strong>.` });
+
+    // 2. Measurement count encouragement
+    if (stats.count >= 10) {
+        insights.push({ icon: '👏', text: `V tem obdobju ste opravili ${stats.count} meritev. Odlicno!` });
+    } else if (stats.count >= 5) {
+        insights.push({ icon: '📝', text: `${stats.count} meritev v tem obdobju. Poskusite meriti vsak dan.` });
+    }
+
+    // 3. Morning vs evening comparison
+    const morning = readings.filter(r => new Date(r.measured_at).getHours() < 12);
+    const evening = readings.filter(r => new Date(r.measured_at).getHours() >= 12);
+    if (morning.length >= 3 && evening.length >= 3) {
+        const mAvg = Math.round(morning.reduce((a, r) => a + r.systolic, 0) / morning.length);
+        const eAvg = Math.round(evening.reduce((a, r) => a + r.systolic, 0) / evening.length);
+        if (mAvg > eAvg + 3) {
+            insights.push({ icon: '🥐', text: `Jutranji tlak je obicajno visji kot vecerni (${mAvg} vs ${eAvg}).` });
+        } else if (eAvg > mAvg + 3) {
+            insights.push({ icon: '🌙', text: `Vecerni tlak je obicajno visji kot jutranji (${eAvg} vs ${mAvg}).` });
+        }
+    }
+
+    // 4. Week-over-week trend (only if enough data)
+    if (readings.length >= 14) {
+        const half = Math.floor(readings.length / 2);
+        const older = readings.slice(0, half);
+        const newer = readings.slice(half);
+        const olderAvg = older.reduce((a, r) => a + r.systolic, 0) / older.length;
+        const newerAvg = newer.reduce((a, r) => a + r.systolic, 0) / newer.length;
+        const pct = Math.round(((newerAvg - olderAvg) / olderAvg) * 100);
+        if (pct <= -3) {
+            insights.push({ icon: '📉', text: `Vas sistolicni tlak je padel za ${Math.abs(pct)}%. Lep napredek!` });
+        } else if (pct >= 3) {
+            insights.push({ icon: '📈', text: `Vas sistolicni tlak je narastel za ${pct}%. Spremljajte naprej.` });
+        }
+    }
+
+    // 5. Medication compliance
+    const withMed = readings.filter(r => r.medication);
+    if (withMed.length >= 5) {
+        const compliance = Math.round(withMed.filter(r => r.medication === 'da').length / withMed.length * 100);
+        if (compliance >= 80) {
+            insights.push({ icon: '💊', text: `Redno jemljete zdravila (${compliance}%). Odlicno!` });
+        } else if (compliance < 50) {
+            insights.push({ icon: '💊', text: `Zdravila ste vzeli pri ${compliance}% meritev. Poskusite bolj redno.` });
+        }
+    }
+
+    section.innerHTML = insights.map(i =>
+        `<div class="insight-card"><span class="insight-icon">${i.icon}</span><span>${i.text}</span></div>`
+    ).join('');
 }
 
 // 1. Combined BP + Pulse chart
