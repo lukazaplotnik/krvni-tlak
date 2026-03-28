@@ -1558,16 +1558,24 @@ async function doShare() {
     const dateStr = new Date().toISOString().slice(0, 10);
     let file, filename;
 
+    const safeName = name.replace(/\s+/g, '-').toLowerCase();
     if (format === 'PDF') {
         const doc = exportPdf(days, name, birth);
         if (!doc) return;
-        filename = 'krvni-tlak-' + name.replace(/\s+/g, '-').toLowerCase() + '-' + dateStr + '.pdf';
+        filename = 'krvni-tlak-' + safeName + '-' + dateStr + '.pdf';
         const blob = doc.output('blob');
         file = new File([blob], filename, { type: 'application/pdf' });
     } else {
-        exportXlsx(days, name, birth);
-        closeSharePanel();
-        return;
+        const data = _getExportData(days);
+        if (!data) return;
+        const sheetData = data.map(({ _cls, ...rest }) => rest);
+        const ws = XLSX.utils.json_to_sheet(sheetData);
+        const wb = XLSX.utils.book_new();
+        XLSX.utils.book_append_sheet(wb, ws, 'Meritve');
+        const wbOut = XLSX.write(wb, { bookType: 'xlsx', type: 'array' });
+        filename = 'krvni-tlak-' + safeName + '-' + dateStr + '.xlsx';
+        const blob = new Blob([wbOut], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
+        file = new File([blob], filename, { type: blob.type });
     }
 
     closeSharePanel();
