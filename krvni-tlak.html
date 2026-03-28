@@ -728,51 +728,45 @@ body {
     position: fixed;
     inset: 0;
     z-index: 90;
-    background: rgba(0,0,0,0.5);
+    background: rgba(0,0,0,0.4);
 }
 
 .settings-panel {
     position: fixed;
-    top: 50%;
-    left: 50%;
-    transform: translate(-50%, -50%);
-    width: 90%;
-    max-width: 340px;
+    top: 0;
+    right: 0;
+    bottom: 0;
+    width: 300px;
+    max-width: 85%;
     z-index: 91;
     background: var(--card);
-    border-radius: var(--radius);
-    box-shadow: 0 8px 30px rgba(0,0,0,0.15);
+    box-shadow: -4px 0 24px rgba(0,0,0,0.12);
+    display: flex;
+    flex-direction: column;
     padding: 24px 20px;
     overflow-y: auto;
-    max-height: 90vh;
 }
 
 .settings-panel .settings-close {
     position: absolute;
-    top: -6px;
-    right: -6px;
-    background: var(--card);
-    border: 1.5px solid #E5E7EB;
+    top: 16px;
+    right: 16px;
+    background: none;
+    border: none;
     color: #C9CED6;
-    font-size: 12px;
+    font-size: 20px;
     cursor: pointer;
-    width: 20px;
-    height: 20px;
-    border-radius: 50%;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    box-shadow: 0 1px 3px rgba(0,0,0,0.08);
+    line-height: 1;
 }
 
 .settings-title {
     font-size: 16px;
     font-weight: 600;
-    margin-bottom: 20px;
+    margin-bottom: 24px;
 }
 
 .settings-section {
-    margin-bottom: 16px;
+    margin-bottom: 20px;
 }
 
 .settings-label {
@@ -792,7 +786,6 @@ body {
     display: flex;
     flex-direction: column;
     gap: 8px;
-    margin-top: 20px;
 }
 
 .settings-action {
@@ -800,10 +793,10 @@ body {
     align-items: center;
     gap: 12px;
     width: 100%;
-    padding: 12px 14px;
+    padding: 14px;
     background: var(--bg);
     border: none;
-    border-radius: 10px;
+    border-radius: 12px;
     font-size: 14px;
     color: var(--text);
     cursor: pointer;
@@ -812,14 +805,15 @@ body {
 
 .settings-action:active { background: var(--border); }
 .settings-action svg { flex-shrink: 0; opacity: 0.5; }
-.settings-action .action-text { display: flex; flex-direction: column; }
+.settings-action .action-text { display: flex; flex-direction: column; text-align: left; }
 .settings-action .action-desc { font-size: 11px; color: #B0B7C3; font-weight: 400; margin-top: 2px; }
 
 .settings-version {
+    margin-top: auto;
     text-align: center;
     font-size: 11px;
     color: #C0C5CC;
-    margin-top: 20px;
+    padding-top: 20px;
 }
 
 /* MODAL PANELS */
