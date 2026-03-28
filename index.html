@@ -994,7 +994,7 @@ Odjava
         <div class="modal-label">Ime in priimek</div>
         <input type="text" class="modal-input" id="shareName" placeholder="Janez Novak">
         <div class="modal-label">Datum rojstva</div>
-        <input type="text" class="modal-input" id="shareBirth" placeholder="npr. 15.03.1955">
+        <input type="text" class="modal-input" id="shareBirth" placeholder="DD.MM.LLLL" inputmode="numeric" maxlength="10" oninput="formatDateInput(this)">
         <div style="border-top:1px solid var(--border);margin:16px 0"></div>
         <div class="modal-label">Format</div>
         <div class="modal-chips" id="shareFormat">
@@ -1407,6 +1407,22 @@ function doExport() {
     }
 }
 
+function formatDateInput(el) {
+    let v = el.value.replace(/[^\d]/g, '');
+    if (v.length > 2) v = v.slice(0, 2) + '.' + v.slice(2);
+    if (v.length > 5) v = v.slice(0, 5) + '.' + v.slice(5);
+    if (v.length > 10) v = v.slice(0, 10);
+    el.value = v;
+}
+
+function isValidDate(str) {
+    const m = str.match(/^(\d{2})\.(\d{2})\.(\d{4})$/);
+    if (!m) return false;
+    const d = parseInt(m[1]), mo = parseInt(m[2]), y = parseInt(m[3]);
+    if (d < 1 || d > 31 || mo < 1 || mo > 12 || y < 1900 || y > 2026) return false;
+    return true;
+}
+
 async function doShare() {
     const name = document.getElementById('shareName').value.trim();
     const birth = document.getElementById('shareBirth').value;
@@ -1414,6 +1430,7 @@ async function doShare() {
     const days = parseInt(document.querySelector('#sharePeriod .modal-chip.selected').dataset.days) || null;
 
     if (!name) { alert('Vnesite ime in priimek'); return; }
+    if (birth && !isValidDate(birth)) { alert('Neveljaven datum (DD.MM.LLLL)'); return; }
 
     const dateStr = new Date().toISOString().slice(0, 10);
     let file, filename;
