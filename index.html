@@ -2058,126 +2058,119 @@ function exportPdf(days, patientName, patientBirth) {
     const { jsPDF } = window.jspdf;
     const doc = new jsPDF();
     const pw = doc.internal.pageSize.getWidth();
+    const m = 20; // margin
     const stats = days ? Store.getStats(days) : Store.getStats();
     const me = _getMorningEveningStats(days);
     const today = new Date().toLocaleDateString('sl-SI');
     const periodLabel = days ? `zadnjih ${days} dni` : 'celotno obdobje';
     const bp = classifyBP(Math.round(stats.avg_systolic), Math.round(stats.avg_diastolic));
 
-    // ── Header bar ──
-    doc.setFillColor(74, 144, 217);
-    doc.rect(0, 0, pw, 28, 'F');
-    doc.setFontSize(16);
-    doc.setTextColor(255);
-    doc.text('Porocilo o meritvah krvnega tlaka', 14, 14);
+    let y = 20;
+
+    // ── Title ──
+    doc.setFontSize(20);
+    doc.setTextColor(26, 26, 46);
+    doc.text('Meritve krvnega tlaka', m, y);
+    y += 4;
+    doc.setDrawColor(74, 144, 217);
+    doc.setLineWidth(0.8);
+    doc.line(m, y, m + 40, y);
+    y += 10;
+
+    // ── Patient + Date (two columns) ──
     doc.setFontSize(9);
-    doc.text('Generirano: ' + today, 14, 22);
-
-    let y = 38;
-
-    // ── Patient info box ──
+    doc.setTextColor(156, 163, 175);
     if (patientName) {
-        doc.setFillColor(245, 246, 250);
-        doc.roundedRect(14, y - 4, pw - 28, patientBirth ? 20 : 14, 3, 3, 'F');
+        doc.text('PACIENT', m, y);
+        doc.text('OBDOBJE', pw/2, y);
+        y += 5;
         doc.setFontSize(11);
         doc.setTextColor(26, 26, 46);
-        doc.text(patientName, 20, y + 4);
+        doc.text(patientName, m, y);
+        doc.text(periodLabel, pw/2, y);
+        y += 5;
         if (patientBirth) {
             doc.setFontSize(9);
-            doc.setTextColor(107, 114, 128);
-            doc.text('Datum rojstva: ' + patientBirth, 20, y + 12);
-        }
-        y += patientBirth ? 24 : 18;
-    }
-
-    // ── Summary cards row ──
-    y += 4;
-    const cardW = (pw - 28 - 8) / 3;
-    const cards = [
-        { label: 'Povprecje', value: `${Math.round(stats.avg_systolic)}/${Math.round(stats.avg_diastolic)}`, sub: 'mmHg' },
-        { label: 'Pulz', value: stats.avg_pulse ? Math.round(stats.avg_pulse) : '-', sub: 'u/min' },
-        { label: 'Meritve', value: stats.count, sub: periodLabel },
-    ];
-    cards.forEach((card, i) => {
-        const x = 14 + i * (cardW + 4);
-        doc.setFillColor(245, 246, 250);
-        doc.roundedRect(x, y, cardW, 22, 3, 3, 'F');
-        doc.setFontSize(8);
-        doc.setTextColor(107, 114, 128);
-        doc.text(card.label, x + cardW/2, y + 6, { align: 'center' });
-        doc.setFontSize(14);
-        doc.setTextColor(26, 26, 46);
-        doc.text(String(card.value), x + cardW/2, y + 15, { align: 'center' });
-        doc.setFontSize(7);
-        doc.setTextColor(156, 163, 175);
-        doc.text(card.sub, x + cardW/2, y + 20, { align: 'center' });
-    });
-    y += 28;
-
-    // ── Morning / Evening comparison ──
-    if (me.morning.count || me.evening.count) {
-        const halfW = (pw - 28 - 4) / 2;
-        if (me.morning.count) {
-            doc.setFillColor(255, 249, 235);
-            doc.roundedRect(14, y, halfW, 16, 3, 3, 'F');
-            doc.setFontSize(8);
-            doc.setTextColor(107, 114, 128);
-            doc.text('Jutro', 16, y + 6);
-            doc.setFontSize(10);
-            doc.setTextColor(26, 26, 46);
-            doc.text(`${me.morning.sys}/${me.morning.dia}`, 16, y + 13);
-            doc.setFontSize(8);
             doc.setTextColor(156, 163, 175);
-            doc.text(`${me.morning.count}x`, 14 + halfW - 4, y + 6, { align: 'right' });
-            if (me.morning.pulse) doc.text(`${me.morning.pulse} u/min`, 14 + halfW - 4, y + 13, { align: 'right' });
+            doc.text(patientBirth, m, y);
         }
-        if (me.evening.count) {
-            const ex = 14 + halfW + 4;
-            doc.setFillColor(238, 237, 252);
-            doc.roundedRect(ex, y, halfW, 16, 3, 3, 'F');
-            doc.setFontSize(8);
-            doc.setTextColor(107, 114, 128);
-            doc.text('Vecer', ex + 2, y + 6);
-            doc.setFontSize(10);
-            doc.setTextColor(26, 26, 46);
-            doc.text(`${me.evening.sys}/${me.evening.dia}`, ex + 2, y + 13);
-            doc.setFontSize(8);
-            doc.setTextColor(156, 163, 175);
-            doc.text(`${me.evening.count}x`, ex + halfW - 4, y + 6, { align: 'right' });
-            if (me.evening.pulse) doc.text(`${me.evening.pulse} u/min`, ex + halfW - 4, y + 13, { align: 'right' });
-        }
-        y += 22;
-    }
-
-    // ── Classification badge ──
-    const c = RATING_COLORS[bp.cls];
-    if (c) {
-        doc.setFillColor(...c.rgb);
-        doc.roundedRect(14, y, pw - 28, 12, 3, 3, 'F');
-        const tc = c.text === 'FFFFFF' ? [255,255,255] : [parseInt(c.text.slice(0,2),16), parseInt(c.text.slice(2,4),16), parseInt(c.text.slice(4,6),16)];
-        doc.setTextColor(...tc);
         doc.setFontSize(9);
-        doc.text(`Povprecna ocena: ${bp.label}`, pw/2, y + 8, { align: 'center' });
-        y += 18;
+        doc.setTextColor(156, 163, 175);
+        doc.text(today, pw/2, y);
+        y += 10;
+    } else {
+        doc.text('OBDOBJE', m, y);
+        doc.text('DATUM', pw/2, y);
+        y += 5;
+        doc.setFontSize(11);
+        doc.setTextColor(26, 26, 46);
+        doc.text(periodLabel, m, y);
+        doc.text(today, pw/2, y);
+        y += 10;
     }
+
+    // ── Thin separator ──
+    doc.setDrawColor(229, 231, 235);
+    doc.setLineWidth(0.3);
+    doc.line(m, y, pw - m, y);
+    y += 8;
+
+    // ── Key numbers in a clean row ──
+    doc.setFontSize(28);
+    doc.setTextColor(26, 26, 46);
+    doc.text(`${Math.round(stats.avg_systolic)}/${Math.round(stats.avg_diastolic)}`, m, y + 2);
+
+    // Pulse and count to the right
+    doc.setFontSize(9);
+    doc.setTextColor(156, 163, 175);
+    const rightX = pw - m;
+    doc.text(`${stats.count} meritev`, rightX, y - 4, { align: 'right' });
+    if (stats.avg_pulse) {
+        doc.text(`Pulz: ${Math.round(stats.avg_pulse)} u/min`, rightX, y + 2, { align: 'right' });
+    }
+
+    // Classification next to BP
+    const bpTextWidth = doc.getTextWidth(`${Math.round(stats.avg_systolic)}/${Math.round(stats.avg_diastolic)}`);
+    doc.setFontSize(28); // reset to get correct width
+    const bpW = doc.getTextWidth(`${Math.round(stats.avg_systolic)}/${Math.round(stats.avg_diastolic)}`);
+    doc.setFontSize(9);
+    doc.setTextColor(107, 114, 128);
+    doc.text(`mmHg  •  ${bp.label}`, m + bpW + 4, y + 2);
+    y += 12;
+
+    // ── Morning / Evening line ──
+    if (me.morning.count && me.evening.count) {
+        doc.setFontSize(9);
+        doc.setTextColor(107, 114, 128);
+        doc.text(`Jutro: ${me.morning.sys}/${me.morning.dia}` + (me.morning.pulse ? ` • ${me.morning.pulse} u/min` : '') + ` (${me.morning.count}x)`, m, y);
+        doc.text(`Vecer: ${me.evening.sys}/${me.evening.dia}` + (me.evening.pulse ? ` • ${me.evening.pulse} u/min` : '') + ` (${me.evening.count}x)`, pw/2, y);
+        y += 8;
+    }
+
+    // ── Separator before table ──
+    doc.setDrawColor(229, 231, 235);
+    doc.setLineWidth(0.3);
+    doc.line(m, y, pw - m, y);
+    y += 6;
 
     // ── Data table ──
     const tableData = data.map(r => [r.Datum, r.Cas, r.Sistolicni, r.Diastolicni, r.Pulz, r.Ocena, r.Oznake]);
 
     doc.autoTable({
         startY: y,
+        margin: { left: m, right: m },
         head: [['Datum', 'Cas', 'Sis', 'Dia', 'Pulz', 'Ocena', 'Oznake']],
         body: tableData,
-        styles: { fontSize: 7.5, cellPadding: 2, lineColor: [229, 231, 235], lineWidth: 0.1 },
-        headStyles: { fillColor: [74, 144, 217], textColor: 255, fontStyle: 'bold', fontSize: 8 },
-        alternateRowStyles: { fillColor: [250, 250, 252] },
+        styles: { fontSize: 7.5, cellPadding: 2.5, lineColor: [240, 240, 240], lineWidth: 0 },
+        headStyles: { fillColor: [245, 246, 250], textColor: [107, 114, 128], fontStyle: 'bold', fontSize: 7.5 },
+        alternateRowStyles: { fillColor: [252, 252, 254] },
         columnStyles: {
-            0: { cellWidth: 20 },
-            1: { cellWidth: 13 },
-            2: { cellWidth: 11, halign: 'center' },
-            3: { cellWidth: 11, halign: 'center' },
-            4: { cellWidth: 11, halign: 'center' },
-            5: { cellWidth: 22 },
+            0: { cellWidth: 18 },
+            1: { cellWidth: 12 },
+            2: { cellWidth: 10, halign: 'center' },
+            3: { cellWidth: 10, halign: 'center' },
+            4: { cellWidth: 10, halign: 'center' },
+            5: { cellWidth: 20 },
             6: { cellWidth: 'auto' },
         },
         didParseCell: function(hookData) {
@@ -2193,14 +2186,18 @@ function exportPdf(days, patientName, patientBirth) {
         },
     });
 
-    // ── Footer ──
+    // ── Footer on every page ──
     const pageCount = doc.internal.getNumberOfPages();
+    const ph = doc.internal.pageSize.getHeight();
     for (let i = 1; i <= pageCount; i++) {
         doc.setPage(i);
+        doc.setDrawColor(229, 231, 235);
+        doc.setLineWidth(0.3);
+        doc.line(m, ph - 14, pw - m, ph - 14);
         doc.setFontSize(7);
-        doc.setTextColor(180);
-        doc.text('BostAI • ESC/ESH 2018', 14, doc.internal.pageSize.getHeight() - 8);
-        doc.text(`${i}/${pageCount}`, pw - 14, doc.internal.pageSize.getHeight() - 8, { align: 'right' });
+        doc.setTextColor(192);
+        doc.text('ESC/ESH 2018', m, ph - 9);
+        doc.text(`${i} / ${pageCount}`, pw - m, ph - 9, { align: 'right' });
     }
 
     return doc;
