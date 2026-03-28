@@ -1544,6 +1544,8 @@ function formatBirthInput(el) {
         if (i === 2 || i === 4) v += '.';
         v += digits[i];
     }
+    // Add trailing dot after day or month
+    if (digits.length === 2 || digits.length === 4) v += '.';
     el.value = v;
 }
 
