@@ -1734,6 +1734,23 @@ const RATING_COLORS = {
     crisis:       { bg: 'E74C3C', text: 'FFFFFF', rgb: [231,76,60] },
 };
 
+function _getMorningEveningStats(days) {
+    const readings = days ? Store.getReadings(days) : Store.getReadings();
+    const morning = { sys: [], dia: [], pulse: [] };
+    const evening = { sys: [], dia: [], pulse: [] };
+    readings.forEach(r => {
+        const bucket = new Date(r.measured_at).getHours() < 12 ? morning : evening;
+        bucket.sys.push(r.systolic);
+        bucket.dia.push(r.diastolic);
+        if (r.pulse) bucket.pulse.push(r.pulse);
+    });
+    const avg = arr => arr.length ? Math.round(arr.reduce((a, b) => a + b, 0) / arr.length) : null;
+    return {
+        morning: { sys: avg(morning.sys), dia: avg(morning.dia), pulse: avg(morning.pulse), count: morning.sys.length },
+        evening: { sys: avg(evening.sys), dia: avg(evening.dia), pulse: avg(evening.pulse), count: evening.sys.length },
+    };
+}
+
 function _getExportData(days) {
     const readings = days ? Store.getReadings(days) : Store.getReadings();
     if (!readings.length) { alert('Ni meritev za izvoz.'); return null; }
@@ -1789,11 +1806,22 @@ function exportXlsx(days) {
 
     // Summary sheet
     const stats = days ? Store.getStats(days) : Store.getStats();
+    const me = _getMorningEveningStats(days);
     const summary = [
         { Metrika: 'Stevilo meritev', Vrednost: stats.count },
         { Metrika: 'Povp. sistolicni', Vrednost: Math.round(stats.avg_systolic) },
         { Metrika: 'Povp. diastolicni', Vrednost: Math.round(stats.avg_diastolic) },
         { Metrika: 'Povp. pulz', Vrednost: stats.avg_pulse ? Math.round(stats.avg_pulse) : '-' },
+        { Metrika: '', Vrednost: '' },
+        { Metrika: 'Jutro - meritev', Vrednost: me.morning.count },
+        { Metrika: 'Jutro - sistolicni', Vrednost: me.morning.sys || '-' },
+        { Metrika: 'Jutro - diastolicni', Vrednost: me.morning.dia || '-' },
+        { Metrika: 'Jutro - pulz', Vrednost: me.morning.pulse || '-' },
+        { Metrika: '', Vrednost: '' },
+        { Metrika: 'Vecer - meritev', Vrednost: me.evening.count },
+        { Metrika: 'Vecer - sistolicni', Vrednost: me.evening.sys || '-' },
+        { Metrika: 'Vecer - diastolicni', Vrednost: me.evening.dia || '-' },
+        { Metrika: 'Vecer - pulz', Vrednost: me.evening.pulse || '-' },
     ];
     const ws2 = XLSX.utils.json_to_sheet(summary);
     ws2['!cols'] = [{ wch: 20 }, { wch: 12 }];
@@ -1831,6 +1859,7 @@ function exportPdf(days, patientName, patientBirth) {
     }
 
     // Summary
+    const me = _getMorningEveningStats(days);
     doc.setFontSize(12);
     doc.setTextColor(0);
     doc.text('Povzetek', 14, y); y += 7;
@@ -1838,6 +1867,13 @@ function exportPdf(days, patientName, patientBirth) {
     doc.text(`Stevilo meritev: ${stats.count}`, 14, y); y += 6;
     doc.text(`Povprecje: ${Math.round(stats.avg_systolic)}/${Math.round(stats.avg_diastolic)} mmHg`, 14, y); y += 6;
     if (stats.avg_pulse) { doc.text(`Povprecni pulz: ${Math.round(stats.avg_pulse)} u/min`, 14, y); y += 6; }
+    y += 4;
+    if (me.morning.count) {
+        doc.text(`Jutro (${me.morning.count}x): ${me.morning.sys}/${me.morning.dia} mmHg` + (me.morning.pulse ? `, pulz ${me.morning.pulse}` : ''), 14, y); y += 6;
+    }
+    if (me.evening.count) {
+        doc.text(`Vecer (${me.evening.count}x): ${me.evening.sys}/${me.evening.dia} mmHg` + (me.evening.pulse ? `, pulz ${me.evening.pulse}` : ''), 14, y); y += 6;
+    }
 
     // Table
     const tableData = data.map(r => [r.Datum, r.Cas, r.Sistolicni, r.Diastolicni, r.Pulz, r.Ocena, r.Oznake]);
