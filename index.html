@@ -1162,6 +1162,10 @@ body {
                 <div style="font-size:11px;color:#B0B7C3;margin-bottom:8px">Vnesite svoje podatke za porocilo</div>
                 <input type="text" class="acc-input" id="shareName" placeholder="Ime in priimek">
                 <input type="text" class="acc-input" id="shareBirth" placeholder="Datum rojstva (DD.MM.LLLL)" inputmode="numeric" maxlength="10" oninput="formatBirthInput(this)">
+                <div class="modal-label" style="margin-top:8px">Format</div>
+                <div class="modal-chips">
+                    <div class="modal-chip selected">PDF</div>
+                </div>
                 <div class="modal-label" style="margin-top:8px">Obdobje</div>
                 <div class="modal-chips" id="sharePeriod">
                     <div class="modal-chip selected" data-days="30" onclick="selectChip(this)">30 dni</div>
