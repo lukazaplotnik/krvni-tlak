@@ -1955,7 +1955,7 @@ function exportXlsx(days) {
         { wch: 11 }, // Diastolicni
         { wch: 6 },  // Pulz
         { wch: 14 }, // Ocena
-        { wch: 30 }, // Oznake
+        { wch: 18 }, // Oznake
     ];
 
     const wb = XLSX.utils.book_new();
@@ -2050,7 +2050,7 @@ function exportPdf(days, patientName, patientBirth) {
             3: { cellWidth: 12 },
             4: { cellWidth: 12 },
             5: { cellWidth: 24 },
-            6: { cellWidth: 'auto' },
+            6: { cellWidth: 30 },
         },
         didParseCell: function(hookData) {
             // Color the Ocena column (index 5)
