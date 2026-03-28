@@ -994,7 +994,13 @@ Odjava
         <div class="modal-label">Ime in priimek</div>
         <input type="text" class="modal-input" id="shareName" placeholder="Janez Novak">
         <div class="modal-label">Datum rojstva</div>
-        <input type="date" class="modal-input" id="shareBirth">
+        <input type="text" class="modal-input" id="shareBirth" placeholder="npr. 15.03.1955">
+        <div style="border-top:1px solid var(--border);margin:16px 0"></div>
+        <div class="modal-label">Format</div>
+        <div class="modal-chips" id="shareFormat">
+            <div class="modal-chip selected" onclick="selectChip(this)">PDF</div>
+            <div class="modal-chip" onclick="selectChip(this)">Excel</div>
+        </div>
         <div class="modal-label">Obdobje</div>
         <div class="modal-chips" id="sharePeriod">
             <div class="modal-chip selected" data-days="30" onclick="selectChip(this)">30 dni</div>
@@ -1404,16 +1410,25 @@ function doExport() {
 async function doShare() {
     const name = document.getElementById('shareName').value.trim();
     const birth = document.getElementById('shareBirth').value;
+    const format = document.querySelector('#shareFormat .modal-chip.selected').textContent;
     const days = parseInt(document.querySelector('#sharePeriod .modal-chip.selected').dataset.days) || null;
 
     if (!name) { alert('Vnesite ime in priimek'); return; }
 
-    const doc = exportPdf(days, name, birth);
-    if (!doc) return;
+    const dateStr = new Date().toISOString().slice(0, 10);
+    let file, filename;
 
-    const filename = 'bostai-porocilo-' + new Date().toISOString().slice(0, 10) + '.pdf';
-    const blob = doc.output('blob');
-    const file = new File([blob], filename, { type: 'application/pdf' });
+    if (format === 'PDF') {
+        const doc = exportPdf(days, name, birth);
+        if (!doc) return;
+        filename = 'bostai-porocilo-' + dateStr + '.pdf';
+        const blob = doc.output('blob');
+        file = new File([blob], filename, { type: 'application/pdf' });
+    } else {
+        exportXlsx(days, name, birth);
+        closeSharePanel();
+        return;
+    }
 
     closeSharePanel();
 
@@ -1429,8 +1444,11 @@ async function doShare() {
         } catch (e) { /* user cancelled or error — fall through to download */ }
     }
 
-    // Fallback: download PDF
-    doc.save(filename);
+    // Fallback: download
+    const url = URL.createObjectURL(file);
+    const a = document.createElement('a');
+    a.href = url; a.download = filename; a.click();
+    URL.revokeObjectURL(url);
 }
 
 
@@ -1851,7 +1869,7 @@ function exportPdf(days, patientName, patientBirth) {
         doc.setFontSize(11);
         doc.setTextColor(0);
         doc.text(`Pacient: ${patientName}`, 14, y); y += 6;
-        if (patientBirth) { doc.text(`Datum rojstva: ${new Date(patientBirth).toLocaleDateString('sl-SI')}`, 14, y); y += 6; }
+        if (patientBirth) { doc.text(`Datum rojstva: ${patientBirth}`, 14, y); y += 6; }
         y += 4;
     }
 
