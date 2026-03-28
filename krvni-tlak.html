@@ -1066,11 +1066,11 @@ body {
         <input type="text" class="modal-input" id="shareName" placeholder="Janez Novak">
         <div class="modal-label">Datum rojstva</div>
         <div class="date-fields">
-            <input type="number" class="date-field" id="birthDay" placeholder="Dan" inputmode="numeric" min="1" max="31" oninput="if(this.value.length>=2)document.getElementById('birthMonth').focus()">
+            <input type="text" class="date-field" id="birthDay" placeholder="DD" inputmode="numeric" maxlength="2" oninput="this.value=this.value.replace(/\D/g,'').slice(0,2); if(this.value.length>=2)document.getElementById('birthMonth').focus()" onblur="if(this.value.length===1)this.value='0'+this.value">
             <span class="date-dot">.</span>
-            <input type="number" class="date-field" id="birthMonth" placeholder="Mesec" inputmode="numeric" min="1" max="12" oninput="if(this.value.length>=2)document.getElementById('birthYear').focus()">
+            <input type="text" class="date-field" id="birthMonth" placeholder="MM" inputmode="numeric" maxlength="2" oninput="this.value=this.value.replace(/\D/g,'').slice(0,2); if(this.value.length>=2)document.getElementById('birthYear').focus()" onblur="if(this.value.length===1)this.value='0'+this.value">
             <span class="date-dot">.</span>
-            <input type="number" class="date-field date-year" id="birthYear" placeholder="Leto" inputmode="numeric" min="1900" max="2026">
+            <input type="text" class="date-field date-year" id="birthYear" placeholder="LLLL" inputmode="numeric" maxlength="4" oninput="this.value=this.value.replace(/\D/g,'').slice(0,4)">
         </div>
         <div style="border-top:1px solid var(--border);margin:16px 0"></div>
         <div class="modal-label">Format</div>
