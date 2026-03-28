@@ -79,47 +79,34 @@ body {
     margin-bottom: 20px;
 }
 
-.measurement-table {
-    width: 100%;
-    border-collapse: separate;
-    border-spacing: 0;
-    margin-bottom: 10px;
-    table-layout: fixed;
+.entry-cols {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 8px;
 }
 
-.measurement-table th {
+.entry-col {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 4px;
+}
+
+.entry-col-label {
     font-size: 11px;
     font-weight: 600;
     color: var(--text2);
     text-transform: uppercase;
     letter-spacing: 0.3px;
-    padding: 0 4px 4px;
-    text-align: center;
 }
 
-.measurement-table th:first-child {
-    width: 30px;
-    text-align: center;
-}
-
-.measurement-table td {
-    padding: 2px 4px;
-    text-align: center;
-}
-
-.measurement-table td:first-child {
-    font-size: 12px;
-    font-weight: 600;
-    color: var(--text2);
-    width: 30px;
-}
-
-.measurement-table input {
+.entry-input {
     width: 100%;
     padding: 8px 4px;
     border: 2px solid var(--border);
     border-radius: 10px;
-    font-size: 22px;
+    font-size: 20px;
     font-weight: 700;
     text-align: center;
     color: var(--text);
@@ -128,43 +115,39 @@ body {
     -moz-appearance: textfield;
 }
 
-.measurement-table input::-webkit-inner-spin-button,
-.measurement-table input::-webkit-outer-spin-button { -webkit-appearance: none; }
-.measurement-table input::placeholder { color: #D0D5DD; font-weight: 500; }
-.measurement-table input:focus { border-color: var(--primary); }
+.entry-input::-webkit-inner-spin-button,
+.entry-input::-webkit-outer-spin-button { -webkit-appearance: none; }
+.entry-input::placeholder { color: #D0D5DD; font-weight: 500; }
+.entry-input:focus { border-color: var(--primary); }
 
-.avg-row td {
-    padding-top: 8px !important;
-}
-
-tbody tr:nth-child(3) td {
-    padding-bottom: 2px !important;
-}
-
-.avg-row .avg-display {
-    font-size: 24px;
+.entry-avg {
+    width: 100%;
+    font-size: 22px;
     font-weight: 800;
     color: var(--primary);
-    padding: 10px 4px;
-    height: 44px;
+    height: 40px;
     display: flex;
     align-items: center;
     justify-content: center;
     background: rgba(74,144,217,0.06);
     border-radius: 10px;
+    margin-top: 2px;
 }
 
-.avg-row .avg-display.empty {
-    color: rgba(74,144,217,0.25);
+.entry-avg.empty {
+    color: #D0D5DD;
     font-size: 14px;
-    font-weight: 400;
+    font-weight: 900;
     background: none;
 }
 
-.avg-row td:first-child {
-    font-size: 18px !important;
-    font-weight: 800 !important;
-    color: var(--primary) !important;
+.entry-mu {
+    font-size: 16px;
+    font-weight: 800;
+    color: var(--primary);
+    text-align: center;
+    margin-top: 6px;
+    margin-bottom: 2px;
 }
 
 .save-btn {
@@ -177,7 +160,32 @@ tbody tr:nth-child(3) td {
     font-size: 17px;
     font-weight: 600;
     cursor: pointer;
-    transition: all 0.2s;
+    transition: all 0.3s ease;
+}
+
+.save-row.result {
+    gap: 0;
+}
+
+.save-row.result .tag-toggle {
+    width: 0;
+    padding: 0;
+    border: none;
+    overflow: hidden;
+    opacity: 0;
+    transition: all 0.3s ease;
+}
+
+.save-row.result .save-btn {
+    transition: all 0.3s ease;
+}
+
+@keyframes shake {
+    0%, 100% { transform: translateX(0); }
+    20% { transform: translateX(-6px); }
+    40% { transform: translateX(6px); }
+    60% { transform: translateX(-4px); }
+    80% { transform: translateX(4px); }
 }
 
 .save-btn:hover { background: var(--primary-dark); }
@@ -185,7 +193,7 @@ tbody tr:nth-child(3) td {
 .save-btn.saved { background: var(--green); pointer-events: none; }
 .save-btn:disabled { background: var(--border); color: var(--text2); pointer-events: none; }
 
-.feedback { text-align: center; margin-top: 12px; font-size: 14px; font-weight: 500; min-height: 20px; }
+.feedback { text-align: center; margin-top: 4px; font-size: 11px; font-weight: 400; min-height: 14px; color: #C0C5CC; }
 .feedback.good { color: var(--green); }
 .feedback.caution { color: var(--yellow); }
 .feedback.warning { color: var(--orange); }
@@ -215,27 +223,28 @@ tbody tr:nth-child(3) td {
 .history-item {
     background: var(--card);
     border-radius: 12px;
-    margin-bottom: 8px;
+    margin-bottom: 10px;
     box-shadow: var(--shadow);
-    overflow: hidden;
+    overflow: visible;
     position: relative;
 }
 
 .history-item .item-content {
-    padding: 12px 12px 12px 16px;
-    display: grid;
-    grid-template-columns: 1fr auto auto auto;
-    align-items: center;
-    gap: 8px;
+    padding: 10px 12px 10px 16px;
     position: relative;
     z-index: 1;
     background: var(--card);
 }
 
-.history-item .left { display: flex; flex-direction: column; gap: 2px; }
+.history-item .item-top {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
 .history-item .values { font-size: 20px; font-weight: 700; }
-.history-item .pulse-val { font-size: 13px; color: var(--text2); font-weight: 400; }
-.history-item .time { font-size: 12px; color: var(--text2); min-width: 70px; text-align: right; }
+.history-item .pulse-val { font-size: 12px; color: var(--text2); font-weight: 500; }
+.history-item .item-right { margin-left: auto; display: flex; align-items: center; gap: 8px; }
 
 .history-item .badge {
     display: inline-block;
@@ -256,53 +265,63 @@ tbody tr:nth-child(3) td {
 .badge.crisis { background: #E74C3C; color: white; }
 
 .delete-btn {
-    background: none;
-    border: none;
+    position: absolute;
+    top: -6px;
+    right: -6px;
+    background: var(--card);
+    border: 1.5px solid #E5E7EB;
     color: #C9CED6;
-    font-size: 14px;
+    font-size: 12px;
     cursor: pointer;
-    width: 26px;
-    height: 26px;
+    width: 20px;
+    height: 20px;
     border-radius: 50%;
     display: flex;
     align-items: center;
     justify-content: center;
     transition: all 0.2s;
-    flex-shrink: 0;
     line-height: 1;
+    z-index: 2;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.08);
 }
 
-.delete-btn:hover, .delete-btn:active { background: #FEE2E2; color: var(--red); }
-.history-item.confirm-delete .item-content { opacity: 0.3; }
+.delete-btn:hover, .delete-btn:active { background: #FEE2E2; border-color: #E8918A; color: var(--red); }
+.history-item.confirm-delete .item-content { opacity: 0.15; }
+.history-item.confirm-delete .history-bottom { opacity: 0.15; }
+.history-item.confirm-delete .delete-btn { display: none; }
 
 .history-item .confirm-bar {
     display: none;
     position: absolute;
     inset: 0;
-    z-index: 2;
+    z-index: 3;
+    flex-direction: column;
     align-items: center;
     justify-content: center;
-    gap: 12px;
-    background: rgba(255,255,255,0.95);
+    gap: 10px;
+    background: rgba(255,255,255,0.97);
+    border-radius: 12px;
 }
 
 .history-item.confirm-delete .confirm-bar { display: flex; }
-.confirm-bar span { font-size: 13px; color: #B0B7C3; }
+.confirm-bar .confirm-text { font-size: 11px; color: #C0C5CC; font-weight: 400; }
+
+.confirm-bar .confirm-actions { display: flex; gap: 8px; }
 
 .confirm-bar button {
-    padding: 6px 16px;
+    padding: 8px 20px;
     border: none;
-    border-radius: 6px;
-    font-size: 12px;
-    font-weight: 500;
+    border-radius: 8px;
+    font-size: 13px;
+    font-weight: 600;
     cursor: pointer;
     transition: all 0.15s;
 }
 
-.confirm-bar .confirm-yes { background: none; border: 1px solid #E8918A; color: #E8918A; }
+.confirm-bar .confirm-yes { background: var(--bg); color: var(--red); }
 .confirm-bar .confirm-yes:active { background: #FEE2E2; transform: scale(0.95); }
-.confirm-bar .confirm-no { background: none; border: 1px solid var(--border); color: #B0B7C3; }
-.confirm-bar .confirm-no:active { background: var(--bg); transform: scale(0.95); }
+.confirm-bar .confirm-no { background: var(--bg); color: var(--text2); }
+.confirm-bar .confirm-no:active { background: var(--border); transform: scale(0.95); }
 
 .empty-msg { text-align: center; color: var(--text2); padding: 40px 20px; font-size: 14px; }
 
@@ -368,6 +387,171 @@ tbody tr:nth-child(3) td {
     margin-top: 10px;
     font-size: 11px;
     color: #C0C5CC;
+}
+
+/* TAGS */
+.save-row {
+    display: flex;
+    gap: 10px;
+    align-items: stretch;
+}
+
+.save-row .save-btn { flex: 1; }
+
+.tag-toggle {
+    width: 48px;
+    border: 2px solid var(--border);
+    border-radius: 12px;
+    background: var(--card);
+    color: #B0B7C3;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.2s;
+    flex-shrink: 0;
+    position: relative;
+}
+
+.tag-toggle.active {
+    border-color: var(--primary);
+    color: var(--primary);
+    background: white;
+    z-index: 82;
+    position: relative;
+}
+
+.tag-toggle .tag-dot {
+    position: absolute;
+    top: 6px;
+    right: 6px;
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: var(--primary);
+}
+
+.sheet-overlay {
+    position: fixed;
+    inset: 0;
+    z-index: 80;
+    background: rgba(0,0,0,0.5);
+}
+
+.save-row {
+    position: relative;
+}
+
+.tag-popover {
+    position: absolute;
+    bottom: calc(100% + 10px);
+    left: -14px;
+    right: -14px;
+    z-index: 81;
+    background: var(--card);
+    border-radius: var(--radius);
+    padding: 16px;
+    box-shadow: 0 -2px 20px rgba(0,0,0,0.08), 0 4px 24px rgba(0,0,0,0.1);
+    border: 1px solid var(--border);
+}
+
+.tag-popover::after {
+    content: '';
+    position: absolute;
+    bottom: -7px;
+    left: 28px;
+    width: 12px;
+    height: 12px;
+    background: var(--card);
+    border-right: 1px solid var(--border);
+    border-bottom: 1px solid var(--border);
+    transform: rotate(45deg);
+}
+
+.tag-question {
+    font-size: 13px;
+    color: var(--text2);
+    margin-bottom: 10px;
+}
+
+.tag-popover-close {
+    position: absolute;
+    top: -6px;
+    right: -6px;
+    background: var(--card);
+    border: 1.5px solid #E5E7EB;
+    color: #C9CED6;
+    font-size: 12px;
+    cursor: pointer;
+    width: 20px;
+    height: 20px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    line-height: 1;
+    z-index: 82;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.08);
+}
+
+.tag-popover-close:active { background: #FEE2E2; border-color: #E8918A; color: var(--red); }
+
+.tags-wrap {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+}
+
+.tag-chip {
+    padding: 7px 14px;
+    border: none;
+    border-radius: 20px;
+    font-size: 13px;
+    font-weight: 500;
+    color: var(--text2);
+    background: var(--bg);
+    cursor: pointer;
+    transition: all 0.15s;
+    user-select: none;
+    -webkit-user-select: none;
+}
+
+.tag-chip.selected {
+    background: rgba(74,144,217,0.12);
+    color: var(--primary);
+    font-weight: 600;
+}
+
+.tag-chip:active { transform: scale(0.95); }
+
+.history-bottom {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding: 0 16px 10px;
+}
+
+.history-bottom .tags-group {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 4px;
+    flex: 1;
+    min-width: 0;
+}
+
+.history-bottom .time {
+    font-size: 11px;
+    color: #C0C5CC;
+    flex-shrink: 0;
+    margin-left: auto;
+}
+
+.history-tag {
+    font-size: 10px;
+    color: var(--text2);
+    background: var(--bg);
+    padding: 2px 8px;
+    border-radius: 10px;
 }
 
 .chart-card {
@@ -671,43 +855,40 @@ tbody tr:nth-child(3) td {
     <!-- ENTRY PAGE -->
     <div class="page active" id="pageEntry">
         <div class="entry-section">
-            <table class="measurement-table">
-                <thead>
-                    <tr>
-                        <th></th>
-                        <th>Sistolicni</th>
-                        <th>Diastolicni</th>
-                        <th>Pulz</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    <tr>
-                        <td>1.</td>
-                        <td><input type="number" id="s1" placeholder="&#8212;" inputmode="numeric" oninput="onMeasInput(this)"></td>
-                        <td><input type="number" id="d1" placeholder="&#8212;" inputmode="numeric" oninput="onMeasInput(this)"></td>
-                        <td><input type="number" id="p1" placeholder="&#8212;" inputmode="numeric" oninput="onMeasInput(this)"></td>
-                    </tr>
-                    <tr>
-                        <td>2.</td>
-                        <td><input type="number" id="s2" placeholder="&#8212;" inputmode="numeric" oninput="onMeasInput(this)"></td>
-                        <td><input type="number" id="d2" placeholder="&#8212;" inputmode="numeric" oninput="onMeasInput(this)"></td>
-                        <td><input type="number" id="p2" placeholder="&#8212;" inputmode="numeric" oninput="onMeasInput(this)"></td>
-                    </tr>
-                    <tr>
-                        <td>3.</td>
-                        <td><input type="number" id="s3" placeholder="&#8212;" inputmode="numeric" oninput="onMeasInput(this)"></td>
-                        <td><input type="number" id="d3" placeholder="&#8212;" inputmode="numeric" oninput="onMeasInput(this)"></td>
-                        <td><input type="number" id="p3" placeholder="&#8212;" inputmode="numeric" oninput="onMeasInput(this)"></td>
-                    </tr>
-                    <tr class="avg-row">
-                        <td>&mu;</td>
-                        <td><div class="avg-display empty" id="avgS">&#9679;</div></td>
-                        <td><div class="avg-display empty" id="avgD">&#9679;</div></td>
-                        <td><div class="avg-display empty" id="avgP">&#9679;</div></td>
-                    </tr>
-                </tbody>
-            </table>
-            <button class="save-btn" id="saveBtn" onclick="saveEntry()" disabled>Shrani meritev</button>
+            <div class="entry-cols">
+                <div class="entry-col">
+                    <span class="entry-col-label">Sistolicni</span>
+                    <input type="number" class="entry-input" id="s1" placeholder="&#8212;" inputmode="numeric" oninput="onMeasInput(this)">
+                    <input type="number" class="entry-input" id="s2" placeholder="&#8212;" inputmode="numeric" oninput="onMeasInput(this)">
+                    <input type="number" class="entry-input" id="s3" placeholder="&#8212;" inputmode="numeric" oninput="onMeasInput(this)">
+                    <div class="entry-avg empty" id="avgS">&#9679;</div>
+                </div>
+                <div class="entry-col">
+                    <span class="entry-col-label">Diastolicni</span>
+                    <input type="number" class="entry-input" id="d1" placeholder="&#8212;" inputmode="numeric" oninput="onMeasInput(this)">
+                    <input type="number" class="entry-input" id="d2" placeholder="&#8212;" inputmode="numeric" oninput="onMeasInput(this)">
+                    <input type="number" class="entry-input" id="d3" placeholder="&#8212;" inputmode="numeric" oninput="onMeasInput(this)">
+                    <div class="entry-avg empty" id="avgD">&hearts;</div>
+                </div>
+                <div class="entry-col">
+                    <span class="entry-col-label">Pulz</span>
+                    <input type="number" class="entry-input" id="p1" placeholder="&#8212;" inputmode="numeric" oninput="onMeasInput(this)">
+                    <input type="number" class="entry-input" id="p2" placeholder="&#8212;" inputmode="numeric" oninput="onMeasInput(this)">
+                    <input type="number" class="entry-input" id="p3" placeholder="&#8212;" inputmode="numeric" oninput="onMeasInput(this)">
+                    <div class="entry-avg empty" id="avgP">&#9679;</div>
+                </div>
+            </div>
+            <div class="save-row">
+                <div class="tag-popover hidden" id="tagPopover">
+                    <button class="tag-popover-close" onclick="closeTagSheet()">&times;</button>
+                    <div class="tag-question" id="tagQuestion"></div>
+                    <div class="tags-wrap" id="tagsWrap"></div>
+                </div>
+                <button class="tag-toggle" id="tagToggle" onclick="openTagSheet()">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z"/><line x1="7" y1="7" x2="7.01" y2="7"/></svg>
+                </button>
+                <button class="save-btn" id="saveBtn" onclick="saveEntry()" disabled>Shrani meritev</button>
+            </div>
             <div class="feedback" id="feedback"></div>
         </div>
         <div class="history-section">
@@ -727,6 +908,8 @@ tbody tr:nth-child(3) td {
         <div id="content"></div>
     </div>
 
+    <div class="sheet-overlay hidden" id="sheetOverlay" onclick="closeTagSheet()"></div>
+
 <script>
 // ===== SUPABASE =====
 var sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
@@ -737,12 +920,13 @@ const Store = {
     _set(key, data) { localStorage.setItem(key, JSON.stringify(data)); },
 
     // --- Reading operations (always instant, always local-first) ---
-    saveReading(systolic, diastolic, pulse) {
+    saveReading(systolic, diastolic, pulse, tags) {
         const reading = {
             id: crypto.randomUUID(),
             systolic,
             diastolic,
             pulse: pulse || null,
+            tags: tags || [],
             measured_at: new Date().toISOString(),
             cloud_id: null,
         };
@@ -847,6 +1031,7 @@ const Store = {
                             systolic: r.systolic,
                             diastolic: r.diastolic,
                             pulse: r.pulse,
+                            tags: r.tags || [],
                             measured_at: r.measured_at,
                         }).select('id').single(), 10000
                     );
@@ -898,6 +1083,7 @@ const Store = {
                 systolic: r.systolic,
                 diastolic: r.diastolic,
                 pulse: r.pulse,
+                tags: r.tags || [],
                 measured_at: r.measured_at,
                 cloud_id: r.id,
             }));
@@ -1051,6 +1237,65 @@ function showTab(tab) {
 
 // ===== BP CLASSIFICATION (ESC/ESH Guidelines used in Slovenia) =====
 // Source: Evropske smernice za hipertenzijo (ESC/ESH 2018), used by Slovenian cardiology society
+// ===== TAGS =====
+const MORNING_TAGS = ['Slab spanec', 'Alkohol', 'Slana hrana', 'Stres', 'Slabo pocutje', 'Veliko gibanja'];
+const EVENING_TAGS = ['Dodatna zdravila', 'Alkohol', 'Slana hrana', 'Pozna kava', 'Stres', 'Slabo pocutje', 'Veliko gibanja'];
+let selectedTags = [];
+
+function isMorning() { return new Date().getHours() < 12; }
+
+function renderTags() {
+    const morning = isMorning();
+    const tags = morning ? MORNING_TAGS : EVENING_TAGS;
+    document.getElementById('tagQuestion').textContent = morning
+        ? 'Kaj je vceraj ali ponoci lahko vplivalo na vas krvni tlak?'
+        : 'Kaj je danes lahko vplivalo na vas krvni tlak?';
+    const wrap = document.getElementById('tagsWrap');
+    wrap.innerHTML = tags.map(t =>
+        `<div class="tag-chip${selectedTags.includes(t) ? ' selected' : ''}" onclick="toggleTag('${t}')">${t}</div>`
+    ).join('');
+}
+
+function toggleTag(tag) {
+    if (selectedTags.includes(tag)) {
+        selectedTags = selectedTags.filter(t => t !== tag);
+    } else {
+        selectedTags.push(tag);
+    }
+    renderTags();
+    updateTagToggle();
+}
+
+renderTags();
+
+function openTagSheet() {
+    if (!document.getElementById('tagPopover').classList.contains('hidden')) {
+        closeTagSheet();
+        return;
+    }
+    renderTags();
+    document.getElementById('sheetOverlay').classList.remove('hidden');
+    document.getElementById('tagPopover').classList.remove('hidden');
+    document.getElementById('tagToggle').classList.add('active');
+}
+
+function closeTagSheet() {
+    document.getElementById('sheetOverlay').classList.add('hidden');
+    document.getElementById('tagPopover').classList.add('hidden');
+    document.getElementById('tagToggle').classList.toggle('active', selectedTags.length > 0);
+    updateTagToggle();
+}
+
+function updateTagToggle() {
+    const btn = document.getElementById('tagToggle');
+    const existing = btn.querySelector('.tag-dot');
+    if (selectedTags.length > 0 && !existing) {
+        btn.insertAdjacentHTML('beforeend', '<span class="tag-dot"></span>');
+    } else if (selectedTags.length === 0 && existing) {
+        existing.remove();
+    }
+}
+
 function classifyBP(s, d) {
     if (s >= 180 || d >= 110) return { label: 'Stopnja 3', cls: 'crisis' };
     if (s >= 160 || d >= 100) return { label: 'Stopnja 2', cls: 'grade2' };
@@ -1090,11 +1335,11 @@ function computeAvg() {
     const p = pVals.length ? avg(pVals) : null;
 
     avgS.textContent = s !== null ? s : '\u25CF';
-    avgS.className = s !== null ? 'avg-display' : 'avg-display empty';
-    avgD.textContent = d !== null ? d : '\u25CF';
-    avgD.className = d !== null ? 'avg-display' : 'avg-display empty';
+    avgS.className = s !== null ? 'entry-avg' : 'entry-avg empty';
+    avgD.textContent = d !== null ? d : '\u2665';
+    avgD.className = d !== null ? 'entry-avg' : 'entry-avg empty';
     avgP.textContent = p !== null ? p : '\u25CF';
-    avgP.className = p !== null ? 'avg-display' : 'avg-display empty';
+    avgP.className = p !== null ? 'entry-avg' : 'entry-avg empty';
 
     // Need at least one systolic AND one diastolic to save
     btn.disabled = !(s && d);
@@ -1102,14 +1347,16 @@ function computeAvg() {
     return (s && d) ? { s, d, p } : null;
 }
 
+// Row-first order: s1→d1→p1→s2→d2→p2→s3→d3→p3
+const INPUT_ORDER = ['s1','d1','p1','s2','d2','p2','s3','d3','p3'];
+
 function onMeasInput(el) {
     const id = el.id;
-    const shouldJump = isComplete(id);
-
-    if (shouldJump) {
-        const inputs = [...document.querySelectorAll('.measurement-table input')];
-        const idx = inputs.indexOf(el);
-        if (idx < inputs.length - 1) inputs[idx + 1].focus();
+    if (isComplete(id)) {
+        const idx = INPUT_ORDER.indexOf(id);
+        if (idx >= 0 && idx < INPUT_ORDER.length - 1) {
+            document.getElementById(INPUT_ORDER[idx + 1]).focus();
+        }
     }
     computeAvg();
 }
@@ -1117,34 +1364,69 @@ function onMeasInput(el) {
 function saveEntry() {
     const avg = computeAvg();
     if (!avg) return;
-    const fb = document.getElementById('feedback');
     const btn = document.getElementById('saveBtn');
 
-    if (avg.s < 60 || avg.s > 250) { fb.textContent = 'Sistolicni: 60\u2013250'; fb.className = 'feedback warning'; return; }
-    if (avg.d < 30 || avg.d > 150) { fb.textContent = 'Diastolicni: 30\u2013150'; fb.className = 'feedback warning'; return; }
+    const fb = document.getElementById('feedback');
+    if (avg.s < 60 || avg.s > 250) {
+        fb.textContent = 'Sistolicni mora biti med 60 in 250';
+        setTimeout(() => fb.textContent = '', 3000);
+        return;
+    }
+    if (avg.d < 30 || avg.d > 150) {
+        fb.textContent = 'Diastolicni mora biti med 30 in 150';
+        setTimeout(() => fb.textContent = '', 3000);
+        return;
+    }
 
-    Store.saveReading(avg.s, avg.d, avg.p);
+    Store.saveReading(avg.s, avg.d, avg.p, [...selectedTags]);
     const bp = classifyBP(avg.s, avg.d);
-    fb.textContent = bp.label;
-    fb.className = 'feedback ' + bp.cls.replace('crisis','danger').replace('grade2','danger').replace('grade1','warning').replace('high-normal','caution').replace('normal','good').replace('optimal','good');
-    btn.textContent = 'Shranjeno!';
-    btn.classList.add('saved');
+
+    const btnColors = {
+        optimal: { bg: '#C2E0C6', color: '#1A5C2A' },
+        normal: { bg: '#D4EDDA', color: '#155724' },
+        'high-normal': { bg: '#E0F0D0', color: '#4A7A2A' },
+        grade1: { bg: '#FFF3CD', color: '#856404' },
+        grade2: { bg: '#FFE0CC', color: '#CC4400' },
+        grade3: { bg: '#F8D7DA', color: '#721C24' },
+        crisis: { bg: '#E74C3C', color: 'white' },
+    };
+    const c = btnColors[bp.cls] || btnColors.normal;
+    btn.textContent = bp.label;
+    btn.style.background = c.bg;
+    btn.style.color = c.color;
+    btn.style.pointerEvents = 'none';
+    btn.closest('.save-row').classList.add('result');
+
+    // Color the averages to match
+    const avgS = document.getElementById('avgS');
+    const avgD = document.getElementById('avgD');
+    const avgP = document.getElementById('avgP');
+    [avgS, avgD, avgP].forEach(el => {
+        el.style.color = c.color;
+        el.style.background = c.bg;
+    });
 
     setTimeout(() => {
         btn.textContent = 'Shrani meritev';
-        btn.classList.remove('saved');
+        btn.style.background = '';
+        btn.style.color = '';
+        btn.style.pointerEvents = '';
+        btn.closest('.save-row').classList.remove('result');
         btn.disabled = true;
-        document.querySelectorAll('.measurement-table input').forEach(i => i.value = '');
-        document.getElementById('avgS').textContent = '\u25CF'; document.getElementById('avgS').className = 'avg-display empty';
-        document.getElementById('avgD').textContent = '\u25CF'; document.getElementById('avgD').className = 'avg-display empty';
-        document.getElementById('avgP').textContent = '\u25CF'; document.getElementById('avgP').className = 'avg-display empty';
-        fb.textContent = ''; fb.className = 'feedback';
-    }, 1500);
-    renderHistory();
+        document.querySelectorAll('.entry-input').forEach(i => i.value = '');
+        [avgS, avgD, avgP].forEach(el => { el.style.color = ''; el.style.background = ''; });
+        avgS.textContent = '\u25CF'; avgS.className = 'entry-avg empty';
+        avgD.textContent = '\u2665'; avgD.className = 'entry-avg empty';
+        avgP.textContent = '\u25CF'; avgP.className = 'entry-avg empty';
+        document.getElementById('feedback').textContent = '';
+        selectedTags = []; renderTags(); updateTagToggle();
+        document.getElementById('tagToggle').classList.remove('active');
+        renderHistory();
+    }, 2000);
 }
 
 // Enter key saves
-document.querySelectorAll('.measurement-table input').forEach(inp => {
+document.querySelectorAll('.entry-input').forEach(inp => {
     inp.addEventListener('keydown', e => { if (e.key === 'Enter') saveEntry(); });
 });
 
@@ -1165,29 +1447,36 @@ function renderHistory() {
     const allReadings = Store.getReadings();
     if (!allReadings.length) { list.innerHTML = '<div class="empty-msg">Se ni meritev</div>'; return; }
 
-    const display = showAll ? allReadings : allReadings.slice(-5);
+    const display = showAll ? allReadings : allReadings.slice(-10);
     const items = display.slice().reverse().map((r) => {
         const ts = r.measured_at;
         const bp = classifyBP(r.systolic, r.diastolic);
         const date = new Date(ts);
         const time = date.toLocaleDateString('sl-SI', { day: 'numeric', month: 'short' })
             + ' ' + date.toLocaleTimeString('sl-SI', { hour: '2-digit', minute: '2-digit' });
-        const pulse = r.pulse ? `<div class="pulse-val">&hearts; ${r.pulse}</div>` : '';
+        const pulse = r.pulse ? `<span class="pulse-val">&hearts; ${r.pulse}</span>` : '';
+        const timeEmoji = new Date(r.measured_at).getHours() < 12 ? '🥐 Jutro' : '🌙 Vecer';
+        const userTags = (r.tags && r.tags.length) ? r.tags.map(t => `<span class="history-tag">${t}</span>`).join('') : '';
+        const tagChips = `<span class="history-tag">${timeEmoji}</span>${userTags}`;
         return `
             <div class="history-item">
                 <div class="item-content">
-                    <div class="left">
+                    <div class="item-top">
                         <div class="values">${r.systolic}/${r.diastolic}</div>
                         ${pulse}
+                        <div class="item-right">
+                            <span class="badge ${bp.cls}">${bp.label}</span>
+                        </div>
                     </div>
-                    <span class="badge ${bp.cls}">${bp.label}</span>
-                    <div class="time">${time}</div>
                     <button class="delete-btn" onclick="askDelete(this)" title="Izbrisi">&times;</button>
                 </div>
+                <div class="history-bottom"><div class="tags-group">${tagChips}</div><span class="time">${time}</span></div>
                 <div class="confirm-bar">
-                    <span>Izbrisati?</span>
-                    <button class="confirm-yes" onclick="confirmDelete('${r.id}')">Da</button>
-                    <button class="confirm-no" onclick="cancelDelete(this)">Ne</button>
+                    <span class="confirm-text">Zelite izbrisati meritev?</span>
+                    <div class="confirm-actions">
+                        <button class="confirm-yes" onclick="confirmDelete('${r.id}')">Da</button>
+                        <button class="confirm-no" onclick="cancelDelete(this)">Ne</button>
+                    </div>
                 </div>
             </div>`;
     }).join('');
@@ -1277,7 +1566,7 @@ function loadDashboard() {
             <div class="avg-footer">Povprecje &middot; ${stats.count} meritev</div>
         </div>
         <div class="chart-card">
-            <h3>Krvni tlak in pulz</h3>
+            <h3>Meritve skozi cas</h3>
             <div class="chart-wrap"><canvas id="bpChart"></canvas></div>
         </div>
         <div class="chart-card square">
@@ -1367,7 +1656,7 @@ function renderMorningEveningChart(readings) {
         return Math.round(Math.sqrt(arr.reduce((a, v) => a + (v - m) ** 2, 0) / arr.length));
     };
 
-    const labels = ['Jutro', 'Vecer'];
+    const labels = ['🥐 Jutro', '🌙 Vecer'];
     const sysAvgs = [avg(morning.sys), avg(evening.sys)];
     const diaAvgs = [avg(morning.dia), avg(evening.dia)];
     const sysStds = [std(morning.sys), std(evening.sys)];
