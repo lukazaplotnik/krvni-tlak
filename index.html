@@ -994,7 +994,7 @@ Odjava
         <div class="modal-label">Ime in priimek</div>
         <input type="text" class="modal-input" id="shareName" placeholder="Janez Novak">
         <div class="modal-label">Datum rojstva</div>
-        <input type="text" class="modal-input" id="shareBirth" placeholder="DD.MM.LLLL" inputmode="numeric" maxlength="10" oninput="formatDateInput(this)">
+        <input type="text" class="modal-input" id="shareBirth" value="__.__.____" inputmode="numeric" maxlength="10" onfocus="initDateInput(this)" oninput="formatDateInput(this)">
         <div style="border-top:1px solid var(--border);margin:16px 0"></div>
         <div class="modal-label">Format</div>
         <div class="modal-chips" id="shareFormat">
@@ -1407,12 +1407,23 @@ function doExport() {
     }
 }
 
+function initDateInput(el) {
+    if (el.value === '__.__.____') {
+        el.value = '';
+    }
+}
+
 function formatDateInput(el) {
-    let v = el.value.replace(/[^\d]/g, '');
-    if (v.length > 2) v = v.slice(0, 2) + '.' + v.slice(2);
-    if (v.length > 5) v = v.slice(0, 5) + '.' + v.slice(5);
-    if (v.length > 10) v = v.slice(0, 10);
-    el.value = v;
+    let digits = el.value.replace(/[^\d]/g, '').slice(0, 8);
+    let result = '';
+    for (let i = 0; i < 8; i++) {
+        if (i === 2 || i === 4) result += '.';
+        result += i < digits.length ? digits[i] : '_';
+    }
+    el.value = result;
+    // Move cursor to the right position
+    const pos = digits.length + (digits.length > 2 ? 1 : 0) + (digits.length > 4 ? 1 : 0);
+    el.setSelectionRange(pos, pos);
 }
 
 function isValidDate(str) {
@@ -1425,7 +1436,8 @@ function isValidDate(str) {
 
 async function doShare() {
     const name = document.getElementById('shareName').value.trim();
-    const birth = document.getElementById('shareBirth').value;
+    const birthRaw = document.getElementById('shareBirth').value;
+    const birth = birthRaw.includes('_') ? '' : birthRaw;
     const format = document.querySelector('#shareFormat .modal-chip.selected').textContent;
     const days = parseInt(document.querySelector('#sharePeriod .modal-chip.selected').dataset.days) || null;
 
