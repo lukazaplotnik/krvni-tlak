@@ -812,11 +812,13 @@ body {
 .accordion.open .accordion-header .chevron { transform: rotate(90deg); }
 
 .accordion-body {
-    display: none;
-    padding: 12px 14px 16px;
+    max-height: 0;
+    overflow: hidden;
+    padding: 0 14px;
+    transition: max-height 0.3s ease, padding 0.3s ease;
 }
 
-.accordion.open .accordion-body { display: block; }
+.accordion.open .accordion-body { max-height: 800px; padding: 12px 14px 16px; }
 
 .acc-sub {
     display: flex;
@@ -832,14 +834,16 @@ body {
 .acc-sub.open .chevron { transform: rotate(90deg); }
 
 .acc-sub-body {
-    display: none;
-    padding: 8px 0 4px;
+    max-height: 0;
+    overflow: hidden;
     font-size: 12px;
     color: var(--text2);
     line-height: 1.6;
+    transition: max-height 0.3s ease, padding 0.3s ease;
+    padding: 0;
 }
 
-.acc-sub.open + .acc-sub-body { display: block; }
+.acc-sub.open + .acc-sub-body { max-height: 500px; padding: 8px 0 4px; }
 
 .acc-sub-body ol { padding-left: 18px; }
 .acc-sub-body p { margin-bottom: 4px; }
