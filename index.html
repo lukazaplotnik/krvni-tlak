@@ -1716,7 +1716,17 @@ function renderHistory() {
     list.innerHTML = items + moreBtn;
 }
 
-// ===== EXPORT TO EXCEL (CSV) =====
+// ===== EXPORT =====
+const RATING_COLORS = {
+    optimal:      { bg: 'C2E0C6', text: '1A5C2A', rgb: [194,224,198] },
+    normal:       { bg: 'D4EDDA', text: '155724', rgb: [212,237,218] },
+    'high-normal':{ bg: 'E0F0D0', text: '4A7A2A', rgb: [224,240,208] },
+    grade1:       { bg: 'FFF3CD', text: '856404', rgb: [255,243,205] },
+    grade2:       { bg: 'FFE0CC', text: 'CC4400', rgb: [255,224,204] },
+    grade3:       { bg: 'F8D7DA', text: '721C24', rgb: [248,215,218] },
+    crisis:       { bg: 'E74C3C', text: 'FFFFFF', rgb: [231,76,60] },
+};
+
 function _getExportData(days) {
     const readings = days ? Store.getReadings(days) : Store.getReadings();
     if (!readings.length) { alert('Ni meritev za izvoz.'); return null; }
@@ -1731,6 +1741,7 @@ function _getExportData(days) {
             Pulz: r.pulse || '',
             Ocena: bp.label,
             Oznake: (r.tags || []).join(', '),
+            _cls: bp.cls,
         };
     });
 }
@@ -1739,7 +1750,21 @@ function exportXlsx(days) {
     const data = _getExportData(days);
     if (!data) return;
 
-    const ws = XLSX.utils.json_to_sheet(data);
+    // Remove _cls before creating sheet
+    const sheetData = data.map(({ _cls, ...rest }) => rest);
+    const ws = XLSX.utils.json_to_sheet(sheetData);
+
+    // Color the Ocena column (F) based on rating
+    data.forEach((r, i) => {
+        const cell = ws['F' + (i + 2)]; // +2 for header row
+        if (cell && RATING_COLORS[r._cls]) {
+            const c = RATING_COLORS[r._cls];
+            cell.s = {
+                fill: { fgColor: { rgb: c.bg } },
+                font: { color: { rgb: c.text } },
+            };
+        }
+    });
 
     // Column widths
     ws['!cols'] = [
@@ -1825,6 +1850,18 @@ function exportPdf(days, patientName, patientBirth) {
             4: { cellWidth: 12 },
             5: { cellWidth: 24 },
             6: { cellWidth: 'auto' },
+        },
+        didParseCell: function(hookData) {
+            // Color the Ocena column (index 5)
+            if (hookData.section === 'body' && hookData.column.index === 5) {
+                const cls = data[hookData.row.index]._cls;
+                const c = RATING_COLORS[cls];
+                if (c) {
+                    hookData.cell.styles.fillColor = c.rgb;
+                    hookData.cell.styles.textColor = c.text === 'FFFFFF' ? [255,255,255] :
+                        [parseInt(c.text.slice(0,2),16), parseInt(c.text.slice(2,4),16), parseInt(c.text.slice(4,6),16)];
+                }
+            }
         },
     });
 
