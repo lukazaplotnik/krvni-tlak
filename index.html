@@ -912,6 +912,33 @@ body {
 
 .modal-input:focus { border-color: var(--primary); }
 
+.date-fields {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    margin-bottom: 4px;
+}
+
+.date-field {
+    flex: 1;
+    padding: 10px 8px;
+    border: 2px solid var(--border);
+    border-radius: 10px;
+    font-size: 16px;
+    font-weight: 600;
+    text-align: center;
+    color: var(--text);
+    outline: none;
+    -moz-appearance: textfield;
+}
+
+.date-field::-webkit-inner-spin-button,
+.date-field::-webkit-outer-spin-button { -webkit-appearance: none; }
+.date-field::placeholder { color: #D0D5DD; font-weight: 400; font-size: 13px; }
+.date-field:focus { border-color: var(--primary); }
+.date-year { flex: 1.5; }
+.date-dot { color: #B0B7C3; font-size: 18px; font-weight: 600; }
+
 .modal-btn {
     width: 100%;
     padding: 14px;
@@ -994,7 +1021,13 @@ Odjava
         <div class="modal-label">Ime in priimek</div>
         <input type="text" class="modal-input" id="shareName" placeholder="Janez Novak">
         <div class="modal-label">Datum rojstva</div>
-        <input type="text" class="modal-input" id="shareBirth" value="__.__.____" inputmode="numeric" maxlength="10" onfocus="initDateInput(this)" oninput="formatDateInput(this)">
+        <div class="date-fields">
+            <input type="number" class="date-field" id="birthDay" placeholder="Dan" inputmode="numeric" min="1" max="31" oninput="if(this.value.length>=2)document.getElementById('birthMonth').focus()">
+            <span class="date-dot">.</span>
+            <input type="number" class="date-field" id="birthMonth" placeholder="Mesec" inputmode="numeric" min="1" max="12" oninput="if(this.value.length>=2)document.getElementById('birthYear').focus()">
+            <span class="date-dot">.</span>
+            <input type="number" class="date-field date-year" id="birthYear" placeholder="Leto" inputmode="numeric" min="1900" max="2026">
+        </div>
         <div style="border-top:1px solid var(--border);margin:16px 0"></div>
         <div class="modal-label">Format</div>
         <div class="modal-chips" id="shareFormat">
@@ -1407,42 +1440,16 @@ function doExport() {
     }
 }
 
-function initDateInput(el) {
-    if (el.value === '__.__.____') {
-        el.value = '';
-    }
-}
-
-function formatDateInput(el) {
-    let digits = el.value.replace(/[^\d]/g, '').slice(0, 8);
-    let result = '';
-    for (let i = 0; i < 8; i++) {
-        if (i === 2 || i === 4) result += '.';
-        result += i < digits.length ? digits[i] : '_';
-    }
-    el.value = result;
-    // Move cursor to the right position
-    const pos = digits.length + (digits.length > 2 ? 1 : 0) + (digits.length > 4 ? 1 : 0);
-    el.setSelectionRange(pos, pos);
-}
-
-function isValidDate(str) {
-    const m = str.match(/^(\d{2})\.(\d{2})\.(\d{4})$/);
-    if (!m) return false;
-    const d = parseInt(m[1]), mo = parseInt(m[2]), y = parseInt(m[3]);
-    if (d < 1 || d > 31 || mo < 1 || mo > 12 || y < 1900 || y > 2026) return false;
-    return true;
-}
-
 async function doShare() {
     const name = document.getElementById('shareName').value.trim();
-    const birthRaw = document.getElementById('shareBirth').value;
-    const birth = birthRaw.includes('_') ? '' : birthRaw;
+    const bDay = document.getElementById('birthDay').value;
+    const bMonth = document.getElementById('birthMonth').value;
+    const bYear = document.getElementById('birthYear').value;
+    const birth = (bDay && bMonth && bYear) ? `${bDay.padStart(2,'0')}.${bMonth.padStart(2,'0')}.${bYear}` : '';
     const format = document.querySelector('#shareFormat .modal-chip.selected').textContent;
     const days = parseInt(document.querySelector('#sharePeriod .modal-chip.selected').dataset.days) || null;
 
     if (!name) { alert('Vnesite ime in priimek'); return; }
-    if (birth && !isValidDate(birth)) { alert('Neveljaven datum (DD.MM.LLLL)'); return; }
 
     const dateStr = new Date().toISOString().slice(0, 10);
     let file, filename;
