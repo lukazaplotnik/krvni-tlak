@@ -353,44 +353,62 @@ body {
 /* DASHBOARD */
 .avg-bar {
     background: var(--card);
-    border-radius: var(--radius);
-    padding: 18px 16px 14px;
+    border-radius: 12px;
     box-shadow: var(--shadow);
     margin-bottom: 20px;
+    overflow: visible;
+    position: relative;
 }
 
-.avg-cols {
+.avg-bar .avg-top {
+    padding: 12px 16px 10px;
     display: flex;
-    text-align: center;
-}
-
-.avg-col {
-    flex: 1;
-    display: flex;
-    flex-direction: column;
     align-items: center;
-    gap: 4px;
+    gap: 8px;
 }
 
-.avg-col .avg-col-label {
-    font-size: 10px;
+.avg-bar .avg-values {
+    font-size: 20px;
+    font-weight: 700;
+}
+
+.avg-bar .avg-pulse {
+    font-size: 13px;
     color: var(--text2);
+    font-weight: 400;
+}
+
+.avg-bar .avg-right {
+    margin-left: auto;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.avg-bar .avg-badge {
+    display: inline-block;
+    padding: 2px 10px;
+    border-radius: 20px;
+    font-size: 11px;
     font-weight: 600;
-    text-transform: uppercase;
-    letter-spacing: 0.5px;
+    background: rgba(74,144,217,0.1);
+    color: var(--primary);
 }
 
-.avg-col .avg-col-value {
-    font-size: 26px;
-    font-weight: 800;
-    color: var(--text);
-    letter-spacing: -0.5px;
+.avg-bar .avg-bottom {
+    display: flex;
+    align-items: center;
+    padding: 0 16px 10px;
+    gap: 6px;
 }
 
+.avg-bar .avg-label {
+    font-size: 11px;
+    color: #C0C5CC;
+}
 
-.avg-footer {
-    text-align: center;
-    margin-top: 10px;
+.avg-bar .avg-count {
+    margin-left: auto;
     font-size: 11px;
     color: #C0C5CC;
 }
@@ -823,9 +841,10 @@ body {
 .acc-sub {
     display: flex;
     align-items: center;
-    padding: 8px 0;
+    padding: 9px 0;
     font-size: 13px;
-    color: var(--text2);
+    font-weight: 600;
+    color: var(--text);
     cursor: pointer;
     border-bottom: 1px solid var(--border);
 }
@@ -837,7 +856,7 @@ body {
     max-height: 0;
     overflow: hidden;
     font-size: 12px;
-    color: var(--text2);
+    color: #9CA3AF;
     line-height: 1.6;
     transition: max-height 0.3s ease, padding 0.3s ease;
     padding: 0;
@@ -2129,27 +2148,21 @@ function loadDashboard() {
     }
 
     const periodLabel = currentDays > 0 ? `${currentDays} dni` : 'vse';
-    const pulseCol = stats.avg_pulse
-        ? `<div class="avg-col pulse">
-                <span class="avg-col-label">Pulz</span>
-                <span class="avg-col-value">${Math.round(stats.avg_pulse)}</span>
-           </div>`
-        : '';
+    const pulseHtml = stats.avg_pulse ? `<span class="avg-pulse">&hearts; ${Math.round(stats.avg_pulse)}</span>` : '';
 
     content.innerHTML = `
         <div class="avg-bar">
-            <div class="avg-cols">
-                <div class="avg-col">
-                    <span class="avg-col-label">Sistolicni</span>
-                    <span class="avg-col-value">${Math.round(stats.avg_systolic)}</span>
+            <div class="avg-top">
+                <div class="avg-values">${Math.round(stats.avg_systolic)}/${Math.round(stats.avg_diastolic)}</div>
+                ${pulseHtml}
+                <div class="avg-right">
+                    <span class="avg-badge">Povprecje</span>
                 </div>
-                <div class="avg-col">
-                    <span class="avg-col-label">Diastolicni</span>
-                    <span class="avg-col-value">${Math.round(stats.avg_diastolic)}</span>
-                </div>
-                ${pulseCol}
             </div>
-            <div class="avg-footer">Povprecje &middot; ${stats.count} meritev</div>
+            <div class="avg-bottom">
+                <span class="avg-label">${periodLabel}</span>
+                <span class="avg-count">${stats.count} meritev</span>
+            </div>
         </div>
         <div class="chart-card">
             <h3>Meritve skozi cas</h3>
