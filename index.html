@@ -1540,6 +1540,8 @@ function formatBirthInput(el) {
     // Add trailing dot after day or month
     if (digits.length === 2 || digits.length === 4) v += '.';
     el.value = v;
+    // Close keyboard after full date entered
+    if (digits.length === 8) el.blur();
 }
 
 async function doShare() {
