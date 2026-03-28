@@ -1068,13 +1068,7 @@ body {
         <div class="modal-label">Ime in priimek</div>
         <input type="text" class="modal-input" id="shareName" placeholder="Janez Novak">
         <div class="modal-label">Datum rojstva</div>
-        <div class="date-fields">
-            <input type="text" class="date-field" id="birthDay" placeholder="DD" inputmode="numeric" maxlength="2" oninput="this.value=this.value.replace(/\D/g,'').slice(0,2); if(this.value.length>=2)document.getElementById('birthMonth').focus()" onblur="if(this.value.length===1)this.value='0'+this.value">
-            <span class="date-dot">.</span>
-            <input type="text" class="date-field" id="birthMonth" placeholder="MM" inputmode="numeric" maxlength="2" oninput="this.value=this.value.replace(/\D/g,'').slice(0,2); if(this.value.length>=2)document.getElementById('birthYear').focus()" onblur="if(this.value.length===1)this.value='0'+this.value">
-            <span class="date-dot">.</span>
-            <input type="text" class="date-field date-year" id="birthYear" placeholder="LLLL" inputmode="numeric" maxlength="4" oninput="this.value=this.value.replace(/\D/g,'').slice(0,4)">
-        </div>
+        <input type="text" class="modal-input" id="shareBirth" placeholder="DD.MM.LLLL" inputmode="numeric" maxlength="10" oninput="formatBirthInput(this)">
         <div style="border-top:1px solid var(--border);margin:16px 0"></div>
         <div class="modal-label">Format</div>
         <div class="modal-chips" id="shareFormat">
@@ -1543,12 +1537,19 @@ function doExport() {
     }
 }
 
+function formatBirthInput(el) {
+    let digits = el.value.replace(/\D/g, '').slice(0, 8);
+    let v = '';
+    for (let i = 0; i < digits.length; i++) {
+        if (i === 2 || i === 4) v += '.';
+        v += digits[i];
+    }
+    el.value = v;
+}
+
 async function doShare() {
     const name = document.getElementById('shareName').value.trim();
-    const bDay = document.getElementById('birthDay').value;
-    const bMonth = document.getElementById('birthMonth').value;
-    const bYear = document.getElementById('birthYear').value;
-    const birth = (bDay && bMonth && bYear) ? `${bDay.padStart(2,'0')}.${bMonth.padStart(2,'0')}.${bYear}` : '';
+    const birth = document.getElementById('shareBirth').value;
     const format = document.querySelector('#shareFormat .modal-chip.selected').textContent;
     const days = parseInt(document.querySelector('#sharePeriod .modal-chip.selected').dataset.days) || null;
 
