@@ -1182,8 +1182,9 @@ body {
                 <input type="text" class="acc-input" id="shareName" placeholder="Ime in priimek">
                 <input type="text" class="acc-input" id="shareBirth" placeholder="Datum rojstva (DD.MM.LLLL)" inputmode="numeric" maxlength="10" oninput="formatBirthInput(this)">
                 <div class="modal-label" style="margin-top:8px">Format</div>
-                <div class="modal-chips">
-                    <div class="modal-chip selected">PDF</div>
+                <div class="modal-chips" id="shareFormat">
+                    <div class="modal-chip selected" onclick="selectChip(this)">PDF</div>
+                    <div class="modal-chip" onclick="selectChip(this)">Excel</div>
                 </div>
                 <div class="modal-label" style="margin-top:8px">Obdobje</div>
                 <div class="modal-chips" id="sharePeriod">
@@ -1609,18 +1610,31 @@ function formatBirthInput(el) {
 async function doShare() {
     const name = document.getElementById('shareName').value.trim();
     const birth = document.getElementById('shareBirth').value;
+    const format = document.querySelector('#shareFormat .modal-chip.selected').textContent;
     const days = parseInt(document.querySelector('#sharePeriod .modal-chip.selected').dataset.days) || null;
 
     if (!name) { alert('Vnesite ime in priimek'); return; }
 
-    const doc = exportPdf(days, name, birth);
-    if (!doc) return;
-
     const safeName = name.replace(/\s+/g, '-').toLowerCase();
     const dateStr = new Date().toISOString().slice(0, 10);
-    const filename = 'krvni-tlak-' + safeName + '-' + dateStr + '.pdf';
-    const blob = doc.output('blob');
-    const file = new File([blob], filename, { type: 'application/pdf' });
+    let file, filename;
+
+    if (format === 'PDF') {
+        const doc = exportPdf(days, name, birth);
+        if (!doc) return;
+        filename = 'krvni-tlak-' + safeName + '-' + dateStr + '.pdf';
+        file = new File([doc.output('blob')], filename, { type: 'application/pdf' });
+    } else {
+        const expData = _getExportData(days);
+        if (!expData) return;
+        const sheetData = expData.map(({ _cls, ...rest }) => rest);
+        const ws = XLSX.utils.json_to_sheet(sheetData);
+        const wb = XLSX.utils.book_new();
+        XLSX.utils.book_append_sheet(wb, ws, 'Meritve');
+        const wbOut = XLSX.write(wb, { bookType: 'xlsx', type: 'array' });
+        filename = 'krvni-tlak-' + safeName + '-' + dateStr + '.xlsx';
+        file = new File([wbOut], filename, { type: 'application/octet-stream' });
+    }
 
     closeSettings();
 
@@ -2043,78 +2057,151 @@ function exportPdf(days, patientName, patientBirth) {
 
     const { jsPDF } = window.jspdf;
     const doc = new jsPDF();
+    const pw = doc.internal.pageSize.getWidth();
     const stats = days ? Store.getStats(days) : Store.getStats();
+    const me = _getMorningEveningStats(days);
     const today = new Date().toLocaleDateString('sl-SI');
     const periodLabel = days ? `zadnjih ${days} dni` : 'celotno obdobje';
+    const bp = classifyBP(Math.round(stats.avg_systolic), Math.round(stats.avg_diastolic));
 
-    // Title
-    doc.setFontSize(18);
-    doc.text('Porocilo o meritvah krvnega tlaka', 14, 20);
-    doc.setFontSize(10);
-    doc.setTextColor(150);
-    doc.text('Generirano: ' + today, 14, 27);
+    // ── Header bar ──
+    doc.setFillColor(74, 144, 217);
+    doc.rect(0, 0, pw, 28, 'F');
+    doc.setFontSize(16);
+    doc.setTextColor(255);
+    doc.text('Porocilo o meritvah krvnega tlaka', 14, 14);
+    doc.setFontSize(9);
+    doc.text('Generirano: ' + today, 14, 22);
 
-    let y = 36;
+    let y = 38;
 
-    // Patient info
+    // ── Patient info box ──
     if (patientName) {
+        doc.setFillColor(245, 246, 250);
+        doc.roundedRect(14, y - 4, pw - 28, patientBirth ? 20 : 14, 3, 3, 'F');
         doc.setFontSize(11);
-        doc.setTextColor(0);
-        doc.text(`Pacient: ${patientName}`, 14, y); y += 6;
-        if (patientBirth) { doc.text(`Datum rojstva: ${patientBirth}`, 14, y); y += 6; }
-        y += 4;
+        doc.setTextColor(26, 26, 46);
+        doc.text(patientName, 20, y + 4);
+        if (patientBirth) {
+            doc.setFontSize(9);
+            doc.setTextColor(107, 114, 128);
+            doc.text('Datum rojstva: ' + patientBirth, 20, y + 12);
+        }
+        y += patientBirth ? 24 : 18;
     }
 
-    // Summary
-    const me = _getMorningEveningStats(days);
-    doc.setFontSize(12);
-    doc.setTextColor(0);
-    doc.text('Povzetek', 14, y); y += 7;
-    doc.setFontSize(10);
-    doc.text(`Obdobje: ${periodLabel}`, 14, y); y += 6;
-    doc.text(`Stevilo meritev: ${stats.count}`, 14, y); y += 6;
-    doc.text(`Povprecje: ${Math.round(stats.avg_systolic)}/${Math.round(stats.avg_diastolic)} mmHg`, 14, y); y += 6;
-    if (stats.avg_pulse) { doc.text(`Povprecni pulz: ${Math.round(stats.avg_pulse)} u/min`, 14, y); y += 6; }
+    // ── Summary cards row ──
     y += 4;
-    if (me.morning.count) {
-        doc.text(`Jutro (${me.morning.count}x): ${me.morning.sys}/${me.morning.dia} mmHg` + (me.morning.pulse ? `, pulz ${me.morning.pulse}` : ''), 14, y); y += 6;
-    }
-    if (me.evening.count) {
-        doc.text(`Vecer (${me.evening.count}x): ${me.evening.sys}/${me.evening.dia} mmHg` + (me.evening.pulse ? `, pulz ${me.evening.pulse}` : ''), 14, y); y += 6;
+    const cardW = (pw - 28 - 8) / 3;
+    const cards = [
+        { label: 'Povprecje', value: `${Math.round(stats.avg_systolic)}/${Math.round(stats.avg_diastolic)}`, sub: 'mmHg' },
+        { label: 'Pulz', value: stats.avg_pulse ? Math.round(stats.avg_pulse) : '-', sub: 'u/min' },
+        { label: 'Meritve', value: stats.count, sub: periodLabel },
+    ];
+    cards.forEach((card, i) => {
+        const x = 14 + i * (cardW + 4);
+        doc.setFillColor(245, 246, 250);
+        doc.roundedRect(x, y, cardW, 22, 3, 3, 'F');
+        doc.setFontSize(8);
+        doc.setTextColor(107, 114, 128);
+        doc.text(card.label, x + cardW/2, y + 6, { align: 'center' });
+        doc.setFontSize(14);
+        doc.setTextColor(26, 26, 46);
+        doc.text(String(card.value), x + cardW/2, y + 15, { align: 'center' });
+        doc.setFontSize(7);
+        doc.setTextColor(156, 163, 175);
+        doc.text(card.sub, x + cardW/2, y + 20, { align: 'center' });
+    });
+    y += 28;
+
+    // ── Morning / Evening comparison ──
+    if (me.morning.count || me.evening.count) {
+        const halfW = (pw - 28 - 4) / 2;
+        if (me.morning.count) {
+            doc.setFillColor(255, 249, 235);
+            doc.roundedRect(14, y, halfW, 16, 3, 3, 'F');
+            doc.setFontSize(8);
+            doc.setTextColor(107, 114, 128);
+            doc.text('Jutro', 16, y + 6);
+            doc.setFontSize(10);
+            doc.setTextColor(26, 26, 46);
+            doc.text(`${me.morning.sys}/${me.morning.dia}`, 16, y + 13);
+            doc.setFontSize(8);
+            doc.setTextColor(156, 163, 175);
+            doc.text(`${me.morning.count}x`, 14 + halfW - 4, y + 6, { align: 'right' });
+            if (me.morning.pulse) doc.text(`${me.morning.pulse} u/min`, 14 + halfW - 4, y + 13, { align: 'right' });
+        }
+        if (me.evening.count) {
+            const ex = 14 + halfW + 4;
+            doc.setFillColor(238, 237, 252);
+            doc.roundedRect(ex, y, halfW, 16, 3, 3, 'F');
+            doc.setFontSize(8);
+            doc.setTextColor(107, 114, 128);
+            doc.text('Vecer', ex + 2, y + 6);
+            doc.setFontSize(10);
+            doc.setTextColor(26, 26, 46);
+            doc.text(`${me.evening.sys}/${me.evening.dia}`, ex + 2, y + 13);
+            doc.setFontSize(8);
+            doc.setTextColor(156, 163, 175);
+            doc.text(`${me.evening.count}x`, ex + halfW - 4, y + 6, { align: 'right' });
+            if (me.evening.pulse) doc.text(`${me.evening.pulse} u/min`, ex + halfW - 4, y + 13, { align: 'right' });
+        }
+        y += 22;
     }
 
-    // Table
+    // ── Classification badge ──
+    const c = RATING_COLORS[bp.cls];
+    if (c) {
+        doc.setFillColor(...c.rgb);
+        doc.roundedRect(14, y, pw - 28, 12, 3, 3, 'F');
+        const tc = c.text === 'FFFFFF' ? [255,255,255] : [parseInt(c.text.slice(0,2),16), parseInt(c.text.slice(2,4),16), parseInt(c.text.slice(4,6),16)];
+        doc.setTextColor(...tc);
+        doc.setFontSize(9);
+        doc.text(`Povprecna ocena: ${bp.label}`, pw/2, y + 8, { align: 'center' });
+        y += 18;
+    }
+
+    // ── Data table ──
     const tableData = data.map(r => [r.Datum, r.Cas, r.Sistolicni, r.Diastolicni, r.Pulz, r.Ocena, r.Oznake]);
 
     doc.autoTable({
-        startY: y + 4,
+        startY: y,
         head: [['Datum', 'Cas', 'Sis', 'Dia', 'Pulz', 'Ocena', 'Oznake']],
         body: tableData,
-        styles: { fontSize: 8, cellPadding: 2 },
-        headStyles: { fillColor: [74, 144, 217], textColor: 255, fontStyle: 'bold' },
-        alternateRowStyles: { fillColor: [245, 246, 250] },
+        styles: { fontSize: 7.5, cellPadding: 2, lineColor: [229, 231, 235], lineWidth: 0.1 },
+        headStyles: { fillColor: [74, 144, 217], textColor: 255, fontStyle: 'bold', fontSize: 8 },
+        alternateRowStyles: { fillColor: [250, 250, 252] },
         columnStyles: {
-            0: { cellWidth: 22 },
-            1: { cellWidth: 14 },
-            2: { cellWidth: 12 },
-            3: { cellWidth: 12 },
-            4: { cellWidth: 12 },
-            5: { cellWidth: 24 },
-            6: { cellWidth: 30 },
+            0: { cellWidth: 20 },
+            1: { cellWidth: 13 },
+            2: { cellWidth: 11, halign: 'center' },
+            3: { cellWidth: 11, halign: 'center' },
+            4: { cellWidth: 11, halign: 'center' },
+            5: { cellWidth: 22 },
+            6: { cellWidth: 'auto' },
         },
         didParseCell: function(hookData) {
-            // Color the Ocena column (index 5)
             if (hookData.section === 'body' && hookData.column.index === 5) {
                 const cls = data[hookData.row.index]._cls;
-                const c = RATING_COLORS[cls];
-                if (c) {
-                    hookData.cell.styles.fillColor = c.rgb;
-                    hookData.cell.styles.textColor = c.text === 'FFFFFF' ? [255,255,255] :
-                        [parseInt(c.text.slice(0,2),16), parseInt(c.text.slice(2,4),16), parseInt(c.text.slice(4,6),16)];
+                const rc = RATING_COLORS[cls];
+                if (rc) {
+                    hookData.cell.styles.fillColor = rc.rgb;
+                    hookData.cell.styles.textColor = rc.text === 'FFFFFF' ? [255,255,255] :
+                        [parseInt(rc.text.slice(0,2),16), parseInt(rc.text.slice(2,4),16), parseInt(rc.text.slice(4,6),16)];
                 }
             }
         },
     });
+
+    // ── Footer ──
+    const pageCount = doc.internal.getNumberOfPages();
+    for (let i = 1; i <= pageCount; i++) {
+        doc.setPage(i);
+        doc.setFontSize(7);
+        doc.setTextColor(180);
+        doc.text('BostAI • ESC/ESH 2018', 14, doc.internal.pageSize.getHeight() - 8);
+        doc.text(`${i}/${pageCount}`, pw - 14, doc.internal.pageSize.getHeight() - 8, { align: 'right' });
+    }
 
     return doc;
 }
