@@ -810,6 +810,118 @@ body {
     color: #C0C5CC;
     padding-top: 20px;
 }
+
+/* MODAL PANELS */
+.modal-overlay {
+    position: fixed;
+    inset: 0;
+    z-index: 95;
+    background: rgba(0,0,0,0.5);
+}
+
+.modal-panel {
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    z-index: 96;
+    background: var(--card);
+    border-radius: var(--radius);
+    padding: 24px 20px;
+    box-shadow: 0 8px 30px rgba(0,0,0,0.15);
+    width: 90%;
+    max-width: 340px;
+}
+
+.modal-close {
+    position: absolute;
+    top: -6px;
+    right: -6px;
+    background: var(--card);
+    border: 1.5px solid #E5E7EB;
+    color: #C9CED6;
+    font-size: 12px;
+    cursor: pointer;
+    width: 20px;
+    height: 20px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.08);
+}
+
+.modal-title {
+    font-size: 16px;
+    font-weight: 600;
+    margin-bottom: 16px;
+}
+
+.modal-label {
+    font-size: 11px;
+    font-weight: 600;
+    color: var(--text2);
+    text-transform: uppercase;
+    letter-spacing: 0.3px;
+    margin-bottom: 6px;
+    margin-top: 12px;
+}
+
+.modal-label:first-of-type { margin-top: 0; }
+
+.modal-chips {
+    display: flex;
+    gap: 6px;
+}
+
+.modal-chip {
+    flex: 1;
+    padding: 8px;
+    border: none;
+    border-radius: 10px;
+    font-size: 13px;
+    font-weight: 500;
+    color: var(--text2);
+    background: var(--bg);
+    cursor: pointer;
+    text-align: center;
+    transition: all 0.15s;
+}
+
+.modal-chip.selected {
+    background: rgba(74,144,217,0.12);
+    color: var(--primary);
+    font-weight: 600;
+}
+
+.modal-input {
+    width: 100%;
+    padding: 10px 12px;
+    border: 2px solid var(--border);
+    border-radius: 10px;
+    font-size: 14px;
+    color: var(--text);
+    outline: none;
+    margin-bottom: 4px;
+}
+
+.modal-input:focus { border-color: var(--primary); }
+
+.modal-btn {
+    width: 100%;
+    padding: 14px;
+    background: var(--primary);
+    color: white;
+    border: none;
+    border-radius: 12px;
+    font-size: 15px;
+    font-weight: 600;
+    cursor: pointer;
+    margin-top: 16px;
+    transition: all 0.2s;
+}
+
+.modal-btn:active { transform: scale(0.98); }
     </style>
 </head>
 <body>
@@ -835,13 +947,13 @@ body {
             <div class="settings-value" id="settingsEmail">—</div>
         </div>
         <div class="settings-section">
-            <button class="settings-action" onclick="exportXlsx(); closeSettings();">
+            <button class="settings-action" onclick="closeSettings(); openExportPanel();">
                 <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#1A1A2E" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
-                Izvozi v Excel
+                Izvozi podatke
             </button>
-            <button class="settings-action" onclick="exportPdf(); closeSettings();">
-                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#1A1A2E" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg>
-                Izvozi v PDF
+            <button class="settings-action" onclick="closeSettings(); openSharePanel();">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#1A1A2E" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/></svg>
+                Deli z zdravnikom
             </button>
             <button class="settings-action" onclick="handleLogout()">
                 <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#1A1A2E" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
@@ -849,6 +961,43 @@ body {
             </button>
         </div>
         <div class="settings-version">BostAI v1.0</div>
+    </div>
+
+    <!-- EXPORT PANEL -->
+    <div class="modal-overlay hidden" id="exportOverlay" onclick="closeExportPanel()"></div>
+    <div class="modal-panel hidden" id="exportPanel">
+        <button class="modal-close" onclick="closeExportPanel()">&times;</button>
+        <div class="modal-title">Izvozi podatke</div>
+        <div class="modal-label">Format</div>
+        <div class="modal-chips" id="exportFormat">
+            <div class="modal-chip selected" onclick="selectChip(this)">Excel</div>
+            <div class="modal-chip" onclick="selectChip(this)">PDF</div>
+        </div>
+        <div class="modal-label">Obdobje</div>
+        <div class="modal-chips" id="exportPeriod">
+            <div class="modal-chip selected" data-days="30" onclick="selectChip(this)">30 dni</div>
+            <div class="modal-chip" data-days="90" onclick="selectChip(this)">90 dni</div>
+            <div class="modal-chip" data-days="0" onclick="selectChip(this)">Vse</div>
+        </div>
+        <button class="modal-btn" onclick="doExport()">Izvozi</button>
+    </div>
+
+    <!-- SHARE PANEL -->
+    <div class="modal-overlay hidden" id="shareOverlay" onclick="closeSharePanel()"></div>
+    <div class="modal-panel hidden" id="sharePanel">
+        <button class="modal-close" onclick="closeSharePanel()">&times;</button>
+        <div class="modal-title">Deli z zdravnikom</div>
+        <div class="modal-label">Ime in priimek</div>
+        <input type="text" class="modal-input" id="shareName" placeholder="Janez Novak">
+        <div class="modal-label">Datum rojstva</div>
+        <input type="date" class="modal-input" id="shareBirth">
+        <div class="modal-label">Obdobje</div>
+        <div class="modal-chips" id="sharePeriod">
+            <div class="modal-chip selected" data-days="30" onclick="selectChip(this)">30 dni</div>
+            <div class="modal-chip" data-days="90" onclick="selectChip(this)">90 dni</div>
+            <div class="modal-chip" data-days="0" onclick="selectChip(this)">Vse</div>
+        </div>
+        <button class="modal-btn" onclick="doShare()">Pripravi porocilo</button>
     </div>
 
     <div class="tabs-row">
@@ -1210,6 +1359,76 @@ function closeSettings() {
     document.getElementById('settingsPanel').classList.add('hidden');
 }
 
+// ===== EXPORT & SHARE PANELS =====
+function selectChip(el) {
+    el.parentElement.querySelectorAll('.modal-chip').forEach(c => c.classList.remove('selected'));
+    el.classList.add('selected');
+}
+
+function openExportPanel() {
+    document.getElementById('exportOverlay').classList.remove('hidden');
+    document.getElementById('exportPanel').classList.remove('hidden');
+}
+
+function closeExportPanel() {
+    document.getElementById('exportOverlay').classList.add('hidden');
+    document.getElementById('exportPanel').classList.add('hidden');
+}
+
+function openSharePanel() {
+    document.getElementById('shareOverlay').classList.remove('hidden');
+    document.getElementById('sharePanel').classList.remove('hidden');
+}
+
+function closeSharePanel() {
+    document.getElementById('shareOverlay').classList.add('hidden');
+    document.getElementById('sharePanel').classList.add('hidden');
+}
+
+function doExport() {
+    const format = document.querySelector('#exportFormat .modal-chip.selected').textContent;
+    const days = parseInt(document.querySelector('#exportPeriod .modal-chip.selected').dataset.days) || null;
+    closeExportPanel();
+    if (format === 'Excel') {
+        exportXlsx(days);
+    } else {
+        const doc = exportPdf(days);
+        if (doc) doc.save('bostai-' + new Date().toISOString().slice(0, 10) + '.pdf');
+    }
+}
+
+async function doShare() {
+    const name = document.getElementById('shareName').value.trim();
+    const birth = document.getElementById('shareBirth').value;
+    const days = parseInt(document.querySelector('#sharePeriod .modal-chip.selected').dataset.days) || null;
+
+    if (!name) { alert('Vnesite ime in priimek'); return; }
+
+    const doc = exportPdf(days, name, birth);
+    if (!doc) return;
+
+    const filename = 'bostai-porocilo-' + new Date().toISOString().slice(0, 10) + '.pdf';
+    const blob = doc.output('blob');
+    const file = new File([blob], filename, { type: 'application/pdf' });
+
+    closeSharePanel();
+
+    // Try native share (mobile)
+    if (navigator.canShare && navigator.canShare({ files: [file] })) {
+        try {
+            await navigator.share({
+                title: 'BostAI - Porocilo',
+                text: `Porocilo o krvnem tlaku za ${name}`,
+                files: [file],
+            });
+            return;
+        } catch (e) { /* user cancelled or error — fall through to download */ }
+    }
+
+    // Fallback: download PDF
+    doc.save(filename);
+}
+
 
 // Global Chart.js defaults for mobile readability
 Chart.defaults.font.size = 13;
@@ -1498,8 +1717,8 @@ function renderHistory() {
 }
 
 // ===== EXPORT TO EXCEL (CSV) =====
-function _getExportData() {
-    const readings = Store.getReadings();
+function _getExportData(days) {
+    const readings = days ? Store.getReadings(days) : Store.getReadings();
     if (!readings.length) { alert('Ni meritev za izvoz.'); return null; }
     return readings.map(r => {
         const d = new Date(r.measured_at);
@@ -1516,8 +1735,8 @@ function _getExportData() {
     });
 }
 
-function exportXlsx() {
-    const data = _getExportData();
+function exportXlsx(days) {
+    const data = _getExportData(days);
     if (!data) return;
 
     const ws = XLSX.utils.json_to_sheet(data);
@@ -1537,7 +1756,7 @@ function exportXlsx() {
     XLSX.utils.book_append_sheet(wb, ws, 'Meritve');
 
     // Summary sheet
-    const stats = Store.getStats();
+    const stats = days ? Store.getStats(days) : Store.getStats();
     const summary = [
         { Metrika: 'Stevilo meritev', Vrednost: stats.count },
         { Metrika: 'Povp. sistolicni', Vrednost: Math.round(stats.avg_systolic) },
@@ -1551,36 +1770,48 @@ function exportXlsx() {
     XLSX.writeFile(wb, 'bostai-' + new Date().toISOString().slice(0, 10) + '.xlsx');
 }
 
-function exportPdf() {
-    const data = _getExportData();
+function exportPdf(days, patientName, patientBirth) {
+    const data = _getExportData(days);
     if (!data) return;
 
     const { jsPDF } = window.jspdf;
     const doc = new jsPDF();
-    const stats = Store.getStats();
+    const stats = days ? Store.getStats(days) : Store.getStats();
     const today = new Date().toLocaleDateString('sl-SI');
+    const periodLabel = days ? `zadnjih ${days} dni` : 'celotno obdobje';
 
     // Title
     doc.setFontSize(18);
-    doc.text('BostAI - Porocilo', 14, 20);
+    doc.text('BostAI - Porocilo o krvnem tlaku', 14, 20);
     doc.setFontSize(10);
     doc.setTextColor(150);
     doc.text('Generirano: ' + today, 14, 27);
 
+    let y = 36;
+
+    // Patient info
+    if (patientName) {
+        doc.setFontSize(11);
+        doc.setTextColor(0);
+        doc.text(`Pacient: ${patientName}`, 14, y); y += 6;
+        if (patientBirth) { doc.text(`Datum rojstva: ${new Date(patientBirth).toLocaleDateString('sl-SI')}`, 14, y); y += 6; }
+        doc.text(`Obdobje: ${periodLabel}`, 14, y); y += 10;
+    }
+
     // Summary
     doc.setFontSize(12);
     doc.setTextColor(0);
-    doc.text('Povzetek', 14, 38);
+    doc.text('Povzetek', 14, y); y += 7;
     doc.setFontSize(10);
-    doc.text(`Stevilo meritev: ${stats.count}`, 14, 45);
-    doc.text(`Povprecje: ${Math.round(stats.avg_systolic)}/${Math.round(stats.avg_diastolic)} mmHg`, 14, 51);
-    if (stats.avg_pulse) doc.text(`Povprecni pulz: ${Math.round(stats.avg_pulse)} u/min`, 14, 57);
+    doc.text(`Stevilo meritev: ${stats.count}`, 14, y); y += 6;
+    doc.text(`Povprecje: ${Math.round(stats.avg_systolic)}/${Math.round(stats.avg_diastolic)} mmHg`, 14, y); y += 6;
+    if (stats.avg_pulse) { doc.text(`Povprecni pulz: ${Math.round(stats.avg_pulse)} u/min`, 14, y); y += 6; }
 
     // Table
     const tableData = data.map(r => [r.Datum, r.Cas, r.Sistolicni, r.Diastolicni, r.Pulz, r.Ocena, r.Oznake]);
 
     doc.autoTable({
-        startY: stats.avg_pulse ? 64 : 58,
+        startY: y + 4,
         head: [['Datum', 'Cas', 'Sis', 'Dia', 'Pulz', 'Ocena', 'Oznake']],
         body: tableData,
         styles: { fontSize: 8, cellPadding: 2 },
@@ -1597,7 +1828,7 @@ function exportPdf() {
         },
     });
 
-    doc.save('bostai-' + new Date().toISOString().slice(0, 10) + '.pdf');
+    return doc;
 }
 
 // ===== DASHBOARD =====
