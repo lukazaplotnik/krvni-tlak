@@ -1852,7 +1852,7 @@ function exportPdf(days, patientName, patientBirth) {
         doc.setTextColor(0);
         doc.text(`Pacient: ${patientName}`, 14, y); y += 6;
         if (patientBirth) { doc.text(`Datum rojstva: ${new Date(patientBirth).toLocaleDateString('sl-SI')}`, 14, y); y += 6; }
-        doc.text(`Obdobje: ${periodLabel}`, 14, y); y += 10;
+        y += 4;
     }
 
     // Summary
@@ -1861,6 +1861,7 @@ function exportPdf(days, patientName, patientBirth) {
     doc.setTextColor(0);
     doc.text('Povzetek', 14, y); y += 7;
     doc.setFontSize(10);
+    doc.text(`Obdobje: ${periodLabel}`, 14, y); y += 6;
     doc.text(`Stevilo meritev: ${stats.count}`, 14, y); y += 6;
     doc.text(`Povprecje: ${Math.round(stats.avg_systolic)}/${Math.round(stats.avg_diastolic)} mmHg`, 14, y); y += 6;
     if (stats.avg_pulse) { doc.text(`Povprecni pulz: ${Math.round(stats.avg_pulse)} u/min`, 14, y); y += 6; }
