@@ -1531,7 +1531,7 @@ function doExport() {
         exportXlsx(days);
     } else {
         const doc = exportPdf(days);
-        if (doc) doc.save('bostai-' + new Date().toISOString().slice(0, 10) + '.pdf');
+        if (doc) doc.save('krvni-tlak-' + new Date().toISOString().slice(0, 10) + '.pdf');
     }
 }
 
@@ -1561,7 +1561,7 @@ async function doShare() {
     if (format === 'PDF') {
         const doc = exportPdf(days, name, birth);
         if (!doc) return;
-        filename = 'bostai-porocilo-' + dateStr + '.pdf';
+        filename = 'krvni-tlak-' + name.replace(/\s+/g, '-').toLowerCase() + '-' + dateStr + '.pdf';
         const blob = doc.output('blob');
         file = new File([blob], filename, { type: 'application/pdf' });
     } else {
@@ -1576,8 +1576,8 @@ async function doShare() {
     if (navigator.canShare && navigator.canShare({ files: [file] })) {
         try {
             await navigator.share({
-                title: 'BostAI - Porocilo',
-                text: `Porocilo o krvnem tlaku za ${name}`,
+                title: `Krvni tlak - ${name}`,
+                text: `Porocilo o meritvah krvnega tlaka za ${name}`,
                 files: [file],
             });
             return;
@@ -1982,7 +1982,7 @@ function exportXlsx(days) {
     ws2['!cols'] = [{ wch: 20 }, { wch: 12 }];
     XLSX.utils.book_append_sheet(wb, ws2, 'Povzetek');
 
-    XLSX.writeFile(wb, 'bostai-' + new Date().toISOString().slice(0, 10) + '.xlsx');
+    XLSX.writeFile(wb, 'krvni-tlak-' + new Date().toISOString().slice(0, 10) + '.xlsx');
 }
 
 function exportPdf(days, patientName, patientBirth) {
@@ -1997,7 +1997,7 @@ function exportPdf(days, patientName, patientBirth) {
 
     // Title
     doc.setFontSize(18);
-    doc.text('BostAI - Porocilo o krvnem tlaku', 14, 20);
+    doc.text('Porocilo o meritvah krvnega tlaka', 14, 20);
     doc.setFontSize(10);
     doc.setTextColor(150);
     doc.text('Generirano: ' + today, 14, 27);
