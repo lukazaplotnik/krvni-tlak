@@ -1067,11 +1067,6 @@ body {
         <div class="modal-label">Datum rojstva</div>
         <input type="text" class="modal-input" id="shareBirth" placeholder="DD.MM.LLLL" inputmode="numeric" maxlength="10" oninput="formatBirthInput(this)">
         <div style="border-top:1px solid var(--border);margin:16px 0"></div>
-        <div class="modal-label">Format</div>
-        <div class="modal-chips" id="shareFormat">
-            <div class="modal-chip selected" onclick="selectChip(this)">PDF</div>
-            <div class="modal-chip" onclick="selectChip(this)">Excel</div>
-        </div>
         <div class="modal-label">Obdobje</div>
         <div class="modal-chips" id="sharePeriod">
             <div class="modal-chip selected" data-days="30" onclick="selectChip(this)">30 dni</div>
@@ -1550,33 +1545,18 @@ function formatBirthInput(el) {
 async function doShare() {
     const name = document.getElementById('shareName').value.trim();
     const birth = document.getElementById('shareBirth').value;
-    const format = document.querySelector('#shareFormat .modal-chip.selected').textContent;
     const days = parseInt(document.querySelector('#sharePeriod .modal-chip.selected').dataset.days) || null;
 
     if (!name) { alert('Vnesite ime in priimek'); return; }
 
-    const dateStr = new Date().toISOString().slice(0, 10);
-    let file, filename;
+    const doc = exportPdf(days, name, birth);
+    if (!doc) return;
 
     const safeName = name.replace(/\s+/g, '-').toLowerCase();
-    if (format === 'PDF') {
-        const doc = exportPdf(days, name, birth);
-        if (!doc) return;
-        filename = 'krvni-tlak-' + safeName + '-' + dateStr + '.pdf';
-        const blob = doc.output('blob');
-        file = new File([blob], filename, { type: 'application/pdf' });
-    } else {
-        const data = _getExportData(days);
-        if (!data) return;
-        const sheetData = data.map(({ _cls, ...rest }) => rest);
-        const ws = XLSX.utils.json_to_sheet(sheetData);
-        const wb = XLSX.utils.book_new();
-        XLSX.utils.book_append_sheet(wb, ws, 'Meritve');
-        const wbOut = XLSX.write(wb, { bookType: 'xlsx', type: 'array' });
-        filename = 'krvni-tlak-' + safeName + '-' + dateStr + '.xlsx';
-        const blob = new Blob([wbOut], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
-        file = new File([blob], filename, { type: blob.type });
-    }
+    const dateStr = new Date().toISOString().slice(0, 10);
+    const filename = 'krvni-tlak-' + safeName + '-' + dateStr + '.pdf';
+    const blob = doc.output('blob');
+    const file = new File([blob], filename, { type: 'application/pdf' });
 
     closeSharePanel();
 
