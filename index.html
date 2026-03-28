@@ -14,6 +14,9 @@
     <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/chartjs-adapter-date-fns@3.0.0/dist/chartjs-adapter-date-fns.bundle.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2.2.0/dist/chartjs-plugin-datalabels.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/jspdf@2.5.1/dist/jspdf.umd.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/jspdf-autotable@3.8.2/dist/jspdf.plugin.autotable.min.js"></script>
     <style>
 * { margin: 0; padding: 0; box-sizing: border-box; }
 
@@ -832,9 +835,13 @@ body {
             <div class="settings-value" id="settingsEmail">—</div>
         </div>
         <div class="settings-section">
-            <button class="settings-action" onclick="exportExcel(); closeSettings();">
+            <button class="settings-action" onclick="exportXlsx(); closeSettings();">
                 <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#1A1A2E" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
-                Izvozi podatke
+                Izvozi v Excel
+            </button>
+            <button class="settings-action" onclick="exportPdf(); closeSettings();">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#1A1A2E" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg>
+                Izvozi v PDF
             </button>
             <button class="settings-action" onclick="handleLogout()">
                 <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#1A1A2E" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
@@ -1491,27 +1498,106 @@ function renderHistory() {
 }
 
 // ===== EXPORT TO EXCEL (CSV) =====
-function exportExcel() {
+function _getExportData() {
     const readings = Store.getReadings();
-    if (!readings.length) { alert('Ni meritev za izvoz.'); return; }
-
-    const BOM = '\uFEFF';
-    const header = 'Datum;Cas;Sistolicni;Diastolicni;Pulz;Ocena\n';
-    const rows = readings.map(r => {
+    if (!readings.length) { alert('Ni meritev za izvoz.'); return null; }
+    return readings.map(r => {
         const d = new Date(r.measured_at);
-        const date = d.toLocaleDateString('sl-SI');
-        const time = d.toLocaleTimeString('sl-SI', { hour: '2-digit', minute: '2-digit' });
         const bp = classifyBP(r.systolic, r.diastolic);
-        return `${date};${time};${r.systolic};${r.diastolic};${r.pulse || ''};${bp.label}`;
-    }).join('\n');
+        return {
+            Datum: d.toLocaleDateString('sl-SI'),
+            Cas: d.toLocaleTimeString('sl-SI', { hour: '2-digit', minute: '2-digit' }),
+            Sistolicni: r.systolic,
+            Diastolicni: r.diastolic,
+            Pulz: r.pulse || '',
+            Ocena: bp.label,
+            Oznake: (r.tags || []).join(', '),
+        };
+    });
+}
 
-    const blob = new Blob([BOM + header + rows], { type: 'text/csv;charset=utf-8;' });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = 'krvni-tlak-' + new Date().toISOString().slice(0,10) + '.csv';
-    a.click();
-    URL.revokeObjectURL(url);
+function exportXlsx() {
+    const data = _getExportData();
+    if (!data) return;
+
+    const ws = XLSX.utils.json_to_sheet(data);
+
+    // Column widths
+    ws['!cols'] = [
+        { wch: 12 }, // Datum
+        { wch: 8 },  // Cas
+        { wch: 11 }, // Sistolicni
+        { wch: 11 }, // Diastolicni
+        { wch: 6 },  // Pulz
+        { wch: 14 }, // Ocena
+        { wch: 30 }, // Oznake
+    ];
+
+    const wb = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb, ws, 'Meritve');
+
+    // Summary sheet
+    const stats = Store.getStats();
+    const summary = [
+        { Metrika: 'Stevilo meritev', Vrednost: stats.count },
+        { Metrika: 'Povp. sistolicni', Vrednost: Math.round(stats.avg_systolic) },
+        { Metrika: 'Povp. diastolicni', Vrednost: Math.round(stats.avg_diastolic) },
+        { Metrika: 'Povp. pulz', Vrednost: stats.avg_pulse ? Math.round(stats.avg_pulse) : '-' },
+    ];
+    const ws2 = XLSX.utils.json_to_sheet(summary);
+    ws2['!cols'] = [{ wch: 20 }, { wch: 12 }];
+    XLSX.utils.book_append_sheet(wb, ws2, 'Povzetek');
+
+    XLSX.writeFile(wb, 'bostai-' + new Date().toISOString().slice(0, 10) + '.xlsx');
+}
+
+function exportPdf() {
+    const data = _getExportData();
+    if (!data) return;
+
+    const { jsPDF } = window.jspdf;
+    const doc = new jsPDF();
+    const stats = Store.getStats();
+    const today = new Date().toLocaleDateString('sl-SI');
+
+    // Title
+    doc.setFontSize(18);
+    doc.text('BostAI - Porocilo', 14, 20);
+    doc.setFontSize(10);
+    doc.setTextColor(150);
+    doc.text('Generirano: ' + today, 14, 27);
+
+    // Summary
+    doc.setFontSize(12);
+    doc.setTextColor(0);
+    doc.text('Povzetek', 14, 38);
+    doc.setFontSize(10);
+    doc.text(`Stevilo meritev: ${stats.count}`, 14, 45);
+    doc.text(`Povprecje: ${Math.round(stats.avg_systolic)}/${Math.round(stats.avg_diastolic)} mmHg`, 14, 51);
+    if (stats.avg_pulse) doc.text(`Povprecni pulz: ${Math.round(stats.avg_pulse)} u/min`, 14, 57);
+
+    // Table
+    const tableData = data.map(r => [r.Datum, r.Cas, r.Sistolicni, r.Diastolicni, r.Pulz, r.Ocena, r.Oznake]);
+
+    doc.autoTable({
+        startY: stats.avg_pulse ? 64 : 58,
+        head: [['Datum', 'Cas', 'Sis', 'Dia', 'Pulz', 'Ocena', 'Oznake']],
+        body: tableData,
+        styles: { fontSize: 8, cellPadding: 2 },
+        headStyles: { fillColor: [74, 144, 217], textColor: 255, fontStyle: 'bold' },
+        alternateRowStyles: { fillColor: [245, 246, 250] },
+        columnStyles: {
+            0: { cellWidth: 22 },
+            1: { cellWidth: 14 },
+            2: { cellWidth: 12 },
+            3: { cellWidth: 12 },
+            4: { cellWidth: 12 },
+            5: { cellWidth: 24 },
+            6: { cellWidth: 'auto' },
+        },
+    });
+
+    doc.save('bostai-' + new Date().toISOString().slice(0, 10) + '.pdf');
 }
 
 // ===== DASHBOARD =====
