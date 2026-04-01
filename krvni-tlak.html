@@ -259,6 +259,17 @@ body {
     margin-bottom: 10px;
     box-shadow: var(--shadow);
     overflow: visible;
+    transition: box-shadow 0.5s, background 0.5s;
+}
+
+.history-item.new-entry {
+    box-shadow: 0 0 0 2px rgba(74,144,217,0.3), 0 4px 12px rgba(74,144,217,0.15);
+    background: rgba(74,144,217,0.03);
+}
+
+@keyframes fadeHighlight {
+    0% { box-shadow: 0 0 0 2px rgba(74,144,217,0.3), 0 4px 12px rgba(74,144,217,0.15); background: rgba(74,144,217,0.03); }
+    100% { box-shadow: var(--shadow); background: var(--card); }
     position: relative;
 }
 
@@ -1263,21 +1274,21 @@ body {
                     <input type="number" class="entry-input" id="s1" placeholder="&#8212;" inputmode="numeric" oninput="onMeasInput(this)">
                     <input type="number" class="entry-input" id="s2" placeholder="&#8212;" inputmode="numeric" oninput="onMeasInput(this)">
                     <input type="number" class="entry-input" id="s3" placeholder="&#8212;" inputmode="numeric" oninput="onMeasInput(this)">
-                    <div class="entry-avg empty" id="avgS">&#9679;</div>
+                    <div class="entry-avg empty" id="avgS"></div>
                 </div>
                 <div class="entry-col">
                     <span class="entry-col-label">Diastolicni</span>
                     <input type="number" class="entry-input" id="d1" placeholder="&#8212;" inputmode="numeric" oninput="onMeasInput(this)">
                     <input type="number" class="entry-input" id="d2" placeholder="&#8212;" inputmode="numeric" oninput="onMeasInput(this)">
                     <input type="number" class="entry-input" id="d3" placeholder="&#8212;" inputmode="numeric" oninput="onMeasInput(this)">
-                    <div class="entry-avg empty" id="avgD">&hearts;</div>
+                    <div class="entry-avg empty" id="avgD"></div>
                 </div>
                 <div class="entry-col">
                     <span class="entry-col-label">Pulz</span>
                     <input type="number" class="entry-input" id="p1" placeholder="&#8212;" inputmode="numeric" oninput="onMeasInput(this)">
                     <input type="number" class="entry-input" id="p2" placeholder="&#8212;" inputmode="numeric" oninput="onMeasInput(this)">
                     <input type="number" class="entry-input" id="p3" placeholder="&#8212;" inputmode="numeric" oninput="onMeasInput(this)">
-                    <div class="entry-avg empty" id="avgP">&#9679;</div>
+                    <div class="entry-avg empty" id="avgP"></div>
                 </div>
             </div>
             <div class="save-row">
@@ -1852,11 +1863,11 @@ function computeAvg() {
     const d = dVals.length ? avg(dVals) : null;
     const p = pVals.length ? avg(pVals) : null;
 
-    avgS.textContent = s !== null ? s : '\u25CF';
+    avgS.textContent = s !== null ? s : '';
     avgS.className = s !== null ? 'entry-avg' : 'entry-avg empty';
-    avgD.textContent = d !== null ? d : '\u2665';
+    avgD.textContent = d !== null ? d : '';
     avgD.className = d !== null ? 'entry-avg' : 'entry-avg empty';
-    avgP.textContent = p !== null ? p : '\u25CF';
+    avgP.textContent = p !== null ? p : '';
     avgP.className = p !== null ? 'entry-avg' : 'entry-avg empty';
 
     // Need at least one systolic AND one diastolic to save
@@ -1933,12 +1944,13 @@ function saveEntry() {
         btn.disabled = true;
         document.querySelectorAll('.entry-input').forEach(i => i.value = '');
         [avgS, avgD, avgP].forEach(el => { el.style.color = ''; el.style.background = ''; });
-        avgS.textContent = '\u25CF'; avgS.className = 'entry-avg empty';
-        avgD.textContent = '\u2665'; avgD.className = 'entry-avg empty';
-        avgP.textContent = '\u25CF'; avgP.className = 'entry-avg empty';
+        avgS.textContent = ''; avgS.className = 'entry-avg empty';
+        avgD.textContent = ''; avgD.className = 'entry-avg empty';
+        avgP.textContent = ''; avgP.className = 'entry-avg empty';
         document.getElementById('feedback').textContent = '';
         selectedTags = []; renderTags(); updateTagToggle();
         hideEntryForm();
+        highlightNewest = true;
         document.getElementById('tagToggle').classList.remove('active');
         renderHistory();
     }, 2000);
@@ -1960,6 +1972,7 @@ function cancelDelete(el) { el.closest('.history-item').classList.remove('confir
 function confirmDelete(localId) { Store.deleteReading(localId); renderHistory(); }
 
 let showAll = false;
+let highlightNewest = false;
 
 function renderHistory() {
     const list = document.getElementById('historyList');
@@ -1977,8 +1990,9 @@ function renderHistory() {
         const timeEmoji = new Date(r.measured_at).getHours() < 12 ? '🥐 Jutro' : '🌙 Vecer';
         const userTags = (r.tags && r.tags.length) ? r.tags.map(t => `<span class="history-tag">${t}</span>`).join('') : '';
         const tagChips = `<span class="history-tag">${timeEmoji}</span>${userTags}`;
+        const isNewest = highlightNewest && i === 0;
         return `
-            <div class="history-item">
+            <div class="history-item${isNewest ? ' new-entry' : ''}"
                 <div class="item-content">
                     <div class="item-top">
                         <div class="values">${r.systolic}/${r.diastolic}</div>
@@ -2007,6 +2021,20 @@ function renderHistory() {
         : '';
 
     list.innerHTML = items + moreBtn;
+
+    if (highlightNewest) {
+        highlightNewest = false;
+        const newItem = list.querySelector('.new-entry');
+        if (newItem) {
+            setTimeout(() => {
+                newItem.style.animation = 'fadeHighlight 1s forwards';
+                newItem.addEventListener('animationend', () => {
+                    newItem.classList.remove('new-entry');
+                    newItem.style.animation = '';
+                });
+            }, 2000);
+        }
+    }
 }
 
 // ===== EXPORT =====
