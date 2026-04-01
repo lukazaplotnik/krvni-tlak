@@ -1186,8 +1186,9 @@ body {
                 <input type="text" class="acc-input" id="shareName" placeholder="Ime in priimek">
                 <input type="text" class="acc-input" id="shareBirth" placeholder="Datum rojstva (DD.MM.LLLL)" inputmode="numeric" maxlength="10" oninput="formatBirthInput(this)">
                 <div class="modal-label" style="margin-top:8px">Format</div>
-                <div class="modal-chips">
-                    <div class="modal-chip selected">PDF</div>
+                <div class="modal-chips" id="shareFormat">
+                    <div class="modal-chip selected" onclick="selectChip(this)">PDF</div>
+                    <div class="modal-chip" onclick="selectChip(this)">CSV</div>
                 </div>
                 <div class="modal-label" style="margin-top:8px">Obdobje</div>
                 <div class="modal-chips" id="sharePeriod">
@@ -1613,18 +1614,30 @@ function formatBirthInput(el) {
 async function doShare() {
     const name = document.getElementById('shareName').value.trim();
     const birth = document.getElementById('shareBirth').value;
+    const format = document.querySelector('#shareFormat .modal-chip.selected').textContent;
     const days = parseInt(document.querySelector('#sharePeriod .modal-chip.selected').dataset.days) || null;
 
     if (!name) { alert('Vnesite ime in priimek'); return; }
 
-    const doc = exportPdf(days, name, birth);
-    if (!doc) return;
-
     const safeName = name.replace(/\s+/g, '-').toLowerCase();
     const dateStr = new Date().toISOString().slice(0, 10);
-    const filename = 'krvni-tlak-' + safeName + '-' + dateStr + '.pdf';
-    const blob = doc.output('blob');
-    const file = new File([blob], filename, { type: 'application/pdf' });
+    let file, filename;
+
+    if (format === 'CSV') {
+        const data = _getExportData(days);
+        if (!data) return;
+        const BOM = '\uFEFF';
+        const header = 'Datum;Cas;Sistolicni;Diastolicni;Pulz;Ocena;Oznake\n';
+        const rows = data.map(r => `${r.Datum};${r.Cas};${r.Sistolicni};${r.Diastolicni};${r.Pulz};${r.Ocena};${r.Oznake}`).join('\n');
+        const blob = new Blob([BOM + header + rows], { type: 'text/csv;charset=utf-8;' });
+        filename = 'krvni-tlak-' + safeName + '-' + dateStr + '.csv';
+        file = new File([blob], filename, { type: 'text/csv' });
+    } else {
+        const doc = exportPdf(days, name, birth);
+        if (!doc) return;
+        filename = 'krvni-tlak-' + safeName + '-' + dateStr + '.pdf';
+        file = new File([doc.output('blob')], filename, { type: 'application/pdf' });
+    }
 
     closeSettings();
 
