@@ -1161,8 +1161,8 @@ body {
             <div class="accordion-body">
                 <div class="modal-label">Format</div>
                 <div class="modal-chips" id="exportFormat">
-                    <div class="modal-chip selected" onclick="selectChip(this)">Excel</div>
-                    <div class="modal-chip" onclick="selectChip(this)">PDF</div>
+                    <div class="modal-chip selected" onclick="selectChip(this)">PDF</div>
+                    <div class="modal-chip" onclick="selectChip(this)">CSV</div>
                 </div>
                 <div class="modal-label">Obdobje</div>
                 <div class="modal-chips" id="exportPeriod">
@@ -1589,11 +1589,21 @@ function doExport() {
     const format = document.querySelector('#exportFormat .modal-chip.selected').textContent;
     const days = parseInt(document.querySelector('#exportPeriod .modal-chip.selected').dataset.days) || null;
     closeSettings();
-    if (format === 'Excel') {
-        exportXlsx(days);
+    const dateStr = new Date().toISOString().slice(0, 10);
+    if (format === 'CSV') {
+        const data = _getExportData(days);
+        if (!data) return;
+        const BOM = '\uFEFF';
+        const header = 'Datum;Cas;Sistolicni;Diastolicni;Pulz;Ocena;Oznake\n';
+        const rows = data.map(r => `${r.Datum};${r.Cas};${r.Sistolicni};${r.Diastolicni};${r.Pulz};${r.Ocena};${r.Oznake}`).join('\n');
+        const blob = new Blob([BOM + header + rows], { type: 'text/csv;charset=utf-8;' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url; a.download = 'krvni-tlak-' + dateStr + '.csv'; a.click();
+        URL.revokeObjectURL(url);
     } else {
         const doc = exportPdf(days);
-        if (doc) doc.save('krvni-tlak-' + new Date().toISOString().slice(0, 10) + '.pdf');
+        if (doc) doc.save('krvni-tlak-' + dateStr + '.pdf');
     }
 }
 
