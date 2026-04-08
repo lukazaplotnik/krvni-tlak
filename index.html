@@ -401,6 +401,32 @@ body {
     margin-bottom: 14px;
 }
 
+.avg-tabs {
+    display: flex;
+    gap: 4px;
+    margin-bottom: 14px;
+}
+
+.avg-tab {
+    flex: 1;
+    padding: 6px;
+    border: none;
+    border-radius: 8px;
+    font-size: 12px;
+    font-weight: 500;
+    color: #A8B0BC;
+    background: var(--bg);
+    cursor: pointer;
+    transition: all 0.15s;
+    text-align: center;
+}
+
+.avg-tab.active {
+    background: rgba(74,144,217,0.1);
+    color: var(--primary);
+    font-weight: 600;
+}
+
 .avg-stats {
     display: flex;
 }
@@ -418,10 +444,16 @@ body {
     line-height: 1;
 }
 
+.avg-stat-std {
+    font-size: 11px;
+    color: #C0C5CC;
+    margin-top: 2px;
+}
+
 .avg-stat-unit {
     font-size: 11px;
     color: var(--text2);
-    margin-top: 4px;
+    margin-top: 2px;
 }
 
 .avg-meta {
@@ -2203,6 +2235,54 @@ const timeScale = {
     grid: { color: 'rgba(0,0,0,0.03)' }, ticks: { maxTicksLimit: 8, autoSkip: false, font: { size: 10 } }
 };
 
+function _calcStd(arr) {
+    if (arr.length < 2) return 0;
+    const m = arr.reduce((a,b)=>a+b,0) / arr.length;
+    return Math.round(Math.sqrt(arr.reduce((a,v) => a + (v-m)**2, 0) / arr.length));
+}
+
+function switchAvgTab(tab, days) {
+    const readings = days ? Store.getReadings(days) : Store.getReadings();
+    let filtered = readings;
+    if (tab === 'morning') filtered = readings.filter(r => new Date(r.measured_at).getHours() < 12);
+    if (tab === 'evening') filtered = readings.filter(r => new Date(r.measured_at).getHours() >= 12);
+
+    // Update active tab
+    document.querySelectorAll('.avg-tab').forEach(t => t.classList.remove('active'));
+    event.target.classList.add('active');
+
+    if (!filtered.length) return;
+
+    const sArr = filtered.map(r=>r.systolic);
+    const dArr = filtered.map(r=>r.diastolic);
+    const pArr = filtered.filter(r=>r.pulse).map(r=>r.pulse);
+    const sAvg = Math.round(sArr.reduce((a,b)=>a+b,0)/sArr.length);
+    const dAvg = Math.round(dArr.reduce((a,b)=>a+b,0)/dArr.length);
+    const pAvg = pArr.length ? Math.round(pArr.reduce((a,b)=>a+b,0)/pArr.length) : null;
+
+    const el = document.getElementById('avgStatsContent');
+    el.innerHTML = `
+        <div class="avg-stat">
+            <div class="avg-stat-value">${sAvg}</div>
+            <div class="avg-stat-std">±${_calcStd(sArr)}</div>
+            <div class="avg-stat-unit">sis · mmHg</div>
+        </div>
+        <div class="avg-stat">
+            <div class="avg-stat-value">${dAvg}</div>
+            <div class="avg-stat-std">±${_calcStd(dArr)}</div>
+            <div class="avg-stat-unit">dia · mmHg</div>
+        </div>
+        <div class="avg-stat">
+            <div class="avg-stat-value">${pAvg || '—'}</div>
+            <div class="avg-stat-std">&nbsp;</div>
+            <div class="avg-stat-unit">pulz · u/min</div>
+        </div>
+    `;
+
+    // Update count
+    document.querySelector('.avg-meta span:first-child').textContent = filtered.length + ' meritev';
+}
+
 function loadDashboard() {
     const content = document.getElementById('content');
     const days = currentDays || null;
@@ -2217,22 +2297,31 @@ function loadDashboard() {
     }
 
     const periodLabel = currentDays > 0 ? `${currentDays} dni` : 'vse';
-    const pulseVal = stats.avg_pulse ? Math.round(stats.avg_pulse) : '—';
+    const stdSys = _calcStd(readings.map(r=>r.systolic));
+    const stdDia = _calcStd(readings.map(r=>r.diastolic));
 
     content.innerHTML = `
         <div class="avg-bar">
             <h3>Povprecje</h3>
-            <div class="avg-stats">
+            <div class="avg-tabs">
+                <button class="avg-tab active" onclick="switchAvgTab('all',${days})">Skupno</button>
+                <button class="avg-tab" onclick="switchAvgTab('morning',${days})">🥐 Jutro</button>
+                <button class="avg-tab" onclick="switchAvgTab('evening',${days})">🌙 Vecer</button>
+            </div>
+            <div class="avg-stats" id="avgStatsContent">
                 <div class="avg-stat">
                     <div class="avg-stat-value">${Math.round(stats.avg_systolic)}</div>
+                    <div class="avg-stat-std">±${stdSys}</div>
                     <div class="avg-stat-unit">sis · mmHg</div>
                 </div>
                 <div class="avg-stat">
                     <div class="avg-stat-value">${Math.round(stats.avg_diastolic)}</div>
+                    <div class="avg-stat-std">±${stdDia}</div>
                     <div class="avg-stat-unit">dia · mmHg</div>
                 </div>
                 <div class="avg-stat">
-                    <div class="avg-stat-value">${pulseVal}</div>
+                    <div class="avg-stat-value">${stats.avg_pulse ? Math.round(stats.avg_pulse) : '—'}</div>
+                    <div class="avg-stat-std">&nbsp;</div>
                     <div class="avg-stat-unit">pulz · u/min</div>
                 </div>
             </div>
@@ -2250,11 +2339,6 @@ function loadDashboard() {
             <canvas id="zonesChart"></canvas>
         </div>
         <div class="chart-card">
-            <h3>Povprecje: jutro vs. vecer</h3>
-            <div class="chart-wrap"><canvas id="morningEveningChart"></canvas></div>
-            <div class="variability-row" id="variabilityRow"></div>
-        </div>
-        <div class="chart-card">
             <h3>Povprecje po dnevih v tednu</h3>
             <div class="chart-wrap"><canvas id="weekdayChart"></canvas></div>
         </div>
@@ -2262,7 +2346,6 @@ function loadDashboard() {
 
     renderBPChart(readings);
     renderZonesChart(readings);
-    renderMorningEveningChart(readings);
     renderWeekdayChart(readings);
 }
 
