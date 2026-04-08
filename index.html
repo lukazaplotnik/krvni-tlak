@@ -398,70 +398,62 @@ body {
 .avg-bar h3 {
     font-size: 14px;
     color: var(--text);
-    margin-bottom: 14px;
+    margin-bottom: 12px;
 }
 
-.avg-tabs {
-    display: flex;
-    gap: 4px;
-    margin-bottom: 14px;
+.avg-table {
+    width: 100%;
+    border-collapse: collapse;
 }
 
-.avg-tab {
-    flex: 1;
-    padding: 6px;
-    border: none;
-    border-radius: 8px;
-    font-size: 12px;
-    font-weight: 500;
-    color: #A8B0BC;
-    background: var(--bg);
-    cursor: pointer;
-    transition: all 0.15s;
-    text-align: center;
-}
-
-.avg-tab.active {
-    background: rgba(74,144,217,0.1);
-    color: var(--primary);
+.avg-table th {
+    font-size: 11px;
     font-weight: 600;
-}
-
-.avg-stats {
-    display: flex;
-}
-
-.avg-stat {
-    flex: 1;
+    color: #B0B7C3;
     text-align: center;
+    padding: 0 0 8px;
 }
 
+.avg-table th:first-child { text-align: left; }
 
-.avg-stat-value {
-    font-size: 24px;
+.avg-table td { padding: 7px 0; }
+
+.avg-table tbody tr + tr td { border-top: 1px solid rgba(0,0,0,0.04); }
+
+.avg-row-label {
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--text);
+}
+
+.avg-row-val {
+    font-size: 18px;
     font-weight: 700;
     color: var(--text);
-    line-height: 1;
+    text-align: center;
 }
 
-.avg-stat-std {
-    font-size: 11px;
+.avg-row-std {
+    font-size: 10px;
+    font-weight: 400;
     color: #C0C5CC;
-    margin-top: 2px;
+    margin-left: 1px;
 }
 
-.avg-stat-unit {
-    font-size: 11px;
-    color: var(--text2);
-    margin-top: 2px;
+.avg-row-n {
+    font-size: 12px;
+    color: #B0B7C3;
+    text-align: center;
 }
 
 .avg-meta {
     display: flex;
     justify-content: space-between;
-    margin-top: 14px;
-    font-size: 12px;
-    color: #B0B7C3;
+    margin-top: 12px;
+    padding-top: 8px;
+    border-top: 1px solid rgba(0,0,0,0.04);
+    font-size: 11px;
+    color: #C0C5CC;
 }
 
 /* TAGS */
@@ -2297,36 +2289,40 @@ function loadDashboard() {
     }
 
     const periodLabel = currentDays > 0 ? `${currentDays} dni` : 'vse';
-    const stdSys = _calcStd(readings.map(r=>r.systolic));
-    const stdDia = _calcStd(readings.map(r=>r.diastolic));
+    const me = _getMorningEveningStats(days);
+    const mReadings = readings.filter(r => new Date(r.measured_at).getHours() < 12);
+    const eReadings = readings.filter(r => new Date(r.measured_at).getHours() >= 12);
+
+    const row = (label, s, d, p, sArr, dArr, count) => `
+        <tr>
+            <td class="avg-row-label">${label}</td>
+            <td class="avg-row-val">${s}<span class="avg-row-std">±${_calcStd(sArr)}</span></td>
+            <td class="avg-row-val">${d}<span class="avg-row-std">±${_calcStd(dArr)}</span></td>
+            <td class="avg-row-val">${p || '—'}</td>
+            <td class="avg-row-n">${count}</td>
+        </tr>`;
 
     content.innerHTML = `
         <div class="avg-bar">
             <h3>Povprecje</h3>
-            <div class="avg-tabs">
-                <button class="avg-tab active" onclick="switchAvgTab('all',${days})">Skupno</button>
-                <button class="avg-tab" onclick="switchAvgTab('morning',${days})">🥐 Jutro</button>
-                <button class="avg-tab" onclick="switchAvgTab('evening',${days})">🌙 Vecer</button>
-            </div>
-            <div class="avg-stats" id="avgStatsContent">
-                <div class="avg-stat">
-                    <div class="avg-stat-value">${Math.round(stats.avg_systolic)}</div>
-                    <div class="avg-stat-std">±${stdSys}</div>
-                    <div class="avg-stat-unit">sis · mmHg</div>
-                </div>
-                <div class="avg-stat">
-                    <div class="avg-stat-value">${Math.round(stats.avg_diastolic)}</div>
-                    <div class="avg-stat-std">±${stdDia}</div>
-                    <div class="avg-stat-unit">dia · mmHg</div>
-                </div>
-                <div class="avg-stat">
-                    <div class="avg-stat-value">${stats.avg_pulse ? Math.round(stats.avg_pulse) : '—'}</div>
-                    <div class="avg-stat-std">&nbsp;</div>
-                    <div class="avg-stat-unit">pulz · u/min</div>
-                </div>
-            </div>
+            <table class="avg-table">
+                <thead>
+                    <tr>
+                        <th></th>
+                        <th>Sis</th>
+                        <th>Dia</th>
+                        <th>Pulz</th>
+                        <th>n</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    ${row('Skupno', Math.round(stats.avg_systolic), Math.round(stats.avg_diastolic), stats.avg_pulse ? Math.round(stats.avg_pulse) : null, readings.map(r=>r.systolic), readings.map(r=>r.diastolic), stats.count)}
+                    ${mReadings.length ? row('🥐 Jutro', me.morning.sys, me.morning.dia, me.morning.pulse, mReadings.map(r=>r.systolic), mReadings.map(r=>r.diastolic), me.morning.count) : ''}
+                    ${eReadings.length ? row('🌙 Vecer', me.evening.sys, me.evening.dia, me.evening.pulse, eReadings.map(r=>r.systolic), eReadings.map(r=>r.diastolic), me.evening.count) : ''}
+                </tbody>
+            </table>
             <div class="avg-meta">
-                <span>${stats.count} meritev</span>
+                <span>mmHg · u/min</span>
                 <span>${periodLabel}</span>
             </div>
         </div>
