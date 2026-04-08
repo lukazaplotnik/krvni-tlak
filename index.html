@@ -1981,7 +1981,7 @@ function renderHistory() {
         const tagChips = `<span class="history-tag">${timeEmoji}</span>${userTags}`;
         const newClass = (_justSaved && i === 0) ? ' new-entry' : '';
         return `
-            <div class="history-item${newClass}"
+            <div class="history-item${newClass}">
                 <div class="item-content">
                     <div class="item-top">
                         <div class="values">${r.systolic}/${r.diastolic}</div>
