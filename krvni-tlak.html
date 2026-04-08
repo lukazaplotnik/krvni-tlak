@@ -163,7 +163,14 @@ body {
     text-align: center;
     font-size: 11px;
     color: #C0C5CC;
-    margin: 8px 0 6px;
+    height: 0;
+    overflow: hidden;
+    transition: height 0.2s;
+}
+
+.entry-avg-hint.visible {
+    height: 20px;
+    margin: 4px 0;
 }
 
 .entry-avg {
@@ -1286,7 +1293,7 @@ body {
                     <div class="entry-avg empty" id="avgP"></div>
                 </div>
             </div>
-            <div class="entry-avg-hint" id="avgHint">Vpisite do 3 meritve — povprecje se izracuna samodejno</div>
+            <div class="entry-avg-hint visible" id="avgHint">Vpisite do 3 meritve — povprecje se izracuna samodejno</div>
             <div class="save-row">
                 <div class="tag-popover hidden" id="tagPopover">
                     <button class="tag-popover-close" onclick="closeTagSheet()">&times;</button>
@@ -1865,9 +1872,8 @@ function computeAvg() {
     avgP.textContent = p !== null ? p : '';
     avgP.className = p !== null ? 'entry-avg' : 'entry-avg empty';
 
-    // Hide hint when any average is showing
     const hint = document.getElementById('avgHint');
-    if (hint) hint.style.display = (s || d) ? 'none' : '';
+    if (hint) hint.classList.toggle('visible', !(s || d));
 
     // Need at least one systolic AND one diastolic to save
     btn.disabled = !(s && d);
@@ -1946,7 +1952,7 @@ function saveEntry() {
         avgS.textContent = ''; avgS.className = 'entry-avg empty';
         avgD.textContent = ''; avgD.className = 'entry-avg empty';
         avgP.textContent = ''; avgP.className = 'entry-avg empty';
-        document.getElementById('avgHint').style.display = '';
+        document.getElementById('avgHint').classList.add('visible');
         document.getElementById('feedback').textContent = '';
         selectedTags = []; renderTags(); updateTagToggle();
         hideEntryForm();
