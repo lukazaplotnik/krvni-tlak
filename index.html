@@ -440,10 +440,10 @@ body {
     margin-left: 4px;
 }
 
-.avg-row-n {
-    font-size: 12px;
-    color: #B0B7C3;
-    text-align: center;
+.avg-row-count {
+    font-size: 11px;
+    font-weight: 400;
+    color: #C0C5CC;
 }
 
 
@@ -2287,12 +2287,12 @@ function loadDashboard() {
     const row = (label, s, d, p, sArr, dArr, count) => {
         const sStd = sArr.length > 1 ? `<span class="avg-row-std">±${_calcStd(sArr)}</span>` : '';
         const dStd = dArr.length > 1 ? `<span class="avg-row-std">±${_calcStd(dArr)}</span>` : '';
+        const n = count ? `<span class="avg-row-count">(${count})</span>` : '';
         return `<tr>
-            <td class="avg-row-label">${label}</td>
+            <td class="avg-row-label">${label} ${n}</td>
             <td class="avg-row-val">${s}${sStd}</td>
             <td class="avg-row-val">${d}${dStd}</td>
             <td class="avg-row-val">${p || '—'}</td>
-            <td class="avg-row-n">${count || '—'}</td>
         </tr>`;
     };
 
@@ -2306,7 +2306,6 @@ function loadDashboard() {
                         <th>Sistolicni</th>
                         <th>Diastolicni</th>
                         <th>Pulz</th>
-                        <th>Meritev</th>
                     </tr>
                 </thead>
                 <tbody>
