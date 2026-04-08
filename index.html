@@ -437,7 +437,7 @@ body {
     font-size: 10px;
     font-weight: 400;
     color: #C0C5CC;
-    margin-left: 1px;
+    margin-left: 4px;
 }
 
 .avg-row-n {
@@ -446,15 +446,6 @@ body {
     text-align: center;
 }
 
-.avg-meta {
-    display: flex;
-    justify-content: space-between;
-    margin-top: 12px;
-    padding-top: 8px;
-    border-top: 1px solid rgba(0,0,0,0.04);
-    font-size: 11px;
-    color: #C0C5CC;
-}
 
 /* TAGS */
 .save-row {
@@ -2312,7 +2303,7 @@ function loadDashboard() {
                         <th>Sis</th>
                         <th>Dia</th>
                         <th>Pulz</th>
-                        <th>n</th>
+                        <th>Meritev</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -2321,10 +2312,6 @@ function loadDashboard() {
                     ${eReadings.length ? row('🌙 Vecer', me.evening.sys, me.evening.dia, me.evening.pulse, eReadings.map(r=>r.systolic), eReadings.map(r=>r.diastolic), me.evening.count) : ''}
                 </tbody>
             </table>
-            <div class="avg-meta">
-                <span>mmHg · u/min</span>
-                <span>${periodLabel}</span>
-            </div>
         </div>
         <div class="chart-card">
             <h3>Meritve skozi cas</h3>
