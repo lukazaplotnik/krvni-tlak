@@ -1939,9 +1939,14 @@ function saveEntry() {
         document.getElementById('feedback').textContent = '';
         selectedTags = []; renderTags(); updateTagToggle();
         hideEntryForm();
-        _justSaved = true;
         document.getElementById('tagToggle').classList.remove('active');
         renderHistory();
+        // Highlight newest entry
+        const newest = document.querySelector('#historyList .history-item');
+        if (newest) {
+            newest.classList.add('new-entry');
+            setTimeout(() => { newest.style.animation = 'fadeGlow 1s forwards'; }, 2500);
+        }
     }, 2000);
 }
 
@@ -1961,7 +1966,6 @@ function cancelDelete(el) { el.closest('.history-item').classList.remove('confir
 function confirmDelete(localId) { Store.deleteReading(localId); renderHistory(); }
 
 let showAll = false;
-let _justSaved = false;
 
 function renderHistory() {
     const list = document.getElementById('historyList');
@@ -1979,9 +1983,8 @@ function renderHistory() {
         const timeEmoji = new Date(r.measured_at).getHours() < 12 ? '🥐 Jutro' : '🌙 Vecer';
         const userTags = (r.tags && r.tags.length) ? r.tags.map(t => `<span class="history-tag">${t}</span>`).join('') : '';
         const tagChips = `<span class="history-tag">${timeEmoji}</span>${userTags}`;
-        const newClass = (_justSaved && i === 0) ? ' new-entry' : '';
         return `
-            <div class="history-item${newClass}">
+            <div class="history-item">
                 <div class="item-content">
                     <div class="item-top">
                         <div class="values">${r.systolic}/${r.diastolic}</div>
@@ -2011,11 +2014,6 @@ function renderHistory() {
 
     list.innerHTML = items + moreBtn;
 
-    if (_justSaved) {
-        _justSaved = false;
-        const el = list.querySelector('.new-entry');
-        if (el) setTimeout(() => { el.style.animation = 'fadeGlow 1s forwards'; }, 2500);
-    }
 }
 
 // ===== EXPORT =====
