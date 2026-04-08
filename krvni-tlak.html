@@ -2284,14 +2284,17 @@ function loadDashboard() {
     const mReadings = readings.filter(r => new Date(r.measured_at).getHours() < 12);
     const eReadings = readings.filter(r => new Date(r.measured_at).getHours() >= 12);
 
-    const row = (label, s, d, p, sArr, dArr, count) => `
-        <tr>
+    const row = (label, s, d, p, sArr, dArr, count) => {
+        const sStd = sArr.length > 1 ? `<span class="avg-row-std">±${_calcStd(sArr)}</span>` : '';
+        const dStd = dArr.length > 1 ? `<span class="avg-row-std">±${_calcStd(dArr)}</span>` : '';
+        return `<tr>
             <td class="avg-row-label">${label}</td>
-            <td class="avg-row-val">${s}<span class="avg-row-std">±${_calcStd(sArr)}</span></td>
-            <td class="avg-row-val">${d}<span class="avg-row-std">±${_calcStd(dArr)}</span></td>
+            <td class="avg-row-val">${s}${sStd}</td>
+            <td class="avg-row-val">${d}${dStd}</td>
             <td class="avg-row-val">${p || '—'}</td>
-            <td class="avg-row-n">${count}</td>
+            <td class="avg-row-n">${count || '—'}</td>
         </tr>`;
+    };
 
     content.innerHTML = `
         <div class="avg-bar">
@@ -2308,8 +2311,8 @@ function loadDashboard() {
                 </thead>
                 <tbody>
                     ${row('Skupno', Math.round(stats.avg_systolic), Math.round(stats.avg_diastolic), stats.avg_pulse ? Math.round(stats.avg_pulse) : null, readings.map(r=>r.systolic), readings.map(r=>r.diastolic), stats.count)}
-                    ${mReadings.length ? row('🥐 Jutro', me.morning.sys, me.morning.dia, me.morning.pulse, mReadings.map(r=>r.systolic), mReadings.map(r=>r.diastolic), me.morning.count) : ''}
-                    ${eReadings.length ? row('🌙 Vecer', me.evening.sys, me.evening.dia, me.evening.pulse, eReadings.map(r=>r.systolic), eReadings.map(r=>r.diastolic), me.evening.count) : ''}
+                    ${mReadings.length ? row('🥐 Jutro', me.morning.sys, me.morning.dia, me.morning.pulse, mReadings.map(r=>r.systolic), mReadings.map(r=>r.diastolic), me.morning.count) : row('🥐 Jutro', '—', '—', '—', [], [], 0)}
+                    ${eReadings.length ? row('🌙 Vecer', me.evening.sys, me.evening.dia, me.evening.pulse, eReadings.map(r=>r.systolic), eReadings.map(r=>r.diastolic), me.evening.count) : row('🌙 Vecer', '—', '—', '—', [], [], 0)}
                 </tbody>
             </table>
         </div>
