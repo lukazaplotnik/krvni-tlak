@@ -453,6 +453,8 @@ body {
     display: flex;
     gap: 10px;
     align-items: stretch;
+    position: relative;
+    z-index: 82;
 }
 
 .save-row .save-btn { flex: 1; }
@@ -472,16 +474,11 @@ body {
     position: relative;
 }
 
-.tag-toggle.open {
-    background: white;
-    z-index: 82;
-    position: relative;
-}
-
 .tag-toggle.has-tags {
     border-color: var(--primary);
     color: var(--primary);
 }
+
 
 .tag-toggle .tag-dot {
     position: absolute;
@@ -498,10 +495,6 @@ body {
     inset: 0;
     z-index: 80;
     background: rgba(0,0,0,0.5);
-}
-
-.save-row {
-    position: relative;
 }
 
 .tag-popover {
@@ -1806,13 +1799,12 @@ function openTagSheet() {
     renderTags();
     document.getElementById('sheetOverlay').classList.remove('hidden');
     document.getElementById('tagPopover').classList.remove('hidden');
-    document.getElementById('tagToggle').classList.add('open');
+    document.getElementById('tagToggle').classList.toggle('has-tags', selectedTags.length > 0);
 }
 
 function closeTagSheet() {
     document.getElementById('sheetOverlay').classList.add('hidden');
     document.getElementById('tagPopover').classList.add('hidden');
-    document.getElementById('tagToggle').classList.remove('open');
     document.getElementById('tagToggle').classList.toggle('has-tags', selectedTags.length > 0);
     updateTagToggle();
 }
@@ -1952,7 +1944,7 @@ function saveEntry() {
         document.getElementById('feedback').textContent = '';
         selectedTags = []; renderTags(); updateTagToggle();
         hideEntryForm();
-        document.getElementById('tagToggle').classList.remove('open', 'has-tags');
+        document.getElementById('tagToggle').classList.remove('has-tags');
         renderHistory();
         // Highlight newest entry
         const newest = document.querySelector('#historyList .history-item');
