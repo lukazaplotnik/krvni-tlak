@@ -401,25 +401,24 @@ body {
     margin-bottom: 12px;
 }
 
-.avg-rows {
-    display: flex;
-    flex-direction: column;
-    gap: 6px;
+.avg-table {
+    width: 100%;
+    border-collapse: collapse;
 }
 
-.avg-row-card {
-    display: flex;
-    align-items: center;
-    background: var(--bg);
-    border-radius: 10px;
-    padding: 10px 12px;
+.avg-table th {
+    font-size: 11px;
+    font-weight: 600;
+    color: #B0B7C3;
+    text-align: center;
+    padding: 0 0 8px;
 }
 
-.avg-row-left {
-    display: flex;
-    flex-direction: column;
-    min-width: 70px;
-}
+.avg-table th:first-child { text-align: left; }
+
+.avg-table td { padding: 7px 0; }
+
+.avg-table tbody tr + tr td { border-top: 1px solid rgba(0,0,0,0.04); }
 
 .avg-row-label {
     font-size: 13px;
@@ -427,40 +426,24 @@ body {
     color: var(--text);
 }
 
-.avg-row-count {
-    font-size: 10px;
-    font-weight: 400;
-    color: #C0C5CC;
-}
-
-.avg-row-nums {
-    display: flex;
-    flex: 1;
-    justify-content: flex-end;
-    gap: 14px;
-}
-
-.avg-row-num {
-    text-align: center;
-}
-
 .avg-row-val {
     font-size: 18px;
     font-weight: 700;
     color: var(--text);
+    text-align: center;
 }
 
 .avg-row-std {
-    font-size: 9px;
+    font-size: 10px;
     font-weight: 400;
     color: #C0C5CC;
-    margin-left: 2px;
+    margin-left: 4px;
 }
 
-.avg-row-unit {
-    font-size: 9px;
+.avg-row-count {
+    font-size: 11px;
+    font-weight: 400;
     color: #C0C5CC;
-    margin-top: 1px;
 }
 
 
@@ -2313,36 +2296,33 @@ function loadDashboard() {
     const row = (label, s, d, p, sArr, dArr, count) => {
         const sStd = sArr.length > 1 ? `<span class="avg-row-std">±${_calcStd(sArr)}</span>` : '';
         const dStd = dArr.length > 1 ? `<span class="avg-row-std">±${_calcStd(dArr)}</span>` : '';
-        return `<div class="avg-row-card">
-            <div class="avg-row-left">
-                <span class="avg-row-label">${label}</span>
-                ${count ? `<span class="avg-row-count">${count} meritev</span>` : ''}
-            </div>
-            <div class="avg-row-nums">
-                <div class="avg-row-num">
-                    <div class="avg-row-val">${s}${sStd}</div>
-                    <div class="avg-row-unit">sis</div>
-                </div>
-                <div class="avg-row-num">
-                    <div class="avg-row-val">${d}${dStd}</div>
-                    <div class="avg-row-unit">dia</div>
-                </div>
-                <div class="avg-row-num">
-                    <div class="avg-row-val">${p || '—'}</div>
-                    <div class="avg-row-unit">pulz</div>
-                </div>
-            </div>
-        </div>`;
+        const n = count ? `<span class="avg-row-count">(${count})</span>` : '';
+        return `<tr>
+            <td class="avg-row-label">${label} ${n}</td>
+            <td class="avg-row-val">${s}${sStd}</td>
+            <td class="avg-row-val">${d}${dStd}</td>
+            <td class="avg-row-val">${p || '—'}</td>
+        </tr>`;
     };
 
     content.innerHTML = `
         <div class="avg-bar">
             <h3>Povprecje</h3>
-            <div class="avg-rows">
-                ${row('Skupno', Math.round(stats.avg_systolic), Math.round(stats.avg_diastolic), stats.avg_pulse ? Math.round(stats.avg_pulse) : null, readings.map(r=>r.systolic), readings.map(r=>r.diastolic), stats.count)}
-                ${mReadings.length ? row('🥐 Jutro', me.morning.sys, me.morning.dia, me.morning.pulse, mReadings.map(r=>r.systolic), mReadings.map(r=>r.diastolic), me.morning.count) : row('🥐 Jutro', '—', '—', '—', [], [], 0)}
-                ${eReadings.length ? row('🌙 Vecer', me.evening.sys, me.evening.dia, me.evening.pulse, eReadings.map(r=>r.systolic), eReadings.map(r=>r.diastolic), me.evening.count) : row('🌙 Vecer', '—', '—', '—', [], [], 0)}
-            </div>
+            <table class="avg-table">
+                <thead>
+                    <tr>
+                        <th></th>
+                        <th>Sistolicni</th>
+                        <th>Diastolicni</th>
+                        <th>Pulz</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    ${row('Skupno', Math.round(stats.avg_systolic), Math.round(stats.avg_diastolic), stats.avg_pulse ? Math.round(stats.avg_pulse) : null, readings.map(r=>r.systolic), readings.map(r=>r.diastolic), stats.count)}
+                    ${mReadings.length ? row('🥐 Jutro', me.morning.sys, me.morning.dia, me.morning.pulse, mReadings.map(r=>r.systolic), mReadings.map(r=>r.diastolic), me.morning.count) : row('🥐 Jutro', '—', '—', '—', [], [], 0)}
+                    ${eReadings.length ? row('🌙 Vecer', me.evening.sys, me.evening.dia, me.evening.pulse, eReadings.map(r=>r.systolic), eReadings.map(r=>r.diastolic), me.evening.count) : row('🌙 Vecer', '—', '—', '—', [], [], 0)}
+                </tbody>
+            </table>
         </div>
         <div class="chart-card">
             <h3>Meritve skozi cas</h3>
