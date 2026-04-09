@@ -1803,7 +1803,7 @@ function openTagSheet() {
     renderTags();
     document.getElementById('sheetOverlay').classList.remove('hidden');
     document.getElementById('tagPopover').classList.remove('hidden');
-    document.getElementById('tagToggle').classList.toggle('active', selectedTags.length > 0);
+    document.getElementById('tagToggle').classList.add('active');
 }
 
 function closeTagSheet() {
