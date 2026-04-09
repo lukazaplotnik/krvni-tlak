@@ -2369,7 +2369,7 @@ function renderBPChart(readings) {
             data: readings.filter(r => r.pulse).map(r => ({ x: new Date(r.measured_at), y: r.pulse })),
             borderColor: 'rgba(150,120,200,0.45)', backgroundColor: 'transparent',
             fill: false, cubicInterpolationMode: 'monotone', pointRadius: 0, pointBackgroundColor: 'rgba(150,120,200,0.45)', pointHitRadius: 8,
-            borderWidth: 1.5,
+            borderWidth: 2,
             yAxisID: 'y',
         });
     }
