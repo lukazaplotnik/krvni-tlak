@@ -621,12 +621,14 @@ body {
 }
 
 .chart-card h3, .avg-bar h3 {
-    font-size: 14px;
+    display: inline-block;
+    font-size: 12px;
     margin-bottom: 12px;
     color: var(--primary);
     font-weight: 600;
-    padding-left: 10px;
-    border-left: 3px solid var(--primary);
+    padding: 4px 12px;
+    background: rgba(74,144,217,0.08);
+    border-radius: 16px;
 }
 .chart-card .chart-wrap { position: relative; width: 100%; height: 260px; }
 .chart-card .chart-wrap canvas { position: absolute; inset: 0; }
