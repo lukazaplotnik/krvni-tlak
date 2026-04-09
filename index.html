@@ -472,12 +472,15 @@ body {
     position: relative;
 }
 
-.tag-toggle.active {
-    border-color: var(--primary);
-    color: var(--primary);
+.tag-toggle.open {
     background: white;
     z-index: 82;
     position: relative;
+}
+
+.tag-toggle.has-tags {
+    border-color: var(--primary);
+    color: var(--primary);
 }
 
 .tag-toggle .tag-dot {
@@ -1803,13 +1806,14 @@ function openTagSheet() {
     renderTags();
     document.getElementById('sheetOverlay').classList.remove('hidden');
     document.getElementById('tagPopover').classList.remove('hidden');
-    document.getElementById('tagToggle').classList.add('active');
+    document.getElementById('tagToggle').classList.add('open');
 }
 
 function closeTagSheet() {
     document.getElementById('sheetOverlay').classList.add('hidden');
     document.getElementById('tagPopover').classList.add('hidden');
-    document.getElementById('tagToggle').classList.toggle('active', selectedTags.length > 0);
+    document.getElementById('tagToggle').classList.remove('open');
+    document.getElementById('tagToggle').classList.toggle('has-tags', selectedTags.length > 0);
     updateTagToggle();
 }
 
@@ -1948,7 +1952,7 @@ function saveEntry() {
         document.getElementById('feedback').textContent = '';
         selectedTags = []; renderTags(); updateTagToggle();
         hideEntryForm();
-        document.getElementById('tagToggle').classList.remove('active');
+        document.getElementById('tagToggle').classList.remove('open', 'has-tags');
         renderHistory();
         // Highlight newest entry
         const newest = document.querySelector('#historyList .history-item');
