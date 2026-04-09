@@ -97,16 +97,12 @@ body {
 /* NEW ENTRY HIGHLIGHT */
 .history-item.new-entry {
     animation: entryAppear 0.4s ease-out;
-    box-shadow: 0 0 0 2px rgba(74,144,217,0.25), var(--shadow);
+    transition: box-shadow 1s ease;
 }
 
 @keyframes entryAppear {
     from { opacity: 0; transform: translateY(-8px); }
     to { opacity: 1; transform: translateY(0); }
-}
-
-@keyframes fadeGlow {
-    to { box-shadow: var(--shadow); }
 }
 
 /* ENTRY */
@@ -1948,11 +1944,13 @@ function saveEntry() {
         hideEntryForm();
         document.getElementById('tagToggle').classList.remove('has-tags');
         renderHistory();
-        // Highlight newest entry
+        // Highlight newest entry with rating color
         const newest = document.querySelector('#historyList .history-item');
         if (newest) {
+            const rgb = c.bg; // from btnColors above
             newest.classList.add('new-entry');
-            setTimeout(() => { newest.style.animation = 'fadeGlow 1s forwards'; }, 2500);
+            newest.style.boxShadow = `0 0 0 2px ${rgb}, var(--shadow)`;
+            setTimeout(() => { newest.style.boxShadow = 'var(--shadow)'; }, 2500);
         }
     }, 2000);
 }
