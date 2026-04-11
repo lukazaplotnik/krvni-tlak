@@ -98,6 +98,20 @@ body {
     transition: all 0.2s;
 }
 
+.back-btn {
+    background: none;
+    border: none;
+    color: #B0B7C3;
+    cursor: pointer;
+    padding: 0;
+    margin-bottom: 8px;
+    display: flex;
+    align-items: center;
+    transition: color 0.15s;
+}
+
+.back-btn:active { color: var(--primary); }
+
 .nova-btn:hover { background: var(--primary-dark); }
 .nova-btn:active { transform: scale(0.98); }
 
@@ -195,15 +209,6 @@ body {
     cursor: pointer;
 }
 
-.pill-cancel {
-    padding: 10px 16px;
-    background: var(--bg);
-    color: var(--text2);
-    border: none;
-    border-radius: 10px;
-    font-size: 14px;
-    cursor: pointer;
-}
 
 .pill-item {
     border-left: 3px solid #9B7FD4;
@@ -1411,6 +1416,7 @@ body {
 
         <!-- PILL DIALOG -->
         <div class="pill-dialog hidden" id="pillDialog">
+            <button class="back-btn" onclick="closePillDialog()"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg></button>
             <div style="font-size:13px;color:var(--text);font-weight:600;margin-bottom:10px">Dodatno zdravilo</div>
             <div id="pillTemplates" class="pill-templates"></div>
             <input type="text" class="pill-input" id="pillName" placeholder="Drugo zdravilo..." autocomplete="off">
@@ -1423,10 +1429,10 @@ body {
             </div>
             <div class="pill-actions">
                 <button class="pill-save" onclick="savePill()">Shrani</button>
-                <button class="pill-cancel" onclick="closePillDialog()">Preklici</button>
             </div>
         </div>
         <div class="entry-section hidden" id="entrySection">
+            <button class="back-btn" onclick="hideEntryForm()"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg></button>
             <div class="entry-cols">
                 <div class="entry-col">
                     <span class="entry-col-label">Sistolicni</span>
