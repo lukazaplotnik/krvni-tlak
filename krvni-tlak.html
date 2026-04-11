@@ -73,6 +73,38 @@ body {
 .page { flex: 1; overflow-y: scroll; padding: 12px 16px; -webkit-overflow-scrolling: touch; display: none; }
 .page.active { display: block; }
 
+.nova-btn {
+    width: 100%;
+    padding: 18px;
+    background: var(--primary);
+    color: white;
+    border: none;
+    border-radius: 12px;
+    font-size: 17px;
+    font-weight: 600;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    margin-bottom: 20px;
+    transition: all 0.2s;
+}
+
+.nova-btn:hover { background: var(--primary-dark); }
+.nova-btn:active { transform: scale(0.98); }
+
+/* NEW ENTRY HIGHLIGHT */
+.history-item.new-entry {
+    animation: entryAppear 0.4s ease-out;
+    transition: box-shadow 1s ease;
+}
+
+@keyframes entryAppear {
+    from { opacity: 0; transform: translateY(-8px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
 /* ENTRY */
 .entry-section {
     background: var(--card);
@@ -121,7 +153,9 @@ body {
 .entry-input::-webkit-inner-spin-button,
 .entry-input::-webkit-outer-spin-button { -webkit-appearance: none; }
 .entry-input::placeholder { color: #D0D5DD; font-weight: 500; }
+.entry-input:focus::placeholder { color: transparent; }
 .entry-input:focus { border-color: var(--primary); }
+
 
 .entry-avg {
     width: 100%;
@@ -138,9 +172,9 @@ body {
 }
 
 .entry-avg.empty {
-    color: #D0D5DD;
-    font-size: 14px;
-    font-weight: 900;
+    color: #C0C5CC;
+    font-size: 10px;
+    font-weight: 400;
     background: none;
 }
 
@@ -236,7 +270,6 @@ body {
     padding: 10px 12px 10px 16px;
     position: relative;
     z-index: 1;
-    background: var(--card);
 }
 
 .history-item .item-top {
@@ -353,71 +386,70 @@ body {
 /* DASHBOARD */
 .avg-bar {
     background: var(--card);
-    border-radius: 12px;
+    border-radius: var(--radius);
+    padding: 16px;
     box-shadow: var(--shadow);
-    margin-bottom: 20px;
-    overflow: visible;
-    position: relative;
+    margin-bottom: 16px;
 }
 
-.avg-bar .avg-top {
-    padding: 12px 16px 10px;
-    display: flex;
-    align-items: center;
-    gap: 8px;
+.avg-bar h3 {
+    font-size: 14px;
+    color: var(--text);
+    margin-bottom: 12px;
 }
 
-.avg-bar .avg-values {
-    font-size: 20px;
-    font-weight: 700;
+.avg-table {
+    width: 100%;
+    border-collapse: collapse;
 }
 
-.avg-bar .avg-pulse {
-    font-size: 13px;
-    color: var(--text2);
-    font-weight: 400;
-}
-
-.avg-bar .avg-right {
-    margin-left: auto;
-    display: flex;
-    align-items: center;
-    gap: 8px;
-}
-
-.avg-bar .avg-badge {
-    display: inline-block;
-    padding: 2px 10px;
-    border-radius: 20px;
+.avg-table th {
     font-size: 11px;
     font-weight: 600;
-    background: rgba(74,144,217,0.1);
-    color: var(--primary);
+    color: #B0B7C3;
+    text-align: center;
+    padding: 0 0 8px;
 }
 
-.avg-bar .avg-bottom {
-    display: flex;
-    align-items: center;
-    padding: 0 16px 10px;
-    gap: 6px;
+.avg-table th:first-child { text-align: left; }
+
+.avg-table td { padding: 7px 0; }
+
+.avg-table tbody tr + tr td { border-top: 1px solid rgba(0,0,0,0.04); }
+
+.avg-row-label {
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--text);
 }
 
-.avg-bar .avg-label {
+.avg-row-val {
+    font-size: 18px;
+    font-weight: 700;
+    color: var(--text);
+    text-align: center;
+}
+
+.avg-row-std {
+    font-size: 10px;
+    font-weight: 400;
+    color: #C0C5CC;
+    margin-left: 4px;
+}
+
+.avg-row-count {
     font-size: 11px;
+    font-weight: 400;
     color: #C0C5CC;
 }
 
-.avg-bar .avg-count {
-    margin-left: auto;
-    font-size: 11px;
-    color: #C0C5CC;
-}
 
 /* TAGS */
 .save-row {
     display: flex;
     gap: 10px;
     align-items: stretch;
+    position: relative;
 }
 
 .save-row .save-btn { flex: 1; }
@@ -435,15 +467,14 @@ body {
     transition: all 0.2s;
     flex-shrink: 0;
     position: relative;
+    z-index: 82;
 }
 
-.tag-toggle.active {
+.tag-toggle.has-tags {
     border-color: var(--primary);
     color: var(--primary);
-    background: white;
-    z-index: 82;
-    position: relative;
 }
+
 
 .tag-toggle .tag-dot {
     position: absolute;
@@ -460,10 +491,6 @@ body {
     inset: 0;
     z-index: 80;
     background: rgba(0,0,0,0.5);
-}
-
-.save-row {
-    position: relative;
 }
 
 .tag-popover {
@@ -494,7 +521,8 @@ body {
 
 .tag-question {
     font-size: 13px;
-    color: var(--text2);
+    color: var(--text);
+    font-weight: 600;
     margin-bottom: 10px;
 }
 
@@ -586,12 +614,21 @@ body {
     margin-bottom: 16px;
 }
 
-.chart-card h3 { font-size: 14px; margin-bottom: 12px; color: var(--text); }
+.chart-card h3, .avg-bar h3 {
+    display: block;
+    width: fit-content;
+    font-size: 12px;
+    margin-bottom: 12px;
+    color: var(--primary);
+    font-weight: 600;
+    padding: 4px 12px;
+    background: rgba(74,144,217,0.08);
+    border-radius: 16px;
+}
 .chart-card .chart-wrap { position: relative; width: 100%; height: 260px; }
 .chart-card .chart-wrap canvas { position: absolute; inset: 0; }
 .chart-card.square { display: flex; flex-direction: column; }
-.chart-card.square canvas { align-self: center; }
-.chart-card.square canvas { height: auto !important; max-width: 320px; aspect-ratio: 1; }
+.chart-card.square canvas { align-self: center; height: auto !important; max-width: 320px; aspect-ratio: 1; }
 
 .variability-row {
     display: flex;
@@ -1012,6 +1049,8 @@ body {
 .date-year { flex: 1.5; }
 .date-dot { color: #B0B7C3; font-size: 18px; font-weight: 600; }
 
+.modal-btn-wrap { margin-top: 16px; }
+
 .modal-btn {
     width: 100%;
     display: flex;
@@ -1170,7 +1209,7 @@ body {
                     <div class="modal-chip" data-days="90" onclick="selectChip(this)">90 dni</div>
                     <div class="modal-chip" data-days="0" onclick="selectChip(this)">Celotno</div>
                 </div>
-                <button class="modal-btn" onclick="doExport()"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>Izvozi</button>
+                <div class="modal-btn-wrap"><button class="modal-btn" onclick="doExport()"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>Izvozi</button></div>
             </div>
         </div>
 
@@ -1196,7 +1235,7 @@ body {
                     <div class="modal-chip" data-days="90" onclick="selectChip(this)">90 dni</div>
                     <div class="modal-chip" data-days="0" onclick="selectChip(this)">Celotno</div>
                 </div>
-                <button class="modal-btn" onclick="doShare()"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/></svg>Deli</button>
+                <div class="modal-btn-wrap"><button class="modal-btn" onclick="doShare()"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/></svg>Deli</button></div>
             </div>
         </div>
 
@@ -1217,7 +1256,11 @@ body {
 
     <!-- ENTRY PAGE -->
     <div class="page active" id="pageEntry">
-        <div class="entry-section">
+        <button class="nova-btn" id="novaBtn" onclick="showEntryForm()">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+            Nova meritev
+        </button>
+        <div class="entry-section hidden" id="entrySection">
             <div class="entry-cols">
                 <div class="entry-col">
                     <span class="entry-col-label">Sistolicni</span>
@@ -1231,7 +1274,7 @@ body {
                     <input type="number" class="entry-input" id="d1" placeholder="&#8212;" inputmode="numeric" oninput="onMeasInput(this)">
                     <input type="number" class="entry-input" id="d2" placeholder="&#8212;" inputmode="numeric" oninput="onMeasInput(this)">
                     <input type="number" class="entry-input" id="d3" placeholder="&#8212;" inputmode="numeric" oninput="onMeasInput(this)">
-                    <div class="entry-avg empty" id="avgD">&hearts;</div>
+                    <div class="entry-avg empty" id="avgD">&#9679;</div>
                 </div>
                 <div class="entry-col">
                     <span class="entry-col-label">Pulz</span>
@@ -1692,6 +1735,17 @@ const barDatalabels = {
 };
 
 // ===== TABS =====
+function showEntryForm() {
+    document.getElementById('novaBtn').classList.add('hidden');
+    document.getElementById('entrySection').classList.remove('hidden');
+    setTimeout(() => document.getElementById('s1').focus(), 50);
+}
+
+function hideEntryForm() {
+    document.getElementById('novaBtn').classList.remove('hidden');
+    document.getElementById('entrySection').classList.add('hidden');
+}
+
 function showTab(tab) {
     document.querySelectorAll('.tab').forEach((t, i) => {
         t.classList.toggle('active', (tab === 'entry' && i === 0) || (tab === 'dashboard' && i === 1));
@@ -1743,13 +1797,13 @@ function openTagSheet() {
     renderTags();
     document.getElementById('sheetOverlay').classList.remove('hidden');
     document.getElementById('tagPopover').classList.remove('hidden');
-    document.getElementById('tagToggle').classList.toggle('active', selectedTags.length > 0);
+    document.getElementById('tagToggle').classList.toggle('has-tags', selectedTags.length > 0);
 }
 
 function closeTagSheet() {
     document.getElementById('sheetOverlay').classList.add('hidden');
     document.getElementById('tagPopover').classList.add('hidden');
-    document.getElementById('tagToggle').classList.toggle('active', selectedTags.length > 0);
+    document.getElementById('tagToggle').classList.toggle('has-tags', selectedTags.length > 0);
     updateTagToggle();
 }
 
@@ -1803,7 +1857,7 @@ function computeAvg() {
 
     avgS.textContent = s !== null ? s : '\u25CF';
     avgS.className = s !== null ? 'entry-avg' : 'entry-avg empty';
-    avgD.textContent = d !== null ? d : '\u2665';
+    avgD.textContent = d !== null ? d : '\u25CF';
     avgD.className = d !== null ? 'entry-avg' : 'entry-avg empty';
     avgP.textContent = p !== null ? p : '\u25CF';
     avgP.className = p !== null ? 'entry-avg' : 'entry-avg empty';
@@ -1883,12 +1937,21 @@ function saveEntry() {
         document.querySelectorAll('.entry-input').forEach(i => i.value = '');
         [avgS, avgD, avgP].forEach(el => { el.style.color = ''; el.style.background = ''; });
         avgS.textContent = '\u25CF'; avgS.className = 'entry-avg empty';
-        avgD.textContent = '\u2665'; avgD.className = 'entry-avg empty';
+        avgD.textContent = '\u25CF'; avgD.className = 'entry-avg empty';
         avgP.textContent = '\u25CF'; avgP.className = 'entry-avg empty';
         document.getElementById('feedback').textContent = '';
         selectedTags = []; renderTags(); updateTagToggle();
-        document.getElementById('tagToggle').classList.remove('active');
+        hideEntryForm();
+        document.getElementById('tagToggle').classList.remove('has-tags');
         renderHistory();
+        // Highlight newest entry with rating color
+        const newest = document.querySelector('#historyList .history-item');
+        if (newest) {
+            const rgb = c.bg; // from btnColors above
+            newest.classList.add('new-entry');
+            newest.style.boxShadow = `0 0 0 2px ${rgb}, var(--shadow)`;
+            setTimeout(() => { newest.style.boxShadow = 'var(--shadow)'; }, 2500);
+        }
     }, 2000);
 }
 
@@ -1955,6 +2018,7 @@ function renderHistory() {
         : '';
 
     list.innerHTML = items + moreBtn;
+
 }
 
 // ===== EXPORT =====
@@ -2161,6 +2225,54 @@ const timeScale = {
     grid: { color: 'rgba(0,0,0,0.03)' }, ticks: { maxTicksLimit: 8, autoSkip: false, font: { size: 10 } }
 };
 
+function _calcStd(arr) {
+    if (arr.length < 2) return 0;
+    const m = arr.reduce((a,b)=>a+b,0) / arr.length;
+    return Math.round(Math.sqrt(arr.reduce((a,v) => a + (v-m)**2, 0) / arr.length));
+}
+
+function switchAvgTab(tab, days) {
+    const readings = days ? Store.getReadings(days) : Store.getReadings();
+    let filtered = readings;
+    if (tab === 'morning') filtered = readings.filter(r => new Date(r.measured_at).getHours() < 12);
+    if (tab === 'evening') filtered = readings.filter(r => new Date(r.measured_at).getHours() >= 12);
+
+    // Update active tab
+    document.querySelectorAll('.avg-tab').forEach(t => t.classList.remove('active'));
+    event.target.classList.add('active');
+
+    if (!filtered.length) return;
+
+    const sArr = filtered.map(r=>r.systolic);
+    const dArr = filtered.map(r=>r.diastolic);
+    const pArr = filtered.filter(r=>r.pulse).map(r=>r.pulse);
+    const sAvg = Math.round(sArr.reduce((a,b)=>a+b,0)/sArr.length);
+    const dAvg = Math.round(dArr.reduce((a,b)=>a+b,0)/dArr.length);
+    const pAvg = pArr.length ? Math.round(pArr.reduce((a,b)=>a+b,0)/pArr.length) : null;
+
+    const el = document.getElementById('avgStatsContent');
+    el.innerHTML = `
+        <div class="avg-stat">
+            <div class="avg-stat-value">${sAvg}</div>
+            <div class="avg-stat-std">±${_calcStd(sArr)}</div>
+            <div class="avg-stat-unit">sis · mmHg</div>
+        </div>
+        <div class="avg-stat">
+            <div class="avg-stat-value">${dAvg}</div>
+            <div class="avg-stat-std">±${_calcStd(dArr)}</div>
+            <div class="avg-stat-unit">dia · mmHg</div>
+        </div>
+        <div class="avg-stat">
+            <div class="avg-stat-value">${pAvg || '—'}</div>
+            <div class="avg-stat-std">&nbsp;</div>
+            <div class="avg-stat-unit">pulz · u/min</div>
+        </div>
+    `;
+
+    // Update count
+    document.querySelector('.avg-meta span:first-child').textContent = filtered.length + ' meritev';
+}
+
 function loadDashboard() {
     const content = document.getElementById('content');
     const days = currentDays || null;
@@ -2175,21 +2287,40 @@ function loadDashboard() {
     }
 
     const periodLabel = currentDays > 0 ? `${currentDays} dni` : 'vse';
-    const pulseHtml = stats.avg_pulse ? `<span class="avg-pulse">&hearts; ${Math.round(stats.avg_pulse)}</span>` : '';
+    const me = _getMorningEveningStats(days);
+    const mReadings = readings.filter(r => new Date(r.measured_at).getHours() < 12);
+    const eReadings = readings.filter(r => new Date(r.measured_at).getHours() >= 12);
+
+    const row = (label, s, d, p, sArr, dArr, count) => {
+        const sStd = sArr.length > 1 ? `<span class="avg-row-std">±${_calcStd(sArr)}</span>` : '';
+        const dStd = dArr.length > 1 ? `<span class="avg-row-std">±${_calcStd(dArr)}</span>` : '';
+        const n = count ? `<span class="avg-row-count">(${count})</span>` : '';
+        return `<tr>
+            <td class="avg-row-label">${label} ${n}</td>
+            <td class="avg-row-val">${s}${sStd}</td>
+            <td class="avg-row-val">${d}${dStd}</td>
+            <td class="avg-row-val">${p || '—'}</td>
+        </tr>`;
+    };
 
     content.innerHTML = `
         <div class="avg-bar">
-            <div class="avg-top">
-                <div class="avg-values">${Math.round(stats.avg_systolic)}/${Math.round(stats.avg_diastolic)}</div>
-                ${pulseHtml}
-                <div class="avg-right">
-                    <span class="avg-badge">Povprecje</span>
-                </div>
-            </div>
-            <div class="avg-bottom">
-                <span class="avg-label">${periodLabel}</span>
-                <span class="avg-count">${stats.count} meritev</span>
-            </div>
+            <h3>Povprecje</h3>
+            <table class="avg-table">
+                <thead>
+                    <tr>
+                        <th></th>
+                        <th>Sistolicni</th>
+                        <th>Diastolicni</th>
+                        <th>Pulz</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    ${row('Skupno', Math.round(stats.avg_systolic), Math.round(stats.avg_diastolic), stats.avg_pulse ? Math.round(stats.avg_pulse) : null, readings.map(r=>r.systolic), readings.map(r=>r.diastolic), stats.count)}
+                    ${mReadings.length ? row('🥐 Jutro', me.morning.sys, me.morning.dia, me.morning.pulse, mReadings.map(r=>r.systolic), mReadings.map(r=>r.diastolic), me.morning.count) : row('🥐 Jutro', '—', '—', '—', [], [], 0)}
+                    ${eReadings.length ? row('🌙 Vecer', me.evening.sys, me.evening.dia, me.evening.pulse, eReadings.map(r=>r.systolic), eReadings.map(r=>r.diastolic), me.evening.count) : row('🌙 Vecer', '—', '—', '—', [], [], 0)}
+                </tbody>
+            </table>
         </div>
         <div class="chart-card">
             <h3>Meritve skozi cas</h3>
@@ -2200,11 +2331,6 @@ function loadDashboard() {
             <canvas id="zonesChart"></canvas>
         </div>
         <div class="chart-card">
-            <h3>Povprecje: jutro vs. vecer</h3>
-            <div class="chart-wrap"><canvas id="morningEveningChart"></canvas></div>
-            <div class="variability-row" id="variabilityRow"></div>
-        </div>
-        <div class="chart-card">
             <h3>Povprecje po dnevih v tednu</h3>
             <div class="chart-wrap"><canvas id="weekdayChart"></canvas></div>
         </div>
@@ -2212,7 +2338,6 @@ function loadDashboard() {
 
     renderBPChart(readings);
     renderZonesChart(readings);
-    renderMorningEveningChart(readings);
     renderWeekdayChart(readings);
 }
 
@@ -2243,7 +2368,7 @@ function renderBPChart(readings) {
             data: readings.filter(r => r.pulse).map(r => ({ x: new Date(r.measured_at), y: r.pulse })),
             borderColor: 'rgba(150,120,200,0.45)', backgroundColor: 'transparent',
             fill: false, cubicInterpolationMode: 'monotone', pointRadius: 0, pointBackgroundColor: 'rgba(150,120,200,0.45)', pointHitRadius: 8,
-            borderWidth: 1.5,
+            borderWidth: 2,
             yAxisID: 'y',
         });
     }
