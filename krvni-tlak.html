@@ -114,8 +114,8 @@ body {
 .pill-templates {
     display: flex;
     flex-wrap: wrap;
-    gap: 6px;
-    margin-bottom: 10px;
+    gap: 7px;
+    margin-bottom: 12px;
 }
 
 .pill-template {
@@ -124,22 +124,46 @@ body {
     border-radius: 20px;
     font-size: 13px;
     font-weight: 500;
-    color: var(--text2);
+    color: #A8B0BC;
     background: var(--bg);
     cursor: pointer;
+    transition: all 0.15s;
 }
 
 .pill-template.selected {
-    background: rgba(74,144,217,0.12);
-    color: var(--primary);
+    background: rgba(155,127,212,0.12);
+    color: #7C5CB8;
     font-weight: 600;
 }
 
 .pill-dose-row {
     display: flex;
     align-items: center;
-    gap: 10px;
-    margin-bottom: 10px;
+    justify-content: space-between;
+    margin-bottom: 12px;
+}
+
+.pill-dose-chips {
+    display: flex;
+    gap: 6px;
+}
+
+.pill-dose-chip {
+    width: 40px;
+    height: 40px;
+    border: none;
+    border-radius: 50%;
+    font-size: 16px;
+    font-weight: 600;
+    color: #A8B0BC;
+    background: var(--bg);
+    cursor: pointer;
+    transition: all 0.15s;
+}
+
+.pill-dose-chip.selected {
+    background: rgba(155,127,212,0.12);
+    color: #7C5CB8;
 }
 
 .pill-input {
@@ -181,18 +205,18 @@ body {
     cursor: pointer;
 }
 
-.pill-entry {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    padding: 10px 16px;
-    font-size: 15px;
-    color: var(--text);
+.pill-item {
+    border-left: 3px solid #9B7FD4;
 }
 
-.pill-entry .pill-time {
-    font-size: 12px;
-    color: #B0B7C3;
+.pill-badge {
+    background: rgba(155,127,212,0.12) !important;
+    color: #7C5CB8 !important;
+}
+
+.pill-tag {
+    background: rgba(155,127,212,0.08) !important;
+    color: #9B7FD4 !important;
 }
 
 /* NEW ENTRY HIGHLIGHT */
@@ -1387,13 +1411,14 @@ body {
 
         <!-- PILL DIALOG -->
         <div class="pill-dialog hidden" id="pillDialog">
+            <div style="font-size:13px;color:var(--text);font-weight:600;margin-bottom:10px">Dodatno zdravilo</div>
             <div id="pillTemplates" class="pill-templates"></div>
-            <input type="text" class="pill-input" id="pillName" placeholder="Drugo zdravilo" autocomplete="off">
+            <input type="text" class="pill-input" id="pillName" placeholder="Drugo zdravilo..." autocomplete="off">
             <div class="pill-dose-row">
-                <span style="font-size:13px;color:var(--text2)">Odmerek:</span>
-                <div class="modal-chips" id="pillDose" style="flex:1">
-                    <div class="modal-chip" onclick="selectChip(this)">½</div>
-                    <div class="modal-chip selected" onclick="selectChip(this)">1</div>
+                <span style="font-size:12px;color:#A8B0BC">Odmerek</span>
+                <div class="pill-dose-chips">
+                    <button class="pill-dose-chip" onclick="selectDose(this)">½</button>
+                    <button class="pill-dose-chip selected" onclick="selectDose(this)">1</button>
                 </div>
             </div>
             <div class="pill-actions">
@@ -1900,6 +1925,11 @@ function selectPillTemplate(el, name) {
     }
 }
 
+function selectDose(el) {
+    document.querySelectorAll('.pill-dose-chip').forEach(c => c.classList.remove('selected'));
+    el.classList.add('selected');
+}
+
 function openPillDialog() {
     document.querySelector('.action-buttons').classList.add('hidden');
     document.getElementById('pillDialog').classList.remove('hidden');
@@ -1917,7 +1947,7 @@ function closePillDialog() {
 function savePill() {
     const name = document.getElementById('pillName').value.trim();
     if (!name) return;
-    const dose = document.querySelector('#pillDose .modal-chip.selected')?.textContent || '1';
+    const dose = document.querySelector('.pill-dose-chip.selected')?.textContent || '1';
     const doses = Store._get('extra_doses');
     const now = new Date();
     doses.push({
@@ -2267,18 +2297,20 @@ function renderHistory() {
             const date = new Date(d.taken_at);
             const time = date.toLocaleDateString('sl-SI', { day: 'numeric', month: 'short' })
                 + ' ' + date.toLocaleTimeString('sl-SI', { hour: '2-digit', minute: '2-digit' });
+            const doseLabel = d.name.includes('(½)') ? '½ tableta' : '1 tableta';
+            const pillName = d.name.replace(' (½)', '');
             return `
-                <div class="history-item">
+                <div class="history-item pill-item">
                     <div class="item-content">
                         <div class="item-top">
-                            <div class="values">${d.name}</div>
+                            <div class="values">💊 Dodatno zdravilo</div>
                             <div class="item-right">
-                                <span class="badge" style="background:rgba(74,144,217,0.1);color:var(--primary)">💊</span>
+                                <span class="badge pill-badge">${doseLabel}</span>
                             </div>
                         </div>
                         <button class="delete-btn" onclick="askDeletePill(this)" title="Izbrisi">&times;</button>
                     </div>
-                    <div class="history-bottom"><div class="tags-group"></div><span class="time">${time}</span></div>
+                    <div class="history-bottom"><div class="tags-group"><span class="history-tag pill-tag">${pillName}</span></div><span class="time">${time}</span></div>
                     <div class="confirm-bar">
                         <span class="confirm-text">Zelite izbrisati vnos?</span>
                         <div class="confirm-actions">
