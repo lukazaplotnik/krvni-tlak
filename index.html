@@ -150,6 +150,18 @@ body {
     font-weight: 600;
 }
 
+.pill-custom-input {
+    border: none;
+    outline: none;
+    width: 90px;
+    cursor: text;
+}
+
+.pill-custom-input:focus {
+    background: rgba(155,127,212,0.12);
+    color: #7C5CB8;
+}
+
 .pill-dose-row {
     display: flex;
     align-items: center;
@@ -1427,7 +1439,6 @@ body {
             <button class="back-btn" onclick="closePillDialog()"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg></button>
             <div style="font-size:13px;color:var(--text);font-weight:600;margin-bottom:10px">Dodatno zdravilo</div>
             <div id="pillTemplates" class="pill-templates"></div>
-            <input type="text" class="pill-input hidden" id="pillCustomName" placeholder="Ime zdravila..." autocomplete="off">
             <div class="pill-dose-row">
                 <span style="font-size:12px;color:#A8B0BC">Odmerek</span>
                 <div class="dose-stepper">
@@ -1924,10 +1935,9 @@ function renderPillTemplates() {
     const meds = Store._get('standard_meds');
     const el = document.getElementById('pillTemplates');
     const chips = meds.map(m => {
-        const label = m.name + (m.dosage ? ' ' + m.dosage : '');
-        return `<button class="pill-template" onclick="selectPillTemplate(this, '${label}')">${m.name}${m.dosage ? ' <span style="color:#B0B7C3">' + m.dosage + '</span>' : ''}</button>`;
+        return `<button class="pill-template" onclick="selectPillTemplate(this, '${m.name}')">${m.name}</button>`;
     });
-    chips.push(`<button class="pill-template" onclick="selectPillTemplate(this, '__custom__')">Drugo...</button>`);
+    chips.push(`<input type="text" class="pill-template pill-custom-input" id="pillCustomInline" placeholder="Drugo..." onfocus="selectCustomPill()" oninput="selectedPillTemplate='__custom__'" autocomplete="off">`);
     el.innerHTML = chips.join('');
 }
 
@@ -1935,14 +1945,13 @@ function selectPillTemplate(el, name) {
     document.querySelectorAll('.pill-template').forEach(t => t.classList.remove('selected'));
     el.classList.add('selected');
     selectedPillTemplate = name;
-    const customInput = document.getElementById('pillCustomName');
-    if (name === '__custom__') {
-        customInput.classList.remove('hidden');
-        customInput.value = '';
-        setTimeout(() => customInput.focus(), 50);
-    } else {
-        customInput.classList.add('hidden');
-    }
+    const inline = document.getElementById('pillCustomInline');
+    if (inline) inline.value = '';
+}
+
+function selectCustomPill() {
+    document.querySelectorAll('.pill-template').forEach(t => t.classList.remove('selected'));
+    selectedPillTemplate = '__custom__';
 }
 
 function changeDose(delta) {
@@ -1972,7 +1981,7 @@ function closePillDialog() {
 function savePill() {
     let name;
     if (selectedPillTemplate === '__custom__') {
-        name = document.getElementById('pillCustomName').value.trim();
+        name = document.getElementById('pillCustomInline').value.trim();
     } else {
         name = selectedPillTemplate;
     }
