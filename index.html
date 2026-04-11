@@ -111,6 +111,37 @@ body {
     margin-bottom: 16px;
 }
 
+.pill-templates {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    margin-bottom: 10px;
+}
+
+.pill-template {
+    padding: 7px 14px;
+    border: none;
+    border-radius: 20px;
+    font-size: 13px;
+    font-weight: 500;
+    color: var(--text2);
+    background: var(--bg);
+    cursor: pointer;
+}
+
+.pill-template.selected {
+    background: rgba(74,144,217,0.12);
+    color: var(--primary);
+    font-weight: 600;
+}
+
+.pill-dose-row {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 10px;
+}
+
 .pill-input {
     width: 100%;
     padding: 12px;
@@ -1349,13 +1380,22 @@ body {
                 Nova meritev
             </button>
             <button class="nova-btn pill-btn" onclick="openPillDialog()">
-                💊 Dodatno zdravilo
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+                Dodatno zdravilo
             </button>
         </div>
 
         <!-- PILL DIALOG -->
         <div class="pill-dialog hidden" id="pillDialog">
-            <input type="text" class="pill-input" id="pillName" placeholder="Ime zdravila" autocomplete="off">
+            <div id="pillTemplates" class="pill-templates"></div>
+            <input type="text" class="pill-input" id="pillName" placeholder="Drugo zdravilo" autocomplete="off">
+            <div class="pill-dose-row">
+                <span style="font-size:13px;color:var(--text2)">Odmerek:</span>
+                <div class="modal-chips" id="pillDose" style="flex:1">
+                    <div class="modal-chip" onclick="selectChip(this)">½</div>
+                    <div class="modal-chip selected" onclick="selectChip(this)">1</div>
+                </div>
+            </div>
             <div class="pill-actions">
                 <button class="pill-save" onclick="savePill()">Shrani</button>
                 <button class="pill-cancel" onclick="closePillDialog()">Preklici</button>
@@ -1399,7 +1439,7 @@ body {
             <div class="feedback" id="feedback"></div>
         </div>
         <div class="history-section">
-            <h2 class="history-title">Dnevnik</h2>
+            <h2 style="font-size:15px;color:var(--text2);margin-bottom:12px;padding-left:4px">Dnevnik</h2>
             <div id="historyList"></div>
         </div>
     </div>
@@ -1837,24 +1877,52 @@ const barDatalabels = {
 
 // ===== TABS =====
 // ===== PILL TRACKING =====
+let selectedPillTemplate = null;
+
+function renderPillTemplates() {
+    const meds = Store._get('standard_meds');
+    const el = document.getElementById('pillTemplates');
+    if (!meds.length) { el.innerHTML = ''; return; }
+    el.innerHTML = meds.map(m =>
+        `<button class="pill-template" onclick="selectPillTemplate(this, '${m.name}${m.dosage ? ' ' + m.dosage : ''}')">${m.name}${m.dosage ? ' <span style="color:#B0B7C3">' + m.dosage + '</span>' : ''}</button>`
+    ).join('');
+}
+
+function selectPillTemplate(el, name) {
+    document.querySelectorAll('.pill-template').forEach(t => t.classList.remove('selected'));
+    if (selectedPillTemplate === name) {
+        selectedPillTemplate = null;
+        document.getElementById('pillName').value = '';
+    } else {
+        el.classList.add('selected');
+        selectedPillTemplate = name;
+        document.getElementById('pillName').value = name;
+    }
+}
+
 function openPillDialog() {
+    document.querySelector('.action-buttons').classList.add('hidden');
     document.getElementById('pillDialog').classList.remove('hidden');
     document.getElementById('pillName').value = '';
+    selectedPillTemplate = null;
+    renderPillTemplates();
     setTimeout(() => document.getElementById('pillName').focus(), 50);
 }
 
 function closePillDialog() {
     document.getElementById('pillDialog').classList.add('hidden');
+    document.querySelector('.action-buttons').classList.remove('hidden');
 }
 
 function savePill() {
     const name = document.getElementById('pillName').value.trim();
     if (!name) return;
+    const dose = document.querySelector('#pillDose .modal-chip.selected')?.textContent || '1';
     const doses = Store._get('extra_doses');
     const now = new Date();
     doses.push({
         id: crypto.randomUUID(),
-        name,
+        name: dose === '½' ? name + ' (½)' : name,
         date: now.toISOString().slice(0, 10),
         taken_at: now.toISOString(),
     });
@@ -1912,13 +1980,13 @@ function renderStandardMeds() {
 renderStandardMeds();
 
 function showEntryForm() {
-    document.getElementById('novaBtn').classList.add('hidden');
+    document.querySelector('.action-buttons').classList.add('hidden');
     document.getElementById('entrySection').classList.remove('hidden');
     setTimeout(() => document.getElementById('s1').focus(), 50);
 }
 
 function hideEntryForm() {
-    document.getElementById('novaBtn').classList.remove('hidden');
+    document.querySelector('.action-buttons').classList.remove('hidden');
     document.getElementById('entrySection').classList.add('hidden');
 }
 
@@ -2203,11 +2271,14 @@ function renderHistory() {
                 <div class="history-item">
                     <div class="item-content">
                         <div class="item-top">
-                            <div class="values pill-entry">💊 ${d.name}</div>
+                            <div class="values">${d.name}</div>
+                            <div class="item-right">
+                                <span class="badge" style="background:rgba(74,144,217,0.1);color:var(--primary)">💊</span>
+                            </div>
                         </div>
                         <button class="delete-btn" onclick="askDeletePill(this)" title="Izbrisi">&times;</button>
                     </div>
-                    <div class="history-bottom"><span class="time">${time}</span></div>
+                    <div class="history-bottom"><div class="tags-group"></div><span class="time">${time}</span></div>
                     <div class="confirm-bar">
                         <span class="confirm-text">Zelite izbrisati vnos?</span>
                         <div class="confirm-actions">
