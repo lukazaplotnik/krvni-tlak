@@ -1432,7 +1432,7 @@ body {
             </button>
             <button class="nova-btn pill-btn" onclick="openPillDialog()">
                 <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
-                Dodatno zdravilo
+                Dodatna tableta
             </button>
         </div>
 
@@ -1962,15 +1962,13 @@ function changeDose(delta) {
 function openPillDialog() {
     document.querySelector('.action-buttons').classList.add('hidden');
     document.getElementById('pillDialog').classList.remove('hidden');
-    document.getElementById('pillCustomName').classList.add('hidden');
-    document.getElementById('pillCustomName').value = '';
     selectedPillTemplate = null;
     currentDose = 1;
     document.getElementById('doseValue').textContent = '1';
     renderPillTemplates();
-    // Auto-select first template or show custom input if no meds
-    const firstChip = document.querySelector('.pill-template');
-    if (firstChip) firstChip.click();
+    // Auto-select first button template if available
+    const firstBtn = document.querySelector('.pill-template:not(.pill-custom-input)');
+    if (firstBtn) firstBtn.click();
 }
 
 function closePillDialog() {
@@ -2343,7 +2341,7 @@ function renderHistory() {
                 <div class="history-item">
                     <div class="item-content">
                         <div class="item-top">
-                            <div class="values" style="font-size:15px;color:var(--text2)">Dodatno zdravilo</div>
+                            <div class="values" style="font-size:15px">Dodatna tableta</div>
                             <div class="item-right">
                                 <span class="badge pill-badge">${doseLabel}</span>
                             </div>
