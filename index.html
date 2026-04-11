@@ -125,11 +125,20 @@ body {
     margin-bottom: 16px;
 }
 
+.pill-form-label {
+    font-size: 11px;
+    font-weight: 600;
+    color: var(--text2);
+    text-transform: uppercase;
+    letter-spacing: 0.3px;
+    margin-bottom: 6px;
+}
+
 .pill-templates {
     display: flex;
     flex-wrap: wrap;
     gap: 7px;
-    margin-bottom: 12px;
+    margin-bottom: 14px;
 }
 
 .pill-template {
@@ -145,8 +154,8 @@ body {
 }
 
 .pill-template.selected {
-    background: rgba(155,127,212,0.12);
-    color: #7C5CB8;
+    background: rgba(74,144,217,0.12);
+    color: var(--primary);
     font-weight: 600;
 }
 
@@ -158,23 +167,17 @@ body {
 }
 
 .pill-custom-input:focus {
-    background: rgba(155,127,212,0.12);
-    color: #7C5CB8;
-}
-
-.pill-dose-row {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    margin-bottom: 12px;
+    background: rgba(74,144,217,0.12);
+    color: var(--primary);
 }
 
 .dose-stepper {
-    display: flex;
+    display: inline-flex;
     align-items: center;
     gap: 0;
     background: var(--bg);
     border-radius: 10px;
+    margin-bottom: 14px;
     overflow: hidden;
 }
 
@@ -218,30 +221,29 @@ body {
 }
 
 .pill-save {
-    flex: 1;
-    padding: 10px;
+    width: 100%;
+    padding: 14px;
     background: var(--primary);
     color: white;
     border: none;
-    border-radius: 10px;
-    font-size: 14px;
+    border-radius: 12px;
+    font-size: 17px;
     font-weight: 600;
     cursor: pointer;
+    transition: all 0.2s;
 }
 
+.pill-save:active { transform: scale(0.98); }
 
-.pill-item {
-    border-left: 3px solid #9B7FD4;
-}
 
 .pill-badge {
-    background: rgba(155,127,212,0.12) !important;
-    color: #7C5CB8 !important;
+    background: var(--bg) !important;
+    color: var(--text2) !important;
 }
 
 .pill-tag {
-    background: rgba(155,127,212,0.08) !important;
-    color: #9B7FD4 !important;
+    background: var(--bg) !important;
+    color: var(--text2) !important;
 }
 
 /* NEW ENTRY HIGHLIGHT */
@@ -1437,15 +1439,13 @@ body {
         <!-- PILL DIALOG -->
         <div class="pill-dialog hidden" id="pillDialog">
             <button class="back-btn" onclick="closePillDialog()"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg></button>
-            <div style="font-size:13px;color:var(--text);font-weight:600;margin-bottom:10px">Dodatno zdravilo</div>
+            <div class="pill-form-label">Zdravilo</div>
             <div id="pillTemplates" class="pill-templates"></div>
-            <div class="pill-dose-row">
-                <span style="font-size:12px;color:#A8B0BC">Odmerek</span>
-                <div class="dose-stepper">
-                    <button class="dose-btn" onclick="changeDose(-0.5)">−</button>
-                    <span class="dose-value" id="doseValue">1</span>
-                    <button class="dose-btn" onclick="changeDose(0.5)">+</button>
-                </div>
+            <div class="pill-form-label">Odmerek</div>
+            <div class="dose-stepper">
+                <button class="dose-btn" onclick="changeDose(-0.5)">−</button>
+                <span class="dose-value" id="doseValue">1</span>
+                <button class="dose-btn" onclick="changeDose(0.5)">+</button>
             </div>
             <div class="pill-actions">
                 <button class="pill-save" onclick="savePill()">Shrani</button>
@@ -2340,10 +2340,10 @@ function renderHistory() {
             const doseLabel = doseNum === 1 ? '1 tableta' : doseNum + ' tablete';
             const pillName = d.name;
             return `
-                <div class="history-item pill-item">
+                <div class="history-item">
                     <div class="item-content">
                         <div class="item-top">
-                            <div class="values">💊 Dodatno zdravilo</div>
+                            <div class="values" style="font-size:15px;color:var(--text2)">Dodatno zdravilo</div>
                             <div class="item-right">
                                 <span class="badge pill-badge">${doseLabel}</span>
                             </div>
