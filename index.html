@@ -73,7 +73,14 @@ body {
 .page { flex: 1; overflow-y: scroll; padding: 12px 16px; -webkit-overflow-scrolling: touch; display: none; }
 .page.active { display: block; }
 
+.action-buttons {
+    display: flex;
+    gap: 8px;
+    margin-bottom: 20px;
+}
+
 .nova-btn {
+    flex: 1;
     width: 100%;
     padding: 18px;
     background: var(--primary);
@@ -93,6 +100,69 @@ body {
 
 .nova-btn:hover { background: var(--primary-dark); }
 .nova-btn:active { transform: scale(0.98); }
+
+.pill-btn { font-size: 15px; }
+
+.pill-dialog {
+    background: var(--card);
+    border-radius: var(--radius);
+    padding: 16px;
+    box-shadow: var(--shadow);
+    margin-bottom: 16px;
+}
+
+.pill-input {
+    width: 100%;
+    padding: 12px;
+    border: 2px solid var(--border);
+    border-radius: 10px;
+    font-size: 16px;
+    outline: none;
+    margin-bottom: 10px;
+}
+
+.pill-input:focus { border-color: var(--primary); }
+
+.pill-actions {
+    display: flex;
+    gap: 8px;
+}
+
+.pill-save {
+    flex: 1;
+    padding: 10px;
+    background: var(--primary);
+    color: white;
+    border: none;
+    border-radius: 10px;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+}
+
+.pill-cancel {
+    padding: 10px 16px;
+    background: var(--bg);
+    color: var(--text2);
+    border: none;
+    border-radius: 10px;
+    font-size: 14px;
+    cursor: pointer;
+}
+
+.pill-entry {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 10px 16px;
+    font-size: 15px;
+    color: var(--text);
+}
+
+.pill-entry .pill-time {
+    font-size: 12px;
+    color: #B0B7C3;
+}
 
 /* NEW ENTRY HIGHLIGHT */
 .history-item.new-entry {
@@ -1239,6 +1309,23 @@ body {
             </div>
         </div>
 
+        <!-- REDNA ZDRAVILA -->
+        <div class="accordion">
+            <button class="accordion-header" onclick="toggleAccordion(this)">
+                <span>💊</span>
+                Redna zdravila
+                <span class="chevron">&#8250;</span>
+            </button>
+            <div class="accordion-body">
+                <div id="standardMedsList"></div>
+                <div style="display:flex;gap:6px;margin-top:8px">
+                    <input type="text" class="acc-input" id="newMedName" placeholder="Ime zdravila" style="margin:0;flex:1">
+                    <input type="text" class="acc-input" id="newMedDose" placeholder="Odmerek" style="margin:0;width:70px">
+                    <button onclick="addStandardMed()" style="background:var(--primary);color:white;border:none;border-radius:8px;padding:8px 12px;font-size:12px;font-weight:600;cursor:pointer;white-space:nowrap">Dodaj</button>
+                </div>
+            </div>
+        </div>
+
         <div class="settings-version">
             <button onclick="handleLogout()" style="background:none;border:none;color:#C0C5CC;font-size:12px;cursor:pointer;text-decoration:underline;margin-bottom:8px">Odjava</button>
             <div id="settingsEmail" style="margin-bottom:4px"></div>
@@ -1256,10 +1343,24 @@ body {
 
     <!-- ENTRY PAGE -->
     <div class="page active" id="pageEntry">
-        <button class="nova-btn" id="novaBtn" onclick="showEntryForm()">
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
-            Nova meritev
-        </button>
+        <div class="action-buttons">
+            <button class="nova-btn" id="novaBtn" onclick="showEntryForm()">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+                Nova meritev
+            </button>
+            <button class="nova-btn pill-btn" onclick="openPillDialog()">
+                💊 Dodatno zdravilo
+            </button>
+        </div>
+
+        <!-- PILL DIALOG -->
+        <div class="pill-dialog hidden" id="pillDialog">
+            <input type="text" class="pill-input" id="pillName" placeholder="Ime zdravila" autocomplete="off">
+            <div class="pill-actions">
+                <button class="pill-save" onclick="savePill()">Shrani</button>
+                <button class="pill-cancel" onclick="closePillDialog()">Preklici</button>
+            </div>
+        </div>
         <div class="entry-section hidden" id="entrySection">
             <div class="entry-cols">
                 <div class="entry-col">
@@ -1298,7 +1399,7 @@ body {
             <div class="feedback" id="feedback"></div>
         </div>
         <div class="history-section">
-            <h2 style="font-size:15px;color:var(--text2);margin-bottom:12px;padding-left:4px">Zadnje meritve</h2>
+            <h2 class="history-title">Dnevnik</h2>
             <div id="historyList"></div>
         </div>
     </div>
@@ -1735,6 +1836,81 @@ const barDatalabels = {
 };
 
 // ===== TABS =====
+// ===== PILL TRACKING =====
+function openPillDialog() {
+    document.getElementById('pillDialog').classList.remove('hidden');
+    document.getElementById('pillName').value = '';
+    setTimeout(() => document.getElementById('pillName').focus(), 50);
+}
+
+function closePillDialog() {
+    document.getElementById('pillDialog').classList.add('hidden');
+}
+
+function savePill() {
+    const name = document.getElementById('pillName').value.trim();
+    if (!name) return;
+    const doses = Store._get('extra_doses');
+    const now = new Date();
+    doses.push({
+        id: crypto.randomUUID(),
+        name,
+        date: now.toISOString().slice(0, 10),
+        taken_at: now.toISOString(),
+    });
+    Store._set('extra_doses', doses);
+    closePillDialog();
+    renderHistory();
+    // Highlight newest
+    const newest = document.querySelector('#historyList .history-item');
+    if (newest) {
+        newest.classList.add('new-entry');
+        newest.style.boxShadow = '0 0 0 2px rgba(74,144,217,0.25), var(--shadow)';
+        setTimeout(() => { newest.style.boxShadow = 'var(--shadow)'; }, 2500);
+    }
+}
+
+function deletePill(pillId) {
+    const doses = Store._get('extra_doses');
+    const idx = doses.findIndex(d => d.id === pillId);
+    if (idx >= 0) doses.splice(idx, 1);
+    Store._set('extra_doses', doses);
+    renderHistory();
+}
+
+function addStandardMed() {
+    const name = document.getElementById('newMedName').value.trim();
+    const dose = document.getElementById('newMedDose').value.trim();
+    if (!name) return;
+    const meds = Store._get('standard_meds');
+    meds.push({ id: crypto.randomUUID(), name, dosage: dose });
+    Store._set('standard_meds', meds);
+    document.getElementById('newMedName').value = '';
+    document.getElementById('newMedDose').value = '';
+    renderStandardMeds();
+}
+
+function removeStandardMed(id) {
+    const meds = Store._get('standard_meds').filter(m => m.id !== id);
+    Store._set('standard_meds', meds);
+    renderStandardMeds();
+}
+
+function renderStandardMeds() {
+    const list = document.getElementById('standardMedsList');
+    if (!list) return;
+    const meds = Store._get('standard_meds');
+    if (!meds.length) { list.innerHTML = '<div style="font-size:12px;color:#C0C5CC;margin-bottom:6px">Ni dodanih zdravil</div>'; return; }
+    list.innerHTML = meds.map(m => `
+        <div style="display:flex;align-items:center;justify-content:space-between;padding:6px 0;border-bottom:1px solid rgba(0,0,0,0.04)">
+            <span style="font-size:13px">${m.name}${m.dosage ? ' <span style="color:#B0B7C3">' + m.dosage + '</span>' : ''}</span>
+            <button onclick="removeStandardMed('${m.id}')" style="background:none;border:none;color:#C9CED6;font-size:16px;cursor:pointer">&times;</button>
+        </div>
+    `).join('');
+}
+
+renderStandardMeds();
+
 function showEntryForm() {
     document.getElementById('novaBtn').classList.add('hidden');
     document.getElementById('entrySection').classList.remove('hidden');
@@ -1975,50 +2151,86 @@ let showAll = false;
 function renderHistory() {
     const list = document.getElementById('historyList');
     const allReadings = Store.getReadings();
-    if (!allReadings.length) { list.innerHTML = '<div class="empty-msg">Se ni meritev</div>'; return; }
+    const allDoses = Store._get('extra_doses');
 
-    const display = showAll ? allReadings : allReadings.slice(-10);
-    const items = display.slice().reverse().map((r) => {
-        const ts = r.measured_at;
-        const bp = classifyBP(r.systolic, r.diastolic);
-        const date = new Date(ts);
-        const time = date.toLocaleDateString('sl-SI', { day: 'numeric', month: 'short' })
-            + ' ' + date.toLocaleTimeString('sl-SI', { hour: '2-digit', minute: '2-digit' });
-        const pulse = r.pulse ? `<span class="pulse-val">&hearts; ${r.pulse}</span>` : '';
-        const timeEmoji = new Date(r.measured_at).getHours() < 12 ? '🥐 Jutro' : '🌙 Vecer';
-        const userTags = (r.tags && r.tags.length) ? r.tags.map(t => `<span class="history-tag">${t}</span>`).join('') : '';
-        const tagChips = `<span class="history-tag">${timeEmoji}</span>${userTags}`;
-        return `
-            <div class="history-item">
-                <div class="item-content">
-                    <div class="item-top">
-                        <div class="values">${r.systolic}/${r.diastolic}</div>
-                        ${pulse}
-                        <div class="item-right">
-                            <span class="badge ${bp.cls}">${bp.label}</span>
+    // Merge into unified timeline
+    const timeline = [];
+    allReadings.forEach(r => timeline.push({ type: 'bp', ts: r.measured_at, data: r }));
+    allDoses.forEach(d => timeline.push({ type: 'pill', ts: d.taken_at, data: d }));
+    timeline.sort((a, b) => new Date(a.ts) - new Date(b.ts));
+
+    if (!timeline.length) { list.innerHTML = '<div class="empty-msg">Se ni vnosov</div>'; return; }
+
+    const display = showAll ? timeline : timeline.slice(-10);
+    const items = display.slice().reverse().map((entry) => {
+        if (entry.type === 'bp') {
+            const r = entry.data;
+            const bp = classifyBP(r.systolic, r.diastolic);
+            const date = new Date(r.measured_at);
+            const time = date.toLocaleDateString('sl-SI', { day: 'numeric', month: 'short' })
+                + ' ' + date.toLocaleTimeString('sl-SI', { hour: '2-digit', minute: '2-digit' });
+            const pulse = r.pulse ? `<span class="pulse-val">&hearts; ${r.pulse}</span>` : '';
+            const timeEmoji = new Date(r.measured_at).getHours() < 12 ? '🥐 Jutro' : '🌙 Vecer';
+            const userTags = (r.tags && r.tags.length) ? r.tags.map(t => `<span class="history-tag">${t}</span>`).join('') : '';
+            const tagChips = `<span class="history-tag">${timeEmoji}</span>${userTags}`;
+            return `
+                <div class="history-item">
+                    <div class="item-content">
+                        <div class="item-top">
+                            <div class="values">${r.systolic}/${r.diastolic}</div>
+                            ${pulse}
+                            <div class="item-right">
+                                <span class="badge ${bp.cls}">${bp.label}</span>
+                            </div>
+                        </div>
+                        <button class="delete-btn" onclick="askDelete(this)" title="Izbrisi">&times;</button>
+                    </div>
+                    <div class="history-bottom"><div class="tags-group">${tagChips}</div><span class="time">${time}</span></div>
+                    <div class="confirm-bar">
+                        <span class="confirm-text">Zelite izbrisati meritev?</span>
+                        <div class="confirm-actions">
+                            <button class="confirm-yes" onclick="confirmDelete('${r.id}')">Da</button>
+                            <button class="confirm-no" onclick="cancelDelete(this)">Ne</button>
                         </div>
                     </div>
-                    <button class="delete-btn" onclick="askDelete(this)" title="Izbrisi">&times;</button>
-                </div>
-                <div class="history-bottom"><div class="tags-group">${tagChips}</div><span class="time">${time}</span></div>
-                <div class="confirm-bar">
-                    <span class="confirm-text">Zelite izbrisati meritev?</span>
-                    <div class="confirm-actions">
-                        <button class="confirm-yes" onclick="confirmDelete('${r.id}')">Da</button>
-                        <button class="confirm-no" onclick="cancelDelete(this)">Ne</button>
+                </div>`;
+        } else {
+            const d = entry.data;
+            const date = new Date(d.taken_at);
+            const time = date.toLocaleDateString('sl-SI', { day: 'numeric', month: 'short' })
+                + ' ' + date.toLocaleTimeString('sl-SI', { hour: '2-digit', minute: '2-digit' });
+            return `
+                <div class="history-item">
+                    <div class="item-content">
+                        <div class="item-top">
+                            <div class="values pill-entry">💊 ${d.name}</div>
+                        </div>
+                        <button class="delete-btn" onclick="askDeletePill(this)" title="Izbrisi">&times;</button>
                     </div>
-                </div>
-            </div>`;
+                    <div class="history-bottom"><span class="time">${time}</span></div>
+                    <div class="confirm-bar">
+                        <span class="confirm-text">Zelite izbrisati vnos?</span>
+                        <div class="confirm-actions">
+                            <button class="confirm-yes" onclick="deletePill('${d.id}')">Da</button>
+                            <button class="confirm-no" onclick="cancelDelete(this)">Ne</button>
+                        </div>
+                    </div>
+                </div>`;
+        }
     }).join('');
 
-    const moreBtn = (!showAll && allReadings.length > 5)
-        ? `<button class="show-more-btn" onclick="showAll=true;renderHistory()">Pokazi vse (${allReadings.length})</button>`
-        : (showAll && allReadings.length > 5)
+    const moreBtn = (!showAll && timeline.length > 10)
+        ? `<button class="show-more-btn" onclick="showAll=true;renderHistory()">Pokazi vse (${timeline.length})</button>`
+        : (showAll && timeline.length > 10)
         ? `<button class="show-more-btn" onclick="showAll=false;renderHistory()">Pokazi manj</button>`
         : '';
 
     list.innerHTML = items + moreBtn;
+}
 
+function askDeletePill(el) {
+    document.querySelectorAll('.history-item.confirm-delete').forEach(item => item.classList.remove('confirm-delete'));
+    el.closest('.history-item').classList.add('confirm-delete');
 }
 
 // ===== EXPORT =====
