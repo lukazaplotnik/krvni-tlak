@@ -1463,7 +1463,6 @@ body {
                 <span class="chevron">&#8250;</span>
             </button>
             <div class="accordion-body">
-                <div id="standardMedsList"></div>
                 <div class="med-form">
                     <div class="med-form-row">
                         <input type="text" class="acc-input" id="newMedName" placeholder="Ime zdravila" style="margin:0;flex:1">
@@ -1479,6 +1478,7 @@ body {
                     </div>
                     <button class="med-add-btn" onclick="addStandardMed()">Dodaj zdravilo</button>
                 </div>
+                <div id="standardMedsList"></div>
             </div>
         </div>
 
@@ -2180,7 +2180,7 @@ function addStandardMed() {
     const freq = document.getElementById('newMedFreq').value;
     if (!name) return;
     const meds = Store._get('standard_meds');
-    meds.push({ id: crypto.randomUUID(), name, dosage: dose ? dose + ' mg' : '', frequency: freq });
+    meds.unshift({ id: crypto.randomUUID(), name, dosage: dose ? dose + ' mg' : '', frequency: freq });
     Store._set('standard_meds', meds);
     document.getElementById('newMedName').value = '';
     document.getElementById('newMedDose').value = '';
