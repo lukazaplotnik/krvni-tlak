@@ -2106,7 +2106,7 @@ function selectPillTemplate(el, name) {
 }
 
 function selectCustomPill() {
-    document.querySelectorAll('.pill-template').forEach(t => t.classList.remove('selected'));
+    document.querySelectorAll('#pillTemplates .pill-template').forEach(t => t.classList.remove('selected'));
     selectedPillTemplate = '__custom__';
 }
 
