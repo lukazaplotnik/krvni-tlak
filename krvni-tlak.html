@@ -2094,7 +2094,7 @@ function renderPillTemplates() {
     const chips = meds.map(m => {
         return `<button class="pill-template" onclick="selectPillTemplate(this, '${m.name}')">${m.name}</button>`;
     });
-    const customPlaceholder = '+ Vnesi drugo...';
+    const customPlaceholder = meds.length ? '+ Vnesi drugo...' : '+ Vnesi zdravilo...';
     chips.push(`<input type="text" class="pill-template pill-custom-input" id="pillCustomInline" placeholder="${customPlaceholder}" onfocus="selectCustomPill()" oninput="selectedPillTemplate='__custom__'; this.classList.toggle('selected', this.value.length > 0)" autocomplete="off">`);
     el.innerHTML = chips.join('');
 }
