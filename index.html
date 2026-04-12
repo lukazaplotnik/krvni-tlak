@@ -289,9 +289,6 @@ body {
 .pill-save:active { transform: scale(0.98); }
 
 
-.history-item.bp-entry { border-left: 3px solid rgba(74,144,217,0.3); }
-.history-item.pill-entry { border-left: 3px solid rgba(155,127,212,0.3); }
-
 .pill-badge {
     background: var(--bg) !important;
     color: var(--text2) !important;
@@ -2478,7 +2475,7 @@ function renderHistory() {
             const userTags = (r.tags && r.tags.length) ? r.tags.map(t => `<span class="history-tag">${t}</span>`).join('') : '';
             const tagChips = `<span class="history-tag">${timeEmoji}</span>${userTags}`;
             return `
-                <div class="history-item bp-entry">
+                <div class="history-item">
                     <div class="item-content">
                         <div class="item-top">
                             <div class="values">${r.systolic}/${r.diastolic}</div>
@@ -2507,7 +2504,7 @@ function renderHistory() {
             const doseLabel = doseNum === 0.5 ? '½ tablete' : doseNum === 1 ? '1 tableta' : doseNum + ' tableti';
             const pillName = d.name;
             return `
-                <div class="history-item pill-entry">
+                <div class="history-item">
                     <div class="item-content">
                         <div class="item-top">
                             <div class="values">${pillName}</div>
