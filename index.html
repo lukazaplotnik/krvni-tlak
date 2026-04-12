@@ -174,6 +174,41 @@ body {
 
 .med-add-btn:active { transform: scale(0.98); }
 
+.pill-dose-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 14px;
+}
+
+.dose-stepper {
+    display: flex;
+    align-items: center;
+    background: var(--bg);
+    border-radius: 10px;
+}
+
+.dose-btn {
+    width: 40px;
+    height: 38px;
+    border: none;
+    background: none;
+    font-size: 20px;
+    font-weight: 600;
+    color: var(--primary);
+    cursor: pointer;
+}
+
+.dose-btn:active { background: rgba(74,144,217,0.1); border-radius: 10px; }
+
+.dose-value {
+    width: 36px;
+    text-align: center;
+    font-size: 18px;
+    font-weight: 700;
+    color: var(--text);
+}
+
 .pill-dialog {
     background: var(--card);
     border-radius: var(--radius);
@@ -1481,11 +1516,13 @@ body {
             <button class="back-btn" onclick="closePillDialog()">&times;</button>
             <div class="pill-form-label">Zdravilo</div>
             <div id="pillTemplates" class="pill-templates"></div>
-            <div class="pill-form-label">Odmerek</div>
-            <div class="pill-templates" id="pillDoseChips">
-                <button class="pill-template" onclick="selectDoseChip(this, 0.5)">½ tablete</button>
-                <button class="pill-template selected" onclick="selectDoseChip(this, 1)">1 tableta</button>
-                <button class="pill-template" onclick="selectDoseChip(this, 2)">2 tableti</button>
+            <div class="pill-dose-row">
+                <span class="pill-form-label" style="margin-bottom:0">Odmerek</span>
+                <div class="dose-stepper">
+                    <button class="dose-btn" onclick="changeDose(-0.5)">−</button>
+                    <span class="dose-value" id="doseValue">1</span>
+                    <button class="dose-btn" onclick="changeDose(0.5)">+</button>
+                </div>
             </div>
             <div class="pill-actions">
                 <button class="pill-save" onclick="savePill()">Shrani</button>
@@ -1975,7 +2012,8 @@ function renderPillTemplates() {
     const meds = Store._get('standard_meds');
     const el = document.getElementById('pillTemplates');
     const chips = meds.map(m => {
-        return `<button class="pill-template" onclick="selectPillTemplate(this, '${m.name}')">${m.name}</button>`;
+        const label = m.name + (m.dosage ? ' ' + m.dosage : '');
+        return `<button class="pill-template" onclick="selectPillTemplate(this, '${label}')">${label}</button>`;
     });
     chips.push(`<input type="text" class="pill-template pill-custom-input" id="pillCustomInline" placeholder="Drugo..." onfocus="selectCustomPill()" oninput="selectedPillTemplate='__custom__'" autocomplete="off">`);
     el.innerHTML = chips.join('');
@@ -1994,10 +2032,9 @@ function selectCustomPill() {
     selectedPillTemplate = '__custom__';
 }
 
-function selectDoseChip(el, val) {
-    document.querySelectorAll('#pillDoseChips .pill-template').forEach(c => c.classList.remove('selected'));
-    el.classList.add('selected');
-    currentDose = val;
+function changeDose(delta) {
+    currentDose = Math.max(0.5, currentDose + delta);
+    document.getElementById('doseValue').textContent = currentDose % 1 === 0 ? currentDose : currentDose.toFixed(1);
 }
 
 function openPillDialog() {
@@ -2005,7 +2042,7 @@ function openPillDialog() {
     document.getElementById('pillDialog').classList.remove('hidden');
     selectedPillTemplate = null;
     currentDose = 1;
-    document.querySelectorAll('#pillDoseChips .pill-template').forEach((c, i) => c.classList.toggle('selected', i === 1));
+    document.getElementById('doseValue').textContent = '1';
     renderPillTemplates();
     // Auto-select first button template if available
     const firstBtn = document.querySelector('.pill-template:not(.pill-custom-input)');
