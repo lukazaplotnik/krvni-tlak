@@ -2923,9 +2923,9 @@ function renderBPChart(readings) {
         datasets.push({
             label: 'Pulz',
             data: readings.filter(r => r.pulse).map(r => ({ x: new Date(r.measured_at), y: r.pulse })),
-            borderColor: 'rgba(150,120,200,0.45)', backgroundColor: 'transparent',
-            fill: false, cubicInterpolationMode: 'monotone', pointRadius: 0, pointBackgroundColor: 'rgba(150,120,200,0.45)', pointHitRadius: 8,
-            borderWidth: 2,
+            borderColor: 'rgba(160,165,175,0.4)', backgroundColor: 'transparent',
+            fill: false, cubicInterpolationMode: 'monotone', pointRadius: 0, pointBackgroundColor: 'rgba(160,165,175,0.4)', pointHitRadius: 8,
+            borderWidth: 1.5,
             yAxisID: 'y',
         });
     }
@@ -2935,24 +2935,26 @@ function renderBPChart(readings) {
     const since = days ? new Date(Date.now() - days * 86400000) : null;
     const doses = since ? allDoses.filter(d => new Date(d.taken_at) >= since) : allDoses;
     if (doses.length) {
-        const pillIcon = (() => {
-            const c = document.createElement('canvas');
-            c.width = 16; c.height = 16;
-            const x = c.getContext('2d');
-            x.font = '14px sans-serif';
-            x.textAlign = 'center';
-            x.textBaseline = 'middle';
-            x.fillText('💊', 8, 9);
-            return c;
-        })();
         datasets.push({
-            label: 'Zdravila',
+            label: 'Dod. zdravila',
             data: doses.map(d => ({ x: new Date(d.taken_at), y: 45 })),
             type: 'scatter',
-            pointRadius: 8,
-            pointHoverRadius: 10,
-            pointStyle: pillIcon,
+            pointRadius: 4,
+            pointHoverRadius: 6,
+            pointBackgroundColor: 'rgba(155,127,212,0.6)',
+            pointBorderColor: 'rgba(155,127,212,0.9)',
+            pointBorderWidth: 1,
+            pointStyle: 'rectRounded',
             yAxisID: 'y',
+            tooltip: {
+                callbacks: {
+                    label: (ctx) => {
+                        const d = doses[ctx.dataIndex];
+                        const doseLabel = d.dose === 0.5 ? '½' : d.dose === 1 ? '1' : String(d.dose);
+                        return d.name + ' (' + doseLabel + 'x)';
+                    }
+                }
+            }
         });
     }
     charts.bp = new Chart(ctx, {
