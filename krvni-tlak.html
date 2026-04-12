@@ -2012,8 +2012,7 @@ function renderPillTemplates() {
     const meds = Store._get('standard_meds');
     const el = document.getElementById('pillTemplates');
     const chips = meds.map(m => {
-        const label = m.name + (m.dosage ? ' ' + m.dosage : '');
-        return `<button class="pill-template" onclick="selectPillTemplate(this, '${label}')">${label}</button>`;
+        return `<button class="pill-template" onclick="selectPillTemplate(this, '${m.name}')">${m.name}</button>`;
     });
     chips.push(`<input type="text" class="pill-template pill-custom-input" id="pillCustomInline" placeholder="Drugo..." onfocus="selectCustomPill()" oninput="selectedPillTemplate='__custom__'" autocomplete="off">`);
     el.innerHTML = chips.join('');
