@@ -1516,13 +1516,11 @@ body {
             <button class="back-btn" onclick="closePillDialog()">&times;</button>
             <div class="pill-form-label">Zdravilo</div>
             <div id="pillTemplates" class="pill-templates"></div>
-            <div class="pill-dose-row">
-                <span class="pill-form-label" style="margin-bottom:0">Odmerek</span>
-                <div class="dose-stepper">
-                    <button class="dose-btn" onclick="changeDose(-0.5)">−</button>
-                    <span class="dose-value" id="doseValue">1</span>
-                    <button class="dose-btn" onclick="changeDose(0.5)">+</button>
-                </div>
+            <div class="pill-form-label">Odmerek</div>
+            <div class="pill-templates" id="pillDoseChips">
+                <button class="pill-template" onclick="selectDoseChip(this, 0.5)">½ tablete</button>
+                <button class="pill-template selected" onclick="selectDoseChip(this, 1)">1 tableta</button>
+                <button class="pill-template" onclick="selectDoseChip(this, 2)">2 tableti</button>
             </div>
             <div class="pill-actions">
                 <button class="pill-save" onclick="savePill()">Shrani</button>
@@ -2032,9 +2030,10 @@ function selectCustomPill() {
     selectedPillTemplate = '__custom__';
 }
 
-function changeDose(delta) {
-    currentDose = Math.max(0.5, currentDose + delta);
-    document.getElementById('doseValue').textContent = currentDose % 1 === 0 ? currentDose : currentDose.toFixed(1);
+function selectDoseChip(el, val) {
+    document.querySelectorAll('#pillDoseChips .pill-template').forEach(c => c.classList.remove('selected'));
+    el.classList.add('selected');
+    currentDose = val;
 }
 
 function openPillDialog() {
@@ -2042,7 +2041,7 @@ function openPillDialog() {
     document.getElementById('pillDialog').classList.remove('hidden');
     selectedPillTemplate = null;
     currentDose = 1;
-    document.getElementById('doseValue').textContent = '1';
+    document.querySelectorAll('#pillDoseChips .pill-template').forEach((c, i) => c.classList.toggle('selected', i === 1));
     renderPillTemplates();
     // Auto-select first button template if available
     const firstBtn = document.querySelector('.pill-template:not(.pill-custom-input)');
