@@ -395,6 +395,17 @@ body {
     margin-top: 2px;
 }
 
+.avg-hint {
+    text-align: center;
+    font-size: 11px;
+    color: #C0C5CC;
+    margin-top: -38px;
+    margin-bottom: 6px;
+    pointer-events: none;
+}
+
+.avg-hint.hidden { display: none; }
+
 .entry-avg.empty {
     color: #C0C5CC;
     font-size: 10px;
@@ -1540,23 +1551,24 @@ body {
                     <input type="number" class="entry-input" id="s1" placeholder="&#8211;" inputmode="numeric" oninput="onMeasInput(this)">
                     <input type="number" class="entry-input" id="s2" placeholder="&#8211;" inputmode="numeric" oninput="onMeasInput(this)">
                     <input type="number" class="entry-input" id="s3" placeholder="&#8211;" inputmode="numeric" oninput="onMeasInput(this)">
-                    <div class="entry-avg empty" id="avgS">&#9679;</div>
+                    <div class="entry-avg empty" id="avgS"></div>
                 </div>
                 <div class="entry-col">
                     <span class="entry-col-label">Diastolicni</span>
                     <input type="number" class="entry-input" id="d1" placeholder="&#8211;" inputmode="numeric" oninput="onMeasInput(this)">
                     <input type="number" class="entry-input" id="d2" placeholder="&#8211;" inputmode="numeric" oninput="onMeasInput(this)">
                     <input type="number" class="entry-input" id="d3" placeholder="&#8211;" inputmode="numeric" oninput="onMeasInput(this)">
-                    <div class="entry-avg empty" id="avgD">&#9679;</div>
+                    <div class="entry-avg empty" id="avgD"></div>
                 </div>
                 <div class="entry-col">
                     <span class="entry-col-label">Pulz</span>
                     <input type="number" class="entry-input" id="p1" placeholder="&#8211;" inputmode="numeric" oninput="onMeasInput(this)">
                     <input type="number" class="entry-input" id="p2" placeholder="&#8211;" inputmode="numeric" oninput="onMeasInput(this)">
                     <input type="number" class="entry-input" id="p3" placeholder="&#8211;" inputmode="numeric" oninput="onMeasInput(this)">
-                    <div class="entry-avg empty" id="avgP">&#9679;</div>
+                    <div class="entry-avg empty" id="avgP"></div>
                 </div>
             </div>
+            <div class="avg-hint" id="avgHint">Povprecje se izracuna samodejno</div>
             <div class="save-row">
                 <div class="tag-popover hidden" id="tagPopover">
                     <button class="tag-popover-close" onclick="closeTagSheet()">&times;</button>
@@ -2345,12 +2357,14 @@ function computeAvg() {
     const d = dVals.length ? avg(dVals) : null;
     const p = pVals.length ? avg(pVals) : null;
 
-    avgS.textContent = s !== null ? s : '\u25CF';
+    avgS.textContent = s !== null ? s : '';
     avgS.className = s !== null ? 'entry-avg' : 'entry-avg empty';
-    avgD.textContent = d !== null ? d : '\u25CF';
+    avgD.textContent = d !== null ? d : '';
     avgD.className = d !== null ? 'entry-avg' : 'entry-avg empty';
-    avgP.textContent = p !== null ? p : '\u25CF';
+    avgP.textContent = p !== null ? p : '';
     avgP.className = p !== null ? 'entry-avg' : 'entry-avg empty';
+    const hint = document.getElementById('avgHint');
+    if (hint) hint.classList.toggle('hidden', !!(s || d || p));
 
     // Need at least one systolic AND one diastolic to save
     btn.disabled = !(s && d);
@@ -2426,9 +2440,10 @@ function saveEntry() {
         btn.disabled = true;
         document.querySelectorAll('.entry-input').forEach(i => i.value = '');
         [avgS, avgD, avgP].forEach(el => { el.style.color = ''; el.style.background = ''; });
-        avgS.textContent = '\u25CF'; avgS.className = 'entry-avg empty';
-        avgD.textContent = '\u25CF'; avgD.className = 'entry-avg empty';
-        avgP.textContent = '\u25CF'; avgP.className = 'entry-avg empty';
+        avgS.textContent = ''; avgS.className = 'entry-avg empty';
+        avgD.textContent = ''; avgD.className = 'entry-avg empty';
+        avgP.textContent = ''; avgP.className = 'entry-avg empty';
+        document.getElementById('avgHint').classList.remove('hidden');
         document.getElementById('feedback').textContent = '';
         selectedTags = []; renderTags(); updateTagToggle();
         hideEntryForm();
