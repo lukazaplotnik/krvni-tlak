@@ -102,15 +102,14 @@ body {
 .back-btn {
     background: none;
     border: none;
-    color: var(--primary);
-    font-size: 13px;
-    font-weight: 500;
+    color: #C0C5CC;
+    font-size: 20px;
     cursor: pointer;
     padding: 0;
-    margin-bottom: 8px;
+    margin-bottom: 6px;
 }
 
-.back-btn:active { opacity: 0.6; }
+.back-btn:active { color: var(--primary); }
 
 .nova-btn:hover { background: var(--primary-dark); }
 .nova-btn:active { transform: scale(0.98); }
@@ -1513,7 +1512,7 @@ body {
 
         <!-- PILL DIALOG -->
         <div class="pill-dialog hidden" id="pillDialog">
-            <button class="back-btn" onclick="closePillDialog()">Nazaj</button>
+            <button class="back-btn" onclick="closePillDialog()">&#8249;</button>
             <div class="pill-form-label">Zdravilo</div>
             <div id="pillTemplates" class="pill-templates"></div>
             <div class="pill-form-label">Odmerek</div>
@@ -1527,7 +1526,7 @@ body {
             </div>
         </div>
         <div class="entry-section hidden" id="entrySection">
-            <button class="back-btn" onclick="hideEntryForm()">Nazaj</button>
+            <button class="back-btn" onclick="hideEntryForm()">&#8249;</button>
             <div class="entry-cols">
                 <div class="entry-col">
                     <span class="entry-col-label">Sistolicni</span>
