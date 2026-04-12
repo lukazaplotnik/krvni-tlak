@@ -2579,11 +2579,21 @@ function _getMorningEveningStats(days) {
 
 function _getExportData(days) {
     const readings = days ? Store.getReadings(days) : Store.getReadings();
-    if (!readings.length) { alert('Ni meritev za izvoz.'); return null; }
-    return readings.map(r => {
+    const allDoses = Store._get('extra_doses');
+    const since = days ? new Date(Date.now() - days * 86400000) : null;
+    const doses = since ? allDoses.filter(d => new Date(d.taken_at) >= since) : allDoses;
+
+    if (!readings.length && !doses.length) { alert('Ni meritev za izvoz.'); return null; }
+
+    // Merge into unified timeline
+    const timeline = [];
+    readings.forEach(r => {
         const d = new Date(r.measured_at);
         const bp = classifyBP(r.systolic, r.diastolic);
-        return {
+        timeline.push({
+            _ts: r.measured_at,
+            _type: 'bp',
+            _cls: bp.cls,
             Datum: d.toLocaleDateString('sl-SI'),
             Cas: d.toLocaleTimeString('sl-SI', { hour: '2-digit', minute: '2-digit' }),
             Sistolicni: r.systolic,
@@ -2591,8 +2601,26 @@ function _getExportData(days) {
             Pulz: r.pulse || '',
             Ocena: bp.label,
             Oznake: (r.tags || []).join(', '),
-            _cls: bp.cls,
-        };
+        });
+    });
+    doses.forEach(p => {
+        const d = new Date(p.taken_at);
+        const doseLabel = p.dose === 0.5 ? '½' : p.dose === 1 ? '1' : String(p.dose);
+        timeline.push({
+            _ts: p.taken_at,
+            _type: 'pill',
+            _cls: null,
+            Datum: d.toLocaleDateString('sl-SI'),
+            Cas: d.toLocaleTimeString('sl-SI', { hour: '2-digit', minute: '2-digit' }),
+            Sistolicni: '',
+            Diastolicni: '',
+            Pulz: '',
+            Ocena: 'Dodatno zdravilo',
+            Oznake: p.name + ' (' + doseLabel + ')',
+        });
+    });
+    timeline.sort((a, b) => new Date(a._ts) - new Date(b._ts));
+    return timeline;
     });
 }
 
@@ -2601,7 +2629,7 @@ function exportXlsx(days) {
     if (!data) return;
 
     // Remove _cls before creating sheet
-    const sheetData = data.map(({ _cls, ...rest }) => rest);
+    const sheetData = data.map(({ _cls, _ts, _type, ...rest }) => rest);
     const ws = XLSX.utils.json_to_sheet(sheetData);
 
     // Color the Ocena column (F) based on rating
@@ -2700,6 +2728,21 @@ function exportPdf(days, patientName, patientBirth) {
     }
     if (me.evening.count) {
         doc.text(`Vecer (${me.evening.count}x): ${me.evening.sys}/${me.evening.dia} mmHg` + (me.evening.pulse ? `, pulz ${me.evening.pulse}` : ''), 14, y); y += 6;
+    }
+
+    // Standard medications reference
+    const stdMeds = Store._get('standard_meds');
+    if (stdMeds.length) {
+        y += 4;
+        doc.setFontSize(11);
+        doc.setTextColor(0);
+        doc.text('Redna zdravila', 14, y); y += 6;
+        doc.setFontSize(9);
+        doc.setTextColor(107, 114, 128);
+        stdMeds.forEach(m => {
+            doc.text(`${m.name}${m.dosage ? ' ' + m.dosage : ''}${m.frequency ? ' — ' + m.frequency : ''}`, 14, y); y += 5;
+        });
+        y += 2;
     }
 
     // Table
