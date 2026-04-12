@@ -77,6 +77,7 @@ body {
     display: flex;
     gap: 8px;
     margin-bottom: 20px;
+    animation: slideDown 0.3s ease-out;
 }
 
 .nova-btn {
@@ -323,6 +324,15 @@ body {
 }
 
 /* ENTRY */
+.entry-section, .pill-dialog {
+    animation: slideDown 0.3s ease-out;
+}
+
+@keyframes slideDown {
+    from { opacity: 0; transform: translateY(-10px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
 .entry-section {
     background: var(--card);
     border-radius: var(--radius);
