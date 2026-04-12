@@ -2481,7 +2481,7 @@ function renderHistory() {
             const r = entry.data;
             const bp = classifyBP(r.systolic, r.diastolic);
             const date = new Date(r.measured_at);
-            const time = date.toLocaleDateString('sl-SI', { day: 'numeric', month: 'short' })
+            const time = date.toLocaleDateString('sl-SI', { weekday: 'short', day: 'numeric', month: 'short' })
                 + ' ' + date.toLocaleTimeString('sl-SI', { hour: '2-digit', minute: '2-digit' });
             const pulse = r.pulse ? `<span class="pulse-val">&hearts; ${r.pulse}</span>` : '';
             const timeEmoji = new Date(r.measured_at).getHours() < 12 ? 'Jutro' : 'Vecer';
@@ -2511,7 +2511,7 @@ function renderHistory() {
         } else {
             const d = entry.data;
             const date = new Date(d.taken_at);
-            const time = date.toLocaleDateString('sl-SI', { day: 'numeric', month: 'short' })
+            const time = date.toLocaleDateString('sl-SI', { weekday: 'short', day: 'numeric', month: 'short' })
                 + ' ' + date.toLocaleTimeString('sl-SI', { hour: '2-digit', minute: '2-digit' });
             const doseNum = d.dose || 1;
             const doseLabel = doseNum === 0.5 ? '½ tablete' : doseNum === 1 ? '1 tableta' : doseNum + ' tableti';
