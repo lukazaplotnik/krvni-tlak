@@ -254,7 +254,7 @@ body {
     cursor: text;
 }
 
-.pill-custom-input::placeholder { color: #D0D5DD; }
+.pill-custom-input::placeholder { color: #A8B0BC; }
 .pill-custom-input:focus::placeholder { color: transparent; }
 .pill-custom-input:focus, .pill-custom-input.selected {
     background: rgba(74,144,217,0.12);
@@ -2094,7 +2094,7 @@ function renderPillTemplates() {
     const chips = meds.map(m => {
         return `<button class="pill-template" onclick="selectPillTemplate(this, '${m.name}')">${m.name}</button>`;
     });
-    const customPlaceholder = '+ Vnesi zdravilo...';
+    const customPlaceholder = '+ Vnesi drugo...';
     chips.push(`<input type="text" class="pill-template pill-custom-input" id="pillCustomInline" placeholder="${customPlaceholder}" onfocus="selectCustomPill()" oninput="selectedPillTemplate='__custom__'; this.classList.toggle('selected', this.value.length > 0)" autocomplete="off">`);
     el.innerHTML = chips.join('');
 }
