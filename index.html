@@ -2909,14 +2909,14 @@ function renderBPChart(readings) {
             data: readings.map(r => ({ x: new Date(r.measured_at), y: r.systolic })),
             borderColor: '#2C5F8A', backgroundColor: 'rgba(44,95,138,0.06)',
             fill: true, cubicInterpolationMode: 'monotone', pointRadius: pr, pointBackgroundColor: '#2C5F8A',
-            borderWidth: 2, yAxisID: 'y', pointHitRadius: 8, pointStyle: 'line',
+            borderWidth: 2, yAxisID: 'y', pointHitRadius: 8,
         },
         {
             label: 'Diastolicni',
             data: readings.map(r => ({ x: new Date(r.measured_at), y: r.diastolic })),
             borderColor: '#85B8E0', backgroundColor: 'rgba(133,184,224,0.06)',
             fill: true, cubicInterpolationMode: 'monotone', pointRadius: pr, pointBackgroundColor: '#85B8E0',
-            borderWidth: 2, yAxisID: 'y', pointHitRadius: 8, pointStyle: 'line',
+            borderWidth: 2, yAxisID: 'y', pointHitRadius: 8,
         }
     ];
     if (readings.some(r => r.pulse)) {
@@ -2925,7 +2925,7 @@ function renderBPChart(readings) {
             data: readings.filter(r => r.pulse).map(r => ({ x: new Date(r.measured_at), y: r.pulse })),
             borderColor: 'rgba(160,165,175,0.4)', backgroundColor: 'transparent',
             fill: false, cubicInterpolationMode: 'monotone', pointRadius: pr, pointBackgroundColor: 'rgba(160,165,175,0.4)', pointHitRadius: 8,
-            borderWidth: 1.5, pointStyle: 'line',
+            borderWidth: 1.5,
             yAxisID: 'y',
         });
     }
@@ -2962,7 +2962,7 @@ function renderBPChart(readings) {
         data: { datasets },
         options: {
             responsive: true, maintainAspectRatio: false,
-            plugins: { legend: { position: 'bottom', labels: { usePointStyle: true } } },
+            plugins: { legend: { position: 'bottom', labels: { usePointStyle: true, pointStyle: (ctx) => ctx.dataset.type === 'scatter' ? 'circle' : 'line', boxWidth: 12, boxHeight: 8, padding: 14 } } },
             scales: {
                 y: { beginAtZero: false, min: 40, max: 200, grid: { color: 'rgba(0,0,0,0.05)' } },
                 x: { ...timeScale }
