@@ -2962,7 +2962,7 @@ function renderBPChart(readings) {
         data: { datasets },
         options: {
             responsive: true, maintainAspectRatio: false,
-            plugins: { legend: { position: 'bottom', labels: { padding: 14, usePointStyle: true, generateLabels: (chart) => chart.data.datasets.map((ds, i) => ({ text: ds.label, fillStyle: ds.borderColor || ds.pointBackgroundColor, strokeStyle: ds.borderColor || ds.pointBorderColor, lineWidth: ds.type === 'scatter' ? 0 : 2, pointStyle: ds.type === 'scatter' ? 'rect' : 'line', rotation: 0, datasetIndex: i, hidden: !chart.isDatasetVisible(i) })) } } },
+            plugins: { legend: { position: 'bottom', labels: { padding: 14, usePointStyle: true, boxWidth: 8, boxHeight: 8, generateLabels: (chart) => chart.data.datasets.map((ds, i) => ({ text: ds.label, fillStyle: ds.borderColor || ds.pointBackgroundColor, strokeStyle: ds.borderColor || ds.pointBorderColor, lineWidth: ds.type === 'scatter' ? 0 : 3, pointStyle: ds.type === 'scatter' ? 'rect' : 'line', datasetIndex: i, hidden: !chart.isDatasetVisible(i) })) } } },
             scales: {
                 y: { beginAtZero: false, min: 40, max: 200, grid: { color: 'rgba(0,0,0,0.05)' } },
                 x: { ...timeScale }
