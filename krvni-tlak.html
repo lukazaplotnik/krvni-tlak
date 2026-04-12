@@ -650,30 +650,22 @@ body {
     color: #C0C5CC;
 }
 
-.avg-data-nums {
+.avg-data-reading {
     display: flex;
-    flex: 1;
-    justify-content: flex-end;
-    gap: 16px;
+    align-items: baseline;
+    gap: 8px;
+    margin-left: auto;
 }
 
-.avg-data-num {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    min-width: 40px;
-}
-
-.avg-data-val {
+.avg-data-bp {
     font-size: 20px;
     font-weight: 700;
     color: var(--text);
 }
 
-.avg-data-unit {
-    font-size: 10px;
-    color: #C0C5CC;
-    margin-top: 1px;
+.avg-data-pulse {
+    font-size: 13px;
+    color: var(--text2);
 }
 
 
@@ -2745,10 +2737,9 @@ function loadDashboard() {
     const avgRow = (label, s, d, p, count) => `
         <div class="avg-data-row">
             <div class="avg-data-label">${label}${count ? ' <span class="avg-data-count">(' + count + ')</span>' : ''}</div>
-            <div class="avg-data-nums">
-                <div class="avg-data-num"><span class="avg-data-val">${s}</span><span class="avg-data-unit">sis</span></div>
-                <div class="avg-data-num"><span class="avg-data-val">${d}</span><span class="avg-data-unit">dia</span></div>
-                <div class="avg-data-num"><span class="avg-data-val">${p || '—'}</span><span class="avg-data-unit">♥</span></div>
+            <div class="avg-data-reading">
+                <span class="avg-data-bp">${s}/${d}</span>
+                ${p ? '<span class="avg-data-pulse">&hearts; ' + p + '</span>' : ''}
             </div>
         </div>`;
 
