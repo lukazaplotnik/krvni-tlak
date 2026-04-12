@@ -2484,7 +2484,7 @@ function renderHistory() {
             const time = date.toLocaleDateString('sl-SI', { day: 'numeric', month: 'short' })
                 + ' ' + date.toLocaleTimeString('sl-SI', { hour: '2-digit', minute: '2-digit' });
             const pulse = r.pulse ? `<span class="pulse-val">&hearts; ${r.pulse}</span>` : '';
-            const timeEmoji = new Date(r.measured_at).getHours() < 12 ? '🥐 Jutro' : '🌙 Vecer';
+            const timeEmoji = new Date(r.measured_at).getHours() < 12 ? 'Jutro' : 'Vecer';
             const userTags = (r.tags && r.tags.length) ? r.tags.map(t => `<span class="history-tag">${t}</span>`).join('') : '';
             const tagChips = `<span class="history-tag">${timeEmoji}</span>${userTags}`;
             return `
@@ -2879,8 +2879,8 @@ function loadDashboard() {
         <div class="avg-bar">
             <h3>Povprecje</h3>
             ${avgRow('Skupno', Math.round(stats.avg_systolic), Math.round(stats.avg_diastolic), stats.avg_pulse ? Math.round(stats.avg_pulse) : null, stats.count)}
-            ${avgRow('🥐 Jutro', me.morning.sys || '—', me.morning.dia || '—', me.morning.pulse, me.morning.count)}
-            ${avgRow('🌙 Vecer', me.evening.sys || '—', me.evening.dia || '—', me.evening.pulse, me.evening.count)}
+            ${avgRow('Jutro', me.morning.sys || '—', me.morning.dia || '—', me.morning.pulse, me.morning.count)}
+            ${avgRow('Vecer', me.evening.sys || '—', me.evening.dia || '—', me.evening.pulse, me.evening.count)}
         </div>
         <div class="chart-card">
             <h3>Meritve skozi cas</h3>
@@ -2995,7 +2995,7 @@ function renderMorningEveningChart(readings) {
         return Math.round(Math.sqrt(arr.reduce((a, v) => a + (v - m) ** 2, 0) / arr.length));
     };
 
-    const labels = ['🥐 Jutro', '🌙 Vecer'];
+    const labels = ['Jutro', 'Vecer'];
     const sysAvgs = [avg(morning.sys), avg(evening.sys)];
     const diaAvgs = [avg(morning.dia), avg(evening.dia)];
     const sysStds = [std(morning.sys), std(evening.sys)];
