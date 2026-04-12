@@ -2795,6 +2795,7 @@ function destroyCharts() {
 const timeScale = {
     type: 'time',
     time: { tooltipFormat: 'd. MMM, HH:mm', unit: 'day', displayFormats: { day: 'd. MMM', week: 'd. MMM', month: 'MMM yyyy' } },
+    max: new Date(Date.now() + 86400000),
     grid: { color: 'rgba(0,0,0,0.03)' }, ticks: { maxTicksLimit: 8, autoSkip: false, font: { size: 10 } }
 };
 
