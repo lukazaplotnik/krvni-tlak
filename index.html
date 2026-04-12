@@ -2018,11 +2018,11 @@ function renderPillTemplates() {
 }
 
 function selectPillTemplate(el, name) {
-    document.querySelectorAll('.pill-template').forEach(t => t.classList.remove('selected'));
+    document.querySelectorAll('#pillTemplates .pill-template').forEach(t => t.classList.remove('selected'));
     el.classList.add('selected');
     selectedPillTemplate = name;
     const inline = document.getElementById('pillCustomInline');
-    if (inline) inline.value = '';
+    if (inline && name !== '__custom__') inline.value = '';
 }
 
 function selectCustomPill() {
@@ -2040,12 +2040,13 @@ function openPillDialog() {
     document.querySelector('.action-buttons').classList.add('hidden');
     document.getElementById('pillDialog').classList.remove('hidden');
     selectedPillTemplate = null;
-    currentDose = 1;
-    document.querySelectorAll('#pillDoseChips .pill-template').forEach((c, i) => c.classList.toggle('selected', i === 1));
     renderPillTemplates();
     // Auto-select first button template if available
-    const firstBtn = document.querySelector('.pill-template:not(.pill-custom-input)');
+    const firstBtn = document.querySelector('#pillTemplates .pill-template:not(.pill-custom-input)');
     if (firstBtn) firstBtn.click();
+    // Reset dose
+    currentDose = 1;
+    document.querySelectorAll('#pillDoseChips .pill-template').forEach((c, i) => c.classList.toggle('selected', i === 1));
 }
 
 function closePillDialog() {
