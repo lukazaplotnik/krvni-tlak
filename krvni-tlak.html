@@ -395,12 +395,16 @@ body {
     margin-top: 2px;
 }
 
+.entry-cols { position: relative; }
+
 .avg-hint {
+    position: absolute;
+    bottom: 10px;
+    left: 0;
+    right: 0;
     text-align: center;
     font-size: 11px;
     color: #C0C5CC;
-    margin-top: -38px;
-    margin-bottom: 6px;
     pointer-events: none;
 }
 
@@ -1567,8 +1571,8 @@ body {
                     <input type="number" class="entry-input" id="p3" placeholder="&#8211;" inputmode="numeric" oninput="onMeasInput(this)">
                     <div class="entry-avg empty" id="avgP"></div>
                 </div>
+                <div class="avg-hint" id="avgHint">Povprecje se izracuna samodejno</div>
             </div>
-            <div class="avg-hint" id="avgHint">Povprecje se izracuna samodejno</div>
             <div class="save-row">
                 <div class="tag-popover hidden" id="tagPopover">
                     <button class="tag-popover-close" onclick="closeTagSheet()">&times;</button>
