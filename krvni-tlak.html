@@ -254,7 +254,7 @@ body {
     cursor: text;
 }
 
-.pill-custom-input:focus {
+.pill-custom-input:focus, .pill-custom-input.selected {
     background: rgba(74,144,217,0.12);
     color: var(--primary);
 }
@@ -2093,7 +2093,7 @@ function renderPillTemplates() {
         return `<button class="pill-template" onclick="selectPillTemplate(this, '${m.name}')">${m.name}</button>`;
     });
     const customPlaceholder = meds.length ? 'Drugo...' : 'Vnesi zdravilo...';
-    chips.push(`<input type="text" class="pill-template pill-custom-input" id="pillCustomInline" placeholder="${customPlaceholder}" onfocus="selectCustomPill()" oninput="selectedPillTemplate='__custom__'" autocomplete="off">`);
+    chips.push(`<input type="text" class="pill-template pill-custom-input" id="pillCustomInline" placeholder="${customPlaceholder}" onfocus="selectCustomPill()" oninput="selectedPillTemplate='__custom__'; this.classList.toggle('selected', this.value.length > 0)" autocomplete="off">`);
     el.innerHTML = chips.join('');
 }
 
