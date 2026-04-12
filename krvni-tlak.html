@@ -2935,21 +2935,24 @@ function renderBPChart(readings) {
     const since = days ? new Date(Date.now() - days * 86400000) : null;
     const doses = since ? allDoses.filter(d => new Date(d.taken_at) >= since) : allDoses;
     if (doses.length) {
+        const pillIcon = (() => {
+            const c = document.createElement('canvas');
+            c.width = 16; c.height = 16;
+            const x = c.getContext('2d');
+            x.font = '14px sans-serif';
+            x.textAlign = 'center';
+            x.textBaseline = 'middle';
+            x.fillText('💊', 8, 9);
+            return c;
+        })();
         datasets.push({
             label: 'Zdravila',
             data: doses.map(d => ({ x: new Date(d.taken_at), y: 45 })),
             type: 'scatter',
-            pointRadius: 5,
-            pointBackgroundColor: 'rgba(155,127,212,0.5)',
-            pointBorderColor: 'rgba(155,127,212,0.8)',
-            pointBorderWidth: 1,
-            pointStyle: 'triangle',
+            pointRadius: 8,
+            pointHoverRadius: 10,
+            pointStyle: pillIcon,
             yAxisID: 'y',
-            tooltip: {
-                callbacks: {
-                    label: (ctx) => doses[ctx.dataIndex]?.name || 'Zdravilo'
-                }
-            }
         });
     }
     charts.bp = new Chart(ctx, {
