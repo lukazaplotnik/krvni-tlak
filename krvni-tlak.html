@@ -134,6 +134,46 @@ body {
 .pill-btn:hover { background: var(--bg) !important; }
 .pill-btn svg { stroke: var(--text2) !important; }
 
+.med-form {
+    margin-top: 12px;
+    padding-top: 12px;
+    border-top: 1px solid var(--border);
+}
+
+.med-form-row {
+    display: flex;
+    gap: 6px;
+    margin-bottom: 6px;
+}
+
+.acc-select {
+    padding: 8px 10px;
+    border: 2px solid var(--border);
+    border-radius: 8px;
+    font-size: 13px;
+    color: var(--text);
+    background: var(--card);
+    outline: none;
+    flex: 1;
+}
+
+.acc-select:focus { border-color: var(--primary); }
+
+.med-add-btn {
+    width: 100%;
+    padding: 10px;
+    background: var(--primary);
+    color: white;
+    border: none;
+    border-radius: 10px;
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+    margin-top: 6px;
+}
+
+.med-add-btn:active { transform: scale(0.98); }
+
 .pill-dialog {
     background: var(--card);
     border-radius: var(--radius);
@@ -1384,16 +1424,26 @@ body {
         <!-- REDNA ZDRAVILA -->
         <div class="accordion">
             <button class="accordion-header" onclick="toggleAccordion(this)">
-                <span>💊</span>
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10.5 1.5H8.25A2.25 2.25 0 0 0 6 3.75v16.5a2.25 2.25 0 0 0 2.25 2.25h7.5A2.25 2.25 0 0 0 18 20.25V3.75a2.25 2.25 0 0 0-2.25-2.25H13.5m-3 0V3h3V1.5m-3 0h3m-6 9h6m-6 4h6"/></svg>
                 Redna zdravila
                 <span class="chevron">&#8250;</span>
             </button>
             <div class="accordion-body">
                 <div id="standardMedsList"></div>
-                <div style="display:flex;gap:6px;margin-top:8px">
-                    <input type="text" class="acc-input" id="newMedName" placeholder="Ime zdravila" style="margin:0;flex:1">
-                    <input type="text" class="acc-input" id="newMedDose" placeholder="Odmerek" style="margin:0;width:70px">
-                    <button onclick="addStandardMed()" style="background:var(--primary);color:white;border:none;border-radius:8px;padding:8px 12px;font-size:12px;font-weight:600;cursor:pointer;white-space:nowrap">Dodaj</button>
+                <div class="med-form">
+                    <div class="med-form-row">
+                        <input type="text" class="acc-input" id="newMedName" placeholder="Ime zdravila" style="margin:0;flex:1">
+                    </div>
+                    <div class="med-form-row">
+                        <input type="text" class="acc-input" id="newMedDose" placeholder="Odmerek (mg)" inputmode="numeric" style="margin:0;flex:1">
+                        <select class="acc-select" id="newMedFreq">
+                            <option value="1x dnevno">1x dnevno</option>
+                            <option value="2x dnevno">2x dnevno</option>
+                            <option value="3x dnevno">3x dnevno</option>
+                            <option value="po potrebi">Po potrebi</option>
+                        </select>
+                    </div>
+                    <button class="med-add-btn" onclick="addStandardMed()">Dodaj zdravilo</button>
                 </div>
             </div>
         </div>
@@ -2007,12 +2057,14 @@ function deletePill(pillId) {
 function addStandardMed() {
     const name = document.getElementById('newMedName').value.trim();
     const dose = document.getElementById('newMedDose').value.trim();
+    const freq = document.getElementById('newMedFreq').value;
     if (!name) return;
     const meds = Store._get('standard_meds');
-    meds.push({ id: crypto.randomUUID(), name, dosage: dose });
+    meds.push({ id: crypto.randomUUID(), name, dosage: dose ? dose + ' mg' : '', frequency: freq });
     Store._set('standard_meds', meds);
     document.getElementById('newMedName').value = '';
     document.getElementById('newMedDose').value = '';
+    document.getElementById('newMedFreq').selectedIndex = 0;
     renderStandardMeds();
 }
 
@@ -2028,9 +2080,12 @@ function renderStandardMeds() {
     const meds = Store._get('standard_meds');
     if (!meds.length) { list.innerHTML = '<div style="font-size:12px;color:#C0C5CC;margin-bottom:6px">Ni dodanih zdravil</div>'; return; }
     list.innerHTML = meds.map(m => `
-        <div style="display:flex;align-items:center;justify-content:space-between;padding:6px 0;border-bottom:1px solid rgba(0,0,0,0.04)">
-            <span style="font-size:13px">${m.name}${m.dosage ? ' <span style="color:#B0B7C3">' + m.dosage + '</span>' : ''}</span>
-            <button onclick="removeStandardMed('${m.id}')" style="background:none;border:none;color:#C9CED6;font-size:16px;cursor:pointer">&times;</button>
+        <div style="display:flex;align-items:center;padding:8px 0;border-bottom:1px solid rgba(0,0,0,0.04);gap:8px">
+            <div style="flex:1">
+                <div style="font-size:13px;font-weight:600">${m.name}${m.dosage ? ' <span style="font-weight:400;color:#B0B7C3">' + m.dosage + '</span>' : ''}</div>
+                ${m.frequency ? '<div style="font-size:11px;color:#B0B7C3">' + m.frequency + '</div>' : ''}
+            </div>
+            <button onclick="removeStandardMed('${m.id}')" style="background:none;border:none;color:#C9CED6;font-size:16px;cursor:pointer;flex-shrink:0">&times;</button>
         </div>
     `).join('');
 }
