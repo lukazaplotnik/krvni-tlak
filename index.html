@@ -1727,6 +1727,45 @@ const Store = {
                     }
                 } catch (e) { break; }
             }
+            // 3. Process pill delete queue
+            const pillDeleteQueue = this._get('_pill_delete_queue');
+            if (pillDeleteQueue.length) {
+                const remaining = [];
+                for (const cloudId of pillDeleteQueue) {
+                    try {
+                        const { error } = await this._withTimeout(
+                            sb.from('extra_doses').delete().eq('id', cloudId), 10000
+                        );
+                        if (error) remaining.push(cloudId);
+                    } catch (e) { remaining.push(cloudId); break; }
+                }
+                this._set('_pill_delete_queue', remaining);
+            }
+
+            // 4. Push unsynced pills
+            const doses = this._get('extra_doses');
+            const unsyncedDoses = doses.filter(d => !d.cloud_id);
+            for (const d of unsyncedDoses) {
+                try {
+                    const { data, error } = await this._withTimeout(
+                        sb.from('extra_doses').insert({
+                            user_id: user.id,
+                            name: d.name,
+                            dose: d.dose,
+                            taken_at: d.taken_at,
+                        }).select('id').single(), 10000
+                    );
+
+                    if (error) break;
+
+                    const fresh = this._get('extra_doses');
+                    const match = fresh.find(x => x.id === d.id);
+                    if (match) {
+                        match.cloud_id = data.id;
+                        this._set('extra_doses', fresh);
+                    }
+                } catch (e) { break; }
+            }
         } catch (e) {
             // offline or error — will retry
         } finally {
@@ -1780,6 +1819,43 @@ const Store = {
 
             merged.sort((a, b) => new Date(a.measured_at) - new Date(b.measured_at));
             this._set('readings', merged);
+
+            // Pull pills from cloud
+            const localDoses = this._get('extra_doses');
+            const unsyncedDoses = localDoses.filter(d => !d.cloud_id);
+
+            const { data: cloudDoses, error: doseError } = await this._withTimeout(
+                sb.from('extra_doses')
+                    .select('*')
+                    .eq('user_id', user.id)
+                    .order('taken_at', { ascending: true }),
+                10000
+            );
+
+            if (!doseError && cloudDoses) {
+                const localDoseByCloudId = {};
+                localDoses.forEach(d => { if (d.cloud_id) localDoseByCloudId[d.cloud_id] = d; });
+
+                const mergedDoses = cloudDoses.map(d => ({
+                    id: localDoseByCloudId[d.id]?.id || crypto.randomUUID(),
+                    name: d.name,
+                    dose: d.dose,
+                    date: d.taken_at.slice(0, 10),
+                    taken_at: d.taken_at,
+                    cloud_id: d.id,
+                }));
+
+                const cloudDoseTimestamps = new Set(mergedDoses.map(d => d.taken_at));
+                for (const d of unsyncedDoses) {
+                    if (!cloudDoseTimestamps.has(d.taken_at)) {
+                        if (!d.id) d.id = crypto.randomUUID();
+                        mergedDoses.push(d);
+                    }
+                }
+
+                mergedDoses.sort((a, b) => new Date(a.taken_at) - new Date(b.taken_at));
+                this._set('extra_doses', mergedDoses);
+            }
         } catch (e) {
             // offline — use local data
         } finally {
@@ -2077,8 +2153,10 @@ function savePill() {
         dose: currentDose,
         date: now.toISOString().slice(0, 10),
         taken_at: now.toISOString(),
+        cloud_id: null,
     });
     Store._set('extra_doses', doses);
+    Store._scheduleSyncSoon();
     closePillDialog();
     renderHistory();
     // Highlight newest
@@ -2093,8 +2171,15 @@ function savePill() {
 function deletePill(pillId) {
     const doses = Store._get('extra_doses');
     const idx = doses.findIndex(d => d.id === pillId);
-    if (idx >= 0) doses.splice(idx, 1);
+    if (idx === -1) return;
+    const removed = doses.splice(idx, 1)[0];
     Store._set('extra_doses', doses);
+    if (removed.cloud_id) {
+        const q = Store._get('_pill_delete_queue');
+        q.push(removed.cloud_id);
+        Store._set('_pill_delete_queue', q);
+        Store._scheduleSyncSoon();
+    }
     renderHistory();
 }
 
