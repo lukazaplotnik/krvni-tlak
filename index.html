@@ -127,9 +127,7 @@ body {
 .pill-btn svg { stroke: var(--text2) !important; }
 
 .med-form {
-    margin-top: 12px;
-    padding-top: 12px;
-    border-top: 1px solid var(--border);
+    margin-bottom: 12px;
 }
 
 .med-form-row {
@@ -2198,12 +2196,12 @@ function renderStandardMeds() {
     const list = document.getElementById('standardMedsList');
     if (!list) return;
     const meds = Store._get('standard_meds');
-    if (!meds.length) { list.innerHTML = '<div style="font-size:12px;color:#C0C5CC;margin-bottom:6px">Ni dodanih zdravil</div>'; return; }
+    if (!meds.length) { list.innerHTML = '<div style="text-align:center;font-size:12px;color:#C0C5CC;padding:16px 0">Se nimate dodanih zdravil</div>'; return; }
     list.innerHTML = meds.map(m => `
-        <div style="display:flex;align-items:center;padding:8px 0;border-bottom:1px solid rgba(0,0,0,0.04);gap:8px">
+        <div style="display:flex;align-items:center;padding:10px 12px;background:var(--bg);border-radius:10px;margin-bottom:6px;gap:10px">
             <div style="flex:1">
                 <div style="font-size:13px;font-weight:600">${m.name}${m.dosage ? ' <span style="font-weight:400;color:#B0B7C3">' + m.dosage + '</span>' : ''}</div>
-                ${m.frequency ? '<div style="font-size:11px;color:#B0B7C3">' + m.frequency + '</div>' : ''}
+                ${m.frequency ? '<div style="font-size:11px;color:#B0B7C3;margin-top:2px">' + m.frequency + '</div>' : ''}
             </div>
             <button onclick="removeStandardMed('${m.id}')" style="background:none;border:none;color:#C9CED6;font-size:16px;cursor:pointer;flex-shrink:0">&times;</button>
         </div>
